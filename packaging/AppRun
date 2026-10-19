@@ -1,0 +1,27 @@
+#!/bin/sh
+set -eu
+ESTANTE_APPDIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+export ESTANTE_APPDIR
+# Save host values for games launched outside the bundle.
+export ESTANTE_HOST_PYTHONHOME="${PYTHONHOME-}"
+export ESTANTE_HOST_PYTHONPATH="${PYTHONPATH-}"
+export ESTANTE_HOST_GI_TYPELIB_PATH="${GI_TYPELIB_PATH-}"
+export ESTANTE_HOST_GIO_MODULE_DIR="${GIO_MODULE_DIR-}"
+export ESTANTE_HOST_GSETTINGS_SCHEMA_DIR="${GSETTINGS_SCHEMA_DIR-}"
+export ESTANTE_HOST_XDG_DATA_DIRS="${XDG_DATA_DIRS-}"
+export ESTANTE_HOST_FONTCONFIG_FILE="${FONTCONFIG_FILE-}"
+export ESTANTE_HOST_SSL_CERT_FILE="${SSL_CERT_FILE-}"
+export ESTANTE_HOST_GDK_PIXBUF_MODULE_FILE="${GDK_PIXBUF_MODULE_FILE-}"
+export ESTANTE_HOST_GDK_PIXBUF_MODULEDIR="${GDK_PIXBUF_MODULEDIR-}"
+export ESTANTE_HOST_GLYCIN_DATA_DIR="${GLYCIN_DATA_DIR-}"
+export ESTANTE_HOST_PATH="$PATH"
+export PYTHONHOME="$ESTANTE_APPDIR/usr"
+export PYTHONPATH="$ESTANTE_APPDIR/usr/lib/python$("$ESTANTE_APPDIR/usr/lib/ld-linux-x86-64.so.2" --library-path "$ESTANTE_APPDIR/usr/lib" "$ESTANTE_APPDIR/usr/bin/python3" -c 'import sys; print("%s.%s" % sys.version_info[:2])')/site-packages"
+export GI_TYPELIB_PATH="$ESTANTE_APPDIR/usr/lib/girepository-1.0"
+export GIO_MODULE_DIR="$ESTANTE_APPDIR/usr/lib/gio/modules"
+export GSETTINGS_SCHEMA_DIR="$ESTANTE_APPDIR/usr/share/glib-2.0/schemas"
+export XDG_DATA_DIRS="$ESTANTE_APPDIR/usr/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+export FONTCONFIG_FILE="$ESTANTE_APPDIR/etc/fonts/fonts.conf"
+export SSL_CERT_FILE="${SSL_CERT_FILE:-$ESTANTE_APPDIR/etc/ssl/cert.pem}"
+export PATH="$ESTANTE_APPDIR/usr/bin:$PATH"
+exec "$ESTANTE_APPDIR/usr/lib/ld-linux-x86-64.so.2" --library-path "$ESTANTE_APPDIR/usr/lib" "$ESTANTE_APPDIR/usr/bin/python3" "$ESTANTE_APPDIR/usr/share/estante/appimage-entry.py" "$@"

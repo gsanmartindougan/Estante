@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Estante
+Comment=Your game library
+Comment[es]=Tu biblioteca de juegos
+Exec=estante
+Icon=io.github.estante.Launcher
+Terminal=false
+Categories=Game;
+StartupNotify=true
+StartupWMClass=io.github.estante.Launcher

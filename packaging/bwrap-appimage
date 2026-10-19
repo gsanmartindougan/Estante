@@ -1,0 +1,6 @@
+#!/bin/sh
+# Preserve Glycin's sandbox while making bundled codecs and their loader visible.
+set -eu
+root=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
+exec "$root/usr/lib/ld-linux-x86-64.so.2" --library-path "$root/usr/lib" \
+    "$root/usr/bin/bwrap.bin" --ro-bind "$root" "$root" "$@"
