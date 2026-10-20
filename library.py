@@ -1,4 +1,5 @@
 """Local library, direct Faugus handoff and optional SteamGridDB artwork."""
+from steam_import import discover_steam, is_faugus_steam
 from i18n import tr
 import json
 import os
@@ -23,6 +24,7 @@ class Library:
         self.home = Path(home or Path.home())
         data = Path(os.environ.get('XDG_DATA_HOME', self.home / '.local/share'))
         config = Path(os.environ.get('XDG_CONFIG_HOME', self.home / '.config'))
+        self.steam_data = data
         self.root = Path(data_dir or data / 'estante')
         self.root.mkdir(parents=True, exist_ok=True)
         self.file = self.root / 'library.json'
@@ -33,6 +35,15 @@ class Library:
             (self.home / '.var/app/io.github.Faugus.faugus-launcher/data/faugus-launcher', 'flatpak'),
             (self.home / '.var/app/io.github.Faugus.faugus-launcher/config/faugus-launcher', 'flatpak'),
         ]
+        if 'faugus' not in self.state:
+            # Snapshot the legacy library once; new installations start unscanned.
+            self.state['faugus'] = self.discover_faugus() if self.file.exists() else []
+            self.save()
+        if not self.state.get('source_categories_initialized'):
+            self.assign_source_category([game for game in self.state['faugus'] if not is_faugus_steam(game)], 'Faugus')
+            self.assign_source_category(self.state.get('steam', []), 'Steam')
+            self.state['source_categories_initialized'] = True
+            self.save()
 
     def save(self):
         fd, name = tempfile.mkstemp(dir=self.root)
@@ -44,11 +55,11 @@ class Library:
             if os.path.exists(name):
                 os.unlink(name)
 
-    def games(self):
+    def discover_faugus(self):
         games, seen = [], set()
         for directory, install in self.sources:
             for row in read_json(directory / 'games.json', []):
-                if not isinstance(row, dict) or not row.get('gameid'):
+                if not isinstance(row, dict) or not row.get('gameid') or is_faugus_steam(row):
                     continue
                 identity = f"faugus:{install}:{row['gameid']}"
                 if identity in seen:
@@ -59,16 +70,61 @@ class Library:
                 if not cover.is_file():
                     cover = directory / 'covers' / f"{row['gameid']}.png"
                 game['cover'] = str(cover) if cover.is_file() else ''
-                game.update(self.state['overrides'].get(identity, {}))
                 if not game.get('hidden'):
                     games.append(game)
-        games.extend(dict(row) for row in self.state['games'])
         return sorted(games, key=lambda g: g['title'].casefold())
 
+    def scan_faugus(self):
+        excluded = set(self.state.get('excluded_imports', []))
+        discovered = [game for game in self.discover_faugus() if game['id'] not in excluded]
+        imported = {game['id']: game for game in self.state.get('faugus', []) if not is_faugus_steam(game)}
+        added = sum(game['id'] not in imported for game in discovered)
+        imported.update({game['id']: game for game in discovered})
+        self.state['faugus'] = list(imported.values())
+        self.assign_source_category(self.state['faugus'], 'Faugus')
+        self.save()
+        return added, len(discovered)
+
+    def assign_source_category(self, games, category):
+        if not games:
+            return
+        registered = self.state.setdefault('categories', [])
+        if category not in registered:
+            registered.append(category)
+        for game in games:
+            override = self.state['overrides'].setdefault(game['id'], {})
+            override['categories'] = list(dict.fromkeys([*override.get('categories', game.get('categories', [])), category]))
+
+    def scan_steam(self):
+        excluded = set(self.state.get('excluded_imports', []))
+        discovered = [game for game in discover_steam(self.home, self.steam_data) if game['id'] not in excluded]
+        imported = {game['id']: game for game in self.state.get('steam', [])}
+        added = sum(game['id'] not in imported for game in discovered)
+        imported.update({game['id']: game for game in discovered})
+        self.state['steam'] = list(imported.values())
+        self.assign_source_category(self.state['steam'], 'Steam')
+        self.save()
+        return added, len(discovered)
+
+    def games(self):
+        games = []
+        excluded = set(self.state.get('excluded_imports', []))
+        for row in self.state.get('faugus', []) + self.state.get('steam', []):
+            if row['id'] in excluded:
+                continue
+            if row['kind'] == 'faugus' and is_faugus_steam(row):
+                continue
+            game = dict(row)
+            game.update(self.state['overrides'].get(game['id'], {}))
+            if not game.get('hidden'):
+                games.append(game)
+        games.extend(dict(row) for row in self.state['games'])
+        return sorted(games, key=lambda game: game['title'].casefold())
+
     def put(self, game):
-        if game['kind'] == 'faugus':
+        if game['kind'] in ('faugus', 'steam'):
             self.state['overrides'][game['id']] = {
-                key: game[key] for key in ('cover', 'square_cover', 'banner', 'steamgriddb_id', 'metadata', 'categories') if key in game}
+                key: game[key] for key in ('cover', 'square_cover', 'logo', 'banner', 'banner_secondary', 'steamgriddb_id', 'metadata', 'categories') if key in game}
         else:
             self.state['games'] = [g for g in self.state['games'] if g['id'] != game['id']] + [game]
         self.save()
@@ -77,7 +133,9 @@ class Library:
         names = list(self.state.get('categories', []))
         for game in self.state['games'] + list(self.state['overrides'].values()):
             names.extend(game.get('categories', []))
-        return sorted(set(names), key=str.casefold)
+        available = set(names)
+        ordered = list(dict.fromkeys(name for name in self.state.get('category_order', []) if name in available))
+        return ordered + sorted(available - set(ordered), key=str.casefold)
 
     def manage_category(self, name, previous=None, delete=False):
         names = self.categories()
@@ -97,12 +155,63 @@ class Library:
                         for item in game['categories'] if not (delete and item == previous)))
         if not delete:
             names.append(name)
+        if previous is not None:
+            self.state['category_order'] = [name if item == previous else item
+                for item in self.state.get('category_order', []) if not (delete and item == previous)]
+            if self.state.get('primary_category') == previous:
+                self.state['primary_category'] = None if delete else name
         self.state['categories'] = sorted(names, key=str.casefold)
         self.save()
 
-    def remove(self, game):
-        self.state['games'] = [g for g in self.state['games'] if g['id'] != game['id']]
+    def primary_category(self):
+        name = self.state.get('primary_category')
+        return name if name in self.categories() else None
+
+    def set_primary_category(self, name):
+        if name is not None and name not in self.categories():
+            raise ValueError(tr('La categoría ya no existe.'))
+        self.state['primary_category'] = name
         self.save()
+
+    def move_category(self, name, step):
+        names = self.categories()
+        if name not in names:
+            raise ValueError(tr('La categoría ya no existe.'))
+        index = names.index(name)
+        destination = max(0, min(len(names) - 1, index + step))
+        names.insert(destination, names.pop(index))
+        self.state['category_order'] = names
+        self.save()
+
+    def set_category_games(self, name, identities):
+        if name not in self.categories():
+            raise ValueError(tr('La categoría ya no existe.'))
+        games = self.games()
+        selected = set(identities)
+        if selected - {game['id'] for game in games}:
+            raise ValueError(tr('El juego ya no existe.'))
+        for game in games:
+            categories = [item for item in game.get('categories', []) if item != name]
+            if game['id'] in selected:
+                categories.append(name)
+            if game['kind'] in ('faugus', 'steam'):
+                self.state['overrides'].setdefault(game['id'], {})['categories'] = categories
+            else:
+                next(row for row in self.state['games'] if row['id'] == game['id'])['categories'] = categories
+        self.save()
+
+    def remove(self, game):
+        if game['kind'] in ('faugus', 'steam'):
+            self.state['excluded_imports'] = sorted(set(self.state.get('excluded_imports', [])) | {game['id']})
+        else:
+            self.state['games'] = [g for g in self.state['games'] if g['id'] != game['id']]
+        self.save()
+
+    def restore_excluded_imports(self):
+        count = len(self.state.get('excluded_imports', []))
+        self.state['excluded_imports'] = []
+        self.save()
+        return count
 
     def record_session(self, game, seconds, started, exit_code):
         activity = self.state.setdefault('activity', {}).setdefault(game['id'], {})
@@ -142,6 +251,19 @@ class Library:
 
 
 def launch_command(game):
+    if game['kind'] == 'steam':
+        appid = str(game.get('steam_appid', ''))
+        if not appid.isdigit() or int(appid) <= 0:
+            raise ValueError(tr('Identificador de Steam no válido.'))
+        uri = 'steam://rungameid/' + appid
+        if game.get('install') == 'flatpak':
+            if not shutil.which('flatpak'):
+                raise ValueError(tr('No se encuentra Flatpak.'))
+            return ['flatpak', 'run', 'com.valvesoftware.Steam', uri], None
+        executable = shutil.which('steam')
+        if not executable:
+            raise ValueError(tr('No se encuentra Steam.'))
+        return [executable, uri], None
     if game['kind'] == 'faugus':
         if game['install'] == 'flatpak':
             if not shutil.which('flatpak'):
@@ -203,6 +325,18 @@ class SteamGridDB:
         dimensions = '512x512,1024x1024' if square else '600x900'
         return self.api(f'grids/game/{int(game_id)}?dimensions={dimensions}&types=static')
 
+    def logos(self, game_id):
+        return self.api(f'logos/game/{int(game_id)}?types=static')
+
+    def logo(self, game):
+        game_id = self.resolve_game_id(game)
+        if not game_id:
+            return None
+        images = self.logos(game_id)
+        if not images:
+            return None
+        return {'logo': self.download(images[0]['url']), 'steamgriddb_id': game_id}
+
     def heroes(self, game_id):
         return self.api(f'heroes/game/{int(game_id)}?types=static')
 
@@ -239,8 +373,6 @@ class SteamGridDB:
     def import_artwork(self, path):
         import hashlib
         content = Path(path).expanduser().read_bytes()
-        if len(content) > 15_000_000:
-            raise ValueError(tr('La imagen supera 15 MB.'))
         self.cache.mkdir(parents=True, exist_ok=True)
         target = self.cache / (hashlib.sha256(content).hexdigest() + '.img')
         target.write_bytes(content)
@@ -275,8 +407,6 @@ class SteamGridDB:
         target = self.cache / (hashlib.sha256(url.encode()).hexdigest() + '.img')
         if not target.exists():
             with urlopen(Request(url, headers={'User-Agent': 'Estante/0.1'}), timeout=20) as response:
-                content = response.read(15_000_001)
-            if len(content) > 15_000_000:
-                raise ValueError(tr('La imagen supera 15 MB.'))
+                content = response.read()
             target.write_bytes(content)
         return str(target)

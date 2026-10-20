@@ -15,6 +15,7 @@ class InstallTests(unittest.TestCase):
             command = [sys.executable, str(ROOT / 'install.py'), '--prefix', '/opt/Estante Test', '--destdir', directory]
             subprocess.run(command, check=True, capture_output=True)
             installed = stage / 'opt/Estante Test'
+            self.assertEqual(len(list((installed / 'share/estante/assets/backgrounds').glob('*'))), 6)
             launcher = installed / 'bin/estante'
             self.assertTrue(launcher.stat().st_mode & 0o111)
             self.assertIn("'/opt/Estante Test/share/estante/estante.py'", launcher.read_text())

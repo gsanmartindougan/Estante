@@ -4,6 +4,11 @@ from i18n import get_language
 import json
 from pathlib import Path
 import re
+import time
+import threading
+from email.utils import parsedate_to_datetime
+from urllib.error import HTTPError
+from version import __version__
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -11,10 +16,16 @@ from urllib.request import Request, urlopen
 class GameMetadata:
     GAME_TYPES = {'Q7889', 'Q60997816', 'Q96240590', 'Q209163', 'Q1066707'}
 
-    def __init__(self, cache):
+    _request_lock = threading.Lock()
+    _next_request_at = 0.0
+    REQUEST_INTERVAL = 1.1
+    MAX_ATTEMPTS = 4
+
+    def __init__(self, cache, on_wait=None):
         self.cache = Path(cache)
         self.language = get_language()
         self.class_parents = {}
+        self.on_wait = on_wait
 
     @staticmethod
     def references(entity, property_id):
@@ -24,16 +35,53 @@ class GameMetadata:
                 isinstance(row.get('mainsnak', {}).get('datavalue', {}).get('value'), dict) and
                 'id' in row['mainsnak']['datavalue']['value']}
 
+    @staticmethod
+    def retry_delay(value, attempt):
+        fallback = 5 * 2 ** attempt
+        if value:
+            try:
+                return max(fallback, float(value))
+            except (ValueError, TypeError):
+                try:
+                    return max(fallback, parsedate_to_datetime(value).timestamp() - time.time())
+                except (ValueError, TypeError, OverflowError):
+                    pass
+        return fallback
+
     def api(self, **params):
-        query = urlencode({'format': 'json', **params})
+        query = urlencode({'format': 'json', 'maxlag': 5, **params})
         request = Request('https://www.wikidata.org/w/api.php?' + query,
-                          headers={'User-Agent': 'Estante/0.1 (Linux game library; Wikidata metadata)',
+                          headers={'User-Agent': f'Estante/{__version__} (https://github.com/gsanmartindougan/Estante; Linux game library)',
                                    'Accept': 'application/json'})
-        with urlopen(request, timeout=20) as response:
-            result = json.load(response)
-        if 'error' in result:
-            raise ValueError(result['error'].get('info', tr('No se pudo consultar Wikidata.')))
-        return result
+        # All clients share the same gate, including manual metadata pickers.
+        with GameMetadata._request_lock:
+            for attempt in range(self.MAX_ATTEMPTS):
+                delay = max(0, GameMetadata._next_request_at - time.monotonic())
+                if delay:
+                    if self.on_wait and delay >= 2:
+                        self.on_wait(delay)
+                    time.sleep(delay)
+                GameMetadata._next_request_at = time.monotonic() + self.REQUEST_INTERVAL
+                retry_after = None
+                try:
+                    with urlopen(request, timeout=20) as response:
+                        result = json.load(response)
+                        retry_after = response.headers.get('Retry-After')
+                except HTTPError as error:
+                    if error.code not in (429, 503):
+                        raise
+                    retry_after = error.headers.get('Retry-After') if error.headers else None
+                    error.close()
+                else:
+                    error = result.get('error')
+                    if not error:
+                        return result
+                    if error.get('code') not in ('maxlag', 'ratelimited'):
+                        raise ValueError(error.get('info', tr('No se pudo consultar Wikidata.')))
+                delay = self.retry_delay(retry_after, attempt)
+                GameMetadata._next_request_at = time.monotonic() + delay
+                if attempt == self.MAX_ATTEMPTS - 1:
+                    raise ValueError(tr('Wikidata sigue limitando las consultas. Vuelve a intentarlo más tarde con «Completar datos faltantes».'))
 
     def search(self, title):
         result = self.api(action='wbsearchentities', search=title, language='en', uselang=self.language,

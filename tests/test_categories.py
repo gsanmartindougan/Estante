@@ -35,7 +35,7 @@ class CategoryTests(unittest.TestCase):
         self.assertTrue(Shelf.matches_game(shelf, {'title': 'Dark Souls'}))
 
     def test_triggers_cycle_and_wrap_in_all_appearances(self):
-        for mode in ('grid', 'carousel', 'ps5'):
+        for mode in ('grid', 'carousel', 'ps5', 'list'):
             shelf = SimpleNamespace(view_mode=mode, category_names=['Favoritos', 'Pendientes'],
                                     active_category=None, update_categories=Mock(), filter=Mock(),
                                     pages=Mock(), drawer=Mock(), tiles=lambda: [])

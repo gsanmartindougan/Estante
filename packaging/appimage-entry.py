@@ -74,6 +74,30 @@ if sys.argv[1:] == ['--self-test']:
         # The file path intentionally does not exist: reuse the decoded pixels.
         color = BlurredBackdrop.dominant_color('/unused/hero.img', texture)
         assert color.red > .9 and color.green > .5 and color.blue > .3
+    from backgrounds import BUNDLED_BACKGROUNDS, DEFAULT_BACKGROUND, resolve_background
+    from steam_import import read_vdf, is_faugus_steam
+    from scraping import scrape_game
+    from appearance import list_side_for
+    assert len(BUNDLED_BACKGROUNDS) == 6, 'Faltan fondos incluidos'
+    assert Path(resolve_background(DEFAULT_BACKGROUND)).is_relative_to(root), 'Fondo externo al AppImage'
+    for background in BUNDLED_BACKGROUNDS:
+        texture = Gdk.Texture.new_from_filename(str(background))
+        assert texture.get_width() > 0 and texture.get_height() > 0
+    assert is_faugus_steam({'runner': 'Steam'})
+    assert list_side_for({}) == 'left'
+    from backgrounds import paint_hero_pair
+    import cairo
+    first = Gdk.MemoryTexture.new(1, 1, Gdk.MemoryFormat.R8G8B8A8, GLib.Bytes.new(bytes((255, 0, 0, 255))), 4)
+    second = Gdk.MemoryTexture.new(1, 1, Gdk.MemoryFormat.R8G8B8A8, GLib.Bytes.new(bytes((0, 0, 255, 255))), 4)
+    for split in ('horizontal', 'vertical', 'diagonal'):
+        snapshot = Gtk.Snapshot.new()
+        paint_hero_pair(snapshot, (first, second), 120, 80, 'full', split)
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 120, 80)
+        snapshot.to_node().draw(cairo.Context(surface))
+        surface.flush()
+        pixels = surface.get_data()
+        assert tuple(pixels[10 * surface.get_stride() + 10 * 4:10 * surface.get_stride() + 10 * 4 + 4]) == (0, 0, 255, 255)
+        assert tuple(pixels[70 * surface.get_stride() + 110 * 4:70 * surface.get_stride() + 110 * 4 + 4]) == (255, 0, 0, 255)
     # Confirm critical libraries were loaded from the bundle, not the host.
     maps = Path('/proc/self/maps').read_text().splitlines()
     for name in ('libgtk-4.so', 'libadwaita-1.so', 'libgobject-2.0.so'):

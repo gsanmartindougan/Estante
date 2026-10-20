@@ -9,10 +9,11 @@ import subprocess
 import sys
 
 MODULES = ('estante.py', 'appearance.py', 'carousel.py', 'controls.py', 'library.py',
-           'metadata.py', 'settings_view.py', 'steam_artwork.py', 'igdb_artwork.py', 'version.py', 'updates.py', 'i18n.py')
+           'metadata.py', 'settings_view.py', 'steam_artwork.py', 'igdb_artwork.py', 'version.py', 'updates.py', 'i18n.py', 'backgrounds.py', 'scraping.py', 'steam_import.py')
 APP_ID = 'io.github.estante.Launcher'
 SOURCE = Path(__file__).resolve().parent
-DOCUMENTS = ('README.md', 'README.en.md')
+DOCUMENTS = ('README.md', 'README.en.md', 'RELEASE_NOTES.md')
+ASSETS = tuple(str(path.relative_to(SOURCE)) for path in sorted((SOURCE / 'assets/backgrounds').glob('*')) if path.is_file())
 
 
 def main():
@@ -32,7 +33,7 @@ def main():
     desktop = root / 'share/applications' / (APP_ID + '.desktop')
     icon = root / 'share/icons/hicolor/scalable/apps' / (APP_ID + '.svg')
     launcher = root / 'bin/estante'
-    files = [app / name for name in (*MODULES, *DOCUMENTS)] + [desktop, icon, launcher]
+    files = [app / name for name in (*MODULES, *DOCUMENTS, *ASSETS)] + [desktop, icon, launcher]
     if args.uninstall:
         for target in files:
             target.unlink(missing_ok=True)
@@ -45,6 +46,9 @@ def main():
                         compiled.unlink()
                 if not any(cache.iterdir()):
                     cache.rmdir()
+            for directory in (app / 'assets/backgrounds', app / 'assets'):
+                if directory.is_dir() and not any(directory.iterdir()):
+                    directory.rmdir()
             if not any(app.iterdir()):
                 app.rmdir()
         print('Estante desinstalado. Tus juegos, ajustes e imágenes se conservan.')
@@ -57,12 +61,13 @@ def main():
                 capture_output=True, text=True)
             if check.returncode:
                 parser.exit(1, 'Faltan dependencias: Python 3 con PyGObject, GTK >= 4.10 y libadwaita. Consulta README.md.\n')
-        for name in (*MODULES, *DOCUMENTS):
+        for name in (*MODULES, *DOCUMENTS, *ASSETS):
             if not (SOURCE / name).is_file():
                 parser.exit(1, 'Paquete incompleto: falta ' + name + '\n')
         for target in (app, desktop.parent, icon.parent, launcher.parent):
             target.mkdir(parents=True, exist_ok=True)
-        for name in (*MODULES, *DOCUMENTS):
+        for name in (*MODULES, *DOCUMENTS, *ASSETS):
+            (app / name).parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(SOURCE / name, app / name)
             (app / name).chmod(0o644)
         command = shlex.quote(str(prefix / 'share/estante/estante.py'))

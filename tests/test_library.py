@@ -30,7 +30,67 @@ class LibraryTests(unittest.TestCase):
         manifest = directory / 'games.json'
         manifest.write_text(json.dumps(rows or [{'gameid': 'test-id', 'title': 'Faugus Test',
                                                 'prefix': '/original', 'hidden': False}]))
+        self.library.scan_faugus()
         return manifest
+
+    def test_faugus_logo_override_survives_reload_without_changing_manifest(self):
+        manifest = self.faugus()
+        original = manifest.read_bytes()
+        game = self.library.games()[0]
+        game['logo'] = '/custom-logo.png'
+        self.library.put(game)
+        reopened = Library(home=self.root)
+        self.assertEqual(reopened.games()[0]['logo'], '/custom-logo.png')
+        self.assertEqual(manifest.read_bytes(), original)
+
+    def test_logo_download_uses_logos_endpoint(self):
+        client = SteamGridDB('test', self.root / 'covers')
+        with patch.object(client, 'api', return_value=[{'url': 'https://example.org/logo.png'}]) as api, \
+             patch.object(client, 'download', return_value='/logo.png'):
+            result = client.logo({'title': 'Test', 'steamgriddb_id': 42})
+        api.assert_called_once_with('logos/game/42?types=static')
+        self.assertEqual(result, {'logo': '/logo.png', 'steamgriddb_id': 42})
+
+    def test_artwork_import_and_download_have_no_size_cap(self):
+        client = SteamGridDB('test', self.root / 'covers')
+        content = b'x' * 25_000_001
+        source = self.root / 'large-image.png'
+        source.write_bytes(content)
+        self.assertEqual(Path(client.import_artwork(source)).read_bytes(), content)
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.read.return_value = content
+        with patch('library.urlopen', return_value=response):
+            target = client.download('https://cdn.steamgriddb.com/large.png')
+        self.assertEqual(Path(target).read_bytes(), content)
+        response.read.assert_called_once_with()
+
+    def test_remove_faugus_persists_across_scan_and_can_be_restored(self):
+        manifest = self.faugus()
+        original = manifest.read_bytes()
+        game = self.library.games()[0]
+        self.library.put(dict(game, banner='/custom.png', categories=['Favorite']))
+        self.library.remove(game)
+        self.library.remove(game)
+        self.assertEqual(self.library.games(), [])
+        self.assertEqual(self.library.scan_faugus(), (0, 0))
+        reopened = Library(home=self.root)
+        self.assertEqual(reopened.games(), [])
+        self.assertEqual(reopened.restore_excluded_imports(), 1)
+        self.assertEqual(reopened.games()[0]['banner'], '/custom.png')
+        self.assertIn('Favorite', reopened.games()[0]['categories'])
+        self.assertEqual(manifest.read_bytes(), original)
+
+    def test_remove_local_game_does_not_delete_file_or_other_games(self):
+        script = self.root / 'game.sh'
+        script.write_text('#!/bin/sh\n')
+        first = self.library.local_game('First', str(script))
+        second = self.library.local_game('Second', str(script))
+        self.library.put(first)
+        self.library.put(second)
+        self.library.remove(first)
+        self.assertTrue(script.is_file())
+        self.assertEqual([game['id'] for game in Library(home=self.root).games()], [second['id']])
 
     def test_direct_import_does_not_write_to_faugus(self):
         manifest = self.faugus()
@@ -42,11 +102,72 @@ class LibraryTests(unittest.TestCase):
         self.assertEqual(manifest.read_bytes(), original)
         self.assertFalse(list(self.root.rglob('*.desktop')))
 
+    def test_two_backgrounds_persist_independently_for_faugus_and_local_games(self):
+        manifest = self.faugus()
+        original = manifest.read_bytes()
+        faugus = self.library.games()[0]
+        self.library.put(dict(faugus, banner='/first.png', banner_secondary='/second.jpg'))
+        script = self.root / 'test.sh'
+        script.write_text('#!/bin/sh\n')
+        local = self.library.local_game('Local', str(script))
+        self.library.put(dict(local, banner='/local-first.png', banner_secondary='/local-second.jpg'))
+        reopened = Library(home=self.root)
+        games = {row['id']: row for row in reopened.games()}
+        self.assertEqual(games[faugus['id']]['banner'], '/first.png')
+        self.assertEqual(games[faugus['id']]['banner_secondary'], '/second.jpg')
+        self.assertEqual(games[local['id']]['banner_secondary'], '/local-second.jpg')
+        reopened.put(dict(games[faugus['id']], banner_secondary=''))
+        updated = next(row for row in reopened.games() if row['id'] == faugus['id'])
+        self.assertEqual(updated['banner'], '/first.png')
+        self.assertEqual(updated['banner_secondary'], '')
+        self.assertEqual(manifest.read_bytes(), original)
+
     def test_native_handoff_uses_faugus_game_identifier(self):
         self.faugus()
         with patch('library.shutil.which', return_value='/usr/bin/faugus-launcher'):
             self.assertEqual(launch_command(self.library.games()[0]),
                              (['/usr/bin/faugus-launcher', '--game', 'test-id'], None))
+
+    def test_category_order_and_primary_survive_restart_rename_and_delete(self):
+        self.assertIsNone(self.library.primary_category())
+        for name in ('A', 'B', 'C'):
+            self.library.manage_category(name)
+        self.library.move_category('C', -1)
+        self.library.move_category('C', -1)
+        self.library.set_primary_category('C')
+        reopened = Library(home=self.root)
+        self.assertEqual(reopened.categories(), ['C', 'A', 'B'])
+        self.assertEqual(reopened.primary_category(), 'C')
+        reopened.manage_category('Z', 'C')
+        self.assertEqual(reopened.categories(), ['Z', 'A', 'B'])
+        self.assertEqual(reopened.primary_category(), 'Z')
+        reopened.manage_category('', 'Z', delete=True)
+        self.assertEqual(reopened.categories(), ['A', 'B'])
+        self.assertIsNone(reopened.primary_category())
+        reopened.move_category('A', -1)
+        self.assertEqual(reopened.categories(), ['A', 'B'])
+
+    def test_bulk_category_assignment_preserves_other_categories_and_faugus_manifest(self):
+        manifest = self.faugus()
+        original = manifest.read_bytes()
+        faugus = self.library.games()[0]
+        script = self.root / 'game.sh'
+        script.write_text('#!/bin/sh\n')
+        local = self.library.local_game('Local', str(script))
+        self.library.put(dict(faugus, categories=['Other']))
+        self.library.put(dict(local, categories=['Other']))
+        self.library.manage_category('Selected')
+        self.library.set_category_games('Selected', {faugus['id'], local['id']})
+        self.library.set_category_games('Selected', {local['id']})
+        reopened = Library(home=self.root)
+        games = {game['id']: game for game in reopened.games()}
+        self.assertEqual(games[faugus['id']]['categories'], ['Other'])
+        self.assertEqual(games[local['id']]['categories'], ['Other', 'Selected'])
+        self.assertEqual(manifest.read_bytes(), original)
+        before = self.library.file.read_bytes()
+        with self.assertRaises(ValueError):
+            self.library.set_category_games('Selected', {'missing'})
+        self.assertEqual(self.library.file.read_bytes(), before)
 
     def test_categories_persist_for_local_and_faugus(self):
         manifest = self.faugus()
@@ -71,7 +192,7 @@ class LibraryTests(unittest.TestCase):
         game = self.library.games()[0]
         self.library.put(dict(game, categories=['Vieja']))
         self.library.manage_category('Vacía')
-        self.assertEqual(self.library.categories(), ['Vacía', 'Vieja'])
+        self.assertEqual(self.library.categories(), ['Faugus', 'Vacía', 'Vieja'])
         self.library.manage_category('Nueva', 'Vieja')
         self.assertEqual(self.library.games()[0]['categories'], ['Nueva'])
         with self.assertRaises(ValueError):
@@ -82,7 +203,7 @@ class LibraryTests(unittest.TestCase):
             self.library.manage_category('  ')
         self.library.manage_category('', 'Nueva', delete=True)
         reopened = Library(home=self.root)
-        self.assertEqual(reopened.categories(), ['Vacía'])
+        self.assertEqual(reopened.categories(), ['Faugus', 'Vacía'])
         self.assertEqual(reopened.games()[0]['categories'], [])
         self.assertEqual(manifest.read_bytes(), original)
 
@@ -135,7 +256,7 @@ class LibraryTests(unittest.TestCase):
     def test_broken_manifest_is_reported(self):
         self.faugus().write_text('{broken')
         with self.assertRaises(json.JSONDecodeError):
-            self.library.games()
+            self.library.scan_faugus()
 
     def test_manual_artwork_is_copied_and_custom_url_needs_no_key(self):
         from io import BytesIO

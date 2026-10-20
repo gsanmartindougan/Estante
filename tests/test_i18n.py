@@ -47,4 +47,4 @@ class LanguageTests(unittest.TestCase):
             Library.local_game('', '/tmp/game.sh')
         self.assertIn('In-app updates', update_available({}))
         self.assertEqual(tr('No se pudo leer la biblioteca: ') + 'error', 'Could not read the library: error')
-        self.assertIn('D-pad', tr('← ↑ ↓ → / Cruceta: mover · LB/RB: letra · LT/RT: categoría · Enter / A: abrir · Esc / B: volver · Ctrl+F / Select: buscar'))
+        self.assertIn('D-pad', tr('← ↑ ↓ → / Cruceta: mover · LB/RB: letra · LT/RT: categoría · Enter / A: abrir · Esc / B: volver · Ctrl+F / Select: buscar · Ctrl+Tab / LB+RB: aspecto'))

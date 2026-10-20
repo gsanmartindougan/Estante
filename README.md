@@ -1,10 +1,10 @@
 # Estante
 
-Versión actual: **0.1.0**.
+Versión: **0.2.0**.
 
 [English documentation](README.en.md)
 
-Una biblioteca de juegos para Linux, sencilla y nativa, inspirada en Cartridges. Reúne juegos de **Faugus Launcher**, scripts **`.sh`** y **AppImages**, con navegación por mando, teclado y ratón.
+Una biblioteca de juegos para Linux, sencilla y nativa, inspirada en Cartridges. Reúne juegos de **Steam**, **Faugus Launcher**, scripts **`.sh`** y **AppImages**, con navegación por mando, teclado y ratón.
 
 Estante lee la biblioteca de Faugus directamente: **no necesitas crear archivos `.desktop`**. Al jugar, Faugus se encarga del runner, el prefijo y los parámetros que ya tengas configurados.
 
@@ -12,9 +12,9 @@ Proyecto en desarrollo, construido con Python, GTK 4 y libadwaita.
 
 ## Funciones
 
-- Importación automática de juegos visibles de Faugus, tanto nativo como Flatpak.
+- Importación manual de Steam y Faugus desde Ajustes, tanto nativos como Flatpak, con categorías por origen.
 - Juegos locales con parámetros y directorio de trabajo personalizados.
-- Tres apariencias: **Grid**, **Carousel** y **Sense**.
+- Cuatro apariencias: **Grid**, **Carousel**, **Sense** y **Lista**.
 - Categorías propias, búsqueda y navegación rápida por inicial.
 - Carátulas verticales y cuadradas, banners y fondos personalizados.
 - Información del juego desde Wikidata o editada a mano.
@@ -32,7 +32,7 @@ Recomendamos [Gear Lever](https://github.com/mijorus/gearlever) para organizar e
 AppImage e integrar Estante en el menú de aplicaciones con su icono.
 
 1. Instala Gear Lever desde [Flathub](https://flathub.org/apps/it.mijorus.gearlever).
-2. Descarga `Estante-0.1.0-x86_64.AppImage`.
+2. Descarga `Estante-0.2.0-x86_64.AppImage`.
 3. Abre el archivo con Gear Lever y utiliza su opción de integración en el menú.
 4. Abre **Estante** desde el lanzador de tu escritorio.
 
@@ -47,12 +47,12 @@ flatpak install flathub it.mijorus.gearlever
 Si prefieres gestionar el archivo a mano:
 
 ```sh
-chmod +x Estante-0.1.0-x86_64.AppImage
-./Estante-0.1.0-x86_64.AppImage
+chmod +x Estante-0.2.0-x86_64.AppImage
+./Estante-0.2.0-x86_64.AppImage
 ```
 
 La versión aparece en el pie de la biblioteca y en **Ajustes → Globales**.
-También puedes consultarla con `./Estante-0.1.0-x86_64.AppImage --version`.
+También puedes consultarla con `./Estante-0.2.0-x86_64.AppImage --version`.
 
 Puedes mover el archivo a la carpeta que prefieras. Los datos siguen guardándose en
 la ubicación habitual de Estante. Faugus debe estar instalado aparte para ejecutar
@@ -64,7 +64,7 @@ El runtime necesita FUSE para montar el archivo. Si FUSE no está disponible, pu
 extraerlo y ejecutarlo sin montar:
 
 ```sh
-./Estante-0.1.0-x86_64.AppImage --appimage-extract
+./Estante-0.2.0-x86_64.AppImage --appimage-extract
 ./squashfs-root/AppRun
 ```
 
@@ -138,10 +138,10 @@ PyGObject, GTK y libadwaita antes de copiar la aplicación.
 
 ### Instalar desde el paquete descargable
 
-Descomprime `Estante-0.1.0-linux.tar.gz`, entra en la carpeta y ejecuta:
+Descomprime `Estante-0.2.0-linux.tar.gz`, entra en la carpeta y ejecuta:
 
 ```sh
-tar -xzf Estante-0.1.0-linux.tar.gz
+tar -xzf Estante-0.2.0-linux.tar.gz
 cd Estante
 sh install.sh
 ```
@@ -200,7 +200,7 @@ También puedes ejecutar `python3 estante.py` desde la carpeta del proyecto.
 
 ### Faugus Launcher
 
-Los juegos aparecen automáticamente al iniciar Estante. Si añades juegos en Faugus mientras Estante está abierto, pulsa **Actualizar**.
+La importación es manual: abre **Ajustes → Escaneo y scraping → Escanear Faugus**. Repite el escaneo cuando añadas juegos o quieras actualizar sus datos de Faugus. Los juegos ya importados se conservan.
 
 Estante consulta las ubicaciones XDG, las ubicaciones heredadas y los datos de la instalación Flatpak. La integración necesita una versión de Faugus que admita `--game ID`.
 
@@ -226,7 +226,26 @@ hayas guardado no se traducen ni se sobrescriben.
 
 ### Distribución
 
+En la versión 0.2.0 puedes elegir dos fondos por juego desde **Editar → Cambiar banner…**
+y **Elegir segundo fondo…**. Ambos admiten las mismas fuentes de imágenes.
+En **Ajustes → Apariencia → Grid / Carousel / Sense / Lista → División de los fondos**, elige:
+
+- **Un solo fondo**: mantiene el comportamiento anterior.
+- **Horizontal**: un fondo arriba y otro abajo.
+- **Vertical**: un fondo a la izquierda y otro a la derecha.
+- **Diagonal**: reparte el área entre las dos imágenes mediante un corte diagonal.
+
+La división se guarda por apariencia y reparte toda la ventana entre los dos heroes.
+La posición del hero ajusta el recorte dentro de su propia mitad. El relleno
+desenfocado o de color predominante también utiliza ambos fondos. Si no hay segundo
+fondo, se muestra el primero. **Quitar segundo fondo** elimina su asociación sin borrar
+el archivo ni cambiar el primero.
+
 El engranaje abre una vista de ajustes con opciones **Globales**, **Categorías** y una página por apariencia.
+
+El botón **Guardar** y los mensajes de confirmación permanecen visibles al pie de
+cada sección. Puedes guardar la sección abierta con **Y / Triángulo** del mando o
+**Ctrl+S**, sin desplazarte hasta el final. Las categorías se guardan con sus propias acciones.
 
 | Apariencia | Distribución |
 | --- | --- |
@@ -258,6 +277,7 @@ El selector junto a la búsqueda muestra la categoría actual en el centro y las
 | Confirmar o activar | Enter / Espacio | A / Cruz |
 | Volver | Escape | B / Círculo |
 | Buscar | Ctrl+F o `/` | Select / Back; también X / Cuadrado |
+| Cambiar apariencia | Ctrl+Tab (Shift: anterior) | LB + RB · L1 + R1 |
 | Letra anterior o siguiente | — | LB/RB · L1/R1 |
 | Categoría anterior o siguiente | RePág / AvPág | LT/RT · L2/R2 |
 | Ajustes | Engranaje | Start |
@@ -323,7 +343,7 @@ Para generar el instalador nativo, sin incluir datos personales ni credenciales:
 python3 packaging/build-release.py
 ```
 
-El resultado es `dist/Estante-0.1.0-linux.tar.gz`. Generarlo no lo publica en GitHub.
+El resultado es `dist/Estante-0.2.0-linux.tar.gz`. Generarlo no lo publica en GitHub.
 El instalador también admite `--prefix` y `--destdir` para preparar paquetes de distribución.
 
 ### Construir el AppImage
@@ -339,7 +359,7 @@ python3 packaging/build-appimage.py --builder ~/Applications/appimagebuilder.app
 ```
 
 El constructor usa el runtime Type 2 y `mksquashfs` incluidos en ese archivo para
-generar `dist/Estante-0.1.0-x86_64.AppImage` sin descargar herramientas adicionales.
+generar `dist/Estante-0.2.0-x86_64.AppImage` sin descargar herramientas adicionales.
 Incluye las dependencias locales y ejecuta `--self-test` antes de comprimir y después
 de extraer el resultado. No necesita Docker ni FUSE para construir.
 
@@ -366,3 +386,28 @@ python3 tests/check_ui.py
 ```
 
 Las pruebas utilizan datos temporales y mocks para los servicios externos; no necesitan tus credenciales ni ejecutar juegos reales de la biblioteca.
+
+### Modo Lista
+
+Divide la biblioteca en dos: logos a la izquierda y datos del juego a la derecha. Arriba/abajo, la cruceta o el stick recorren el carrusel vertical circular, con el juego seleccionado centrado. La rueda del ratón también cambia de juego. Derecha lleva a Jugar/Editar; izquierda vuelve a la lista.
+
+Los logos se obtienen de SteamGridDB si hay una clave API y una coincidencia inequívoca. Puedes elegir otro desde **Editar → Logo**, también desde un archivo local o una URL. Si falta el logo se muestra el título. En **Ajustes → Lista** puedes ajustar su tamaño, el anillo de selección y los fondos independientemente del resto de apariencias. Ctrl+Tab o LB+RB incluyen Lista al alternar apariencias.
+
+En **Ajustes → Categorías** también puedes buscar y marcar los juegos de cada categoría, cambiar su orden con **Subir/Bajar** y elegir la **categoría principal** que se abre al iniciar Estante. Por defecto es **Todos**. El orden se aplica al selector y a los gatillos del mando. Los cambios se guardan automáticamente; renombrar la principal conserva su elección y eliminarla vuelve a Todos.
+
+
+### Escaneo y scraping manual
+
+En **Ajustes → Escaneo y scraping**, el escaneo importa juegos de Faugus sin modificar sus archivos. Al actualizar desde una versión con importación automática se conserva una instantánea de la biblioteca anterior; después solo se importa al pulsar **Escanear Faugus**.
+
+El scraping procesa toda la biblioteca y permite elegir imágenes (SteamGridDB, requiere una clave guardada) e información (Wikidata). **Completar datos faltantes** conserva imágenes válidas y campos ya rellenados; **Reemplazar existentes** actualiza lo disponible sin borrar los datos para los que no haya resultados. Las coincidencias ambiguas se omiten. Las imágenes no se descargan automáticamente al navegar. Puedes seguir eligiendo imágenes y fichas individualmente desde Editar.
+
+### Importar Steam y Faugus
+
+En **Ajustes → Escaneo y scraping** puedes pulsar **Escanear Steam** o **Escanear Faugus**. Steam importa juegos instalados desde sus manifiestos locales y las bibliotecas configuradas en otros discos, sin pedir credenciales ni una clave API. Se omiten Proton, los runtimes y las herramientas comunes de Steam. Los juegos se inician con el cliente Steam correspondiente, nativo o Flatpak.
+
+Los escaneos asignan las categorías **Steam** y **Faugus** y conservan las demás categorías y personalizaciones. Las entradas de Faugus con runner **Steam** o una dirección `steam://` se omiten, incluidas las importadas anteriormente. No se deduplica por título ni por nombres de ejecutables, para conservar juegos independientes que tengan «Steam» en su nombre. Los archivos de Steam y Faugus se leen sin modificarlos.
+
+Para quitar un juego, abre **Editar → Organización → Quitar de la biblioteca**. No se borra ni se desinstala. Los importados de Steam y Faugus quedan excluidos de futuros escaneos; puedes recuperarlos desde **Ajustes → Escaneo y scraping → Juegos quitados → Restaurar juegos quitados**, con sus personalizaciones. Los scripts y AppImages locales pueden añadirse de nuevo desde Añadir.
+
+En **Ajustes → Lista → Posición de la lista** puedes situar la rueda a la izquierda, derecha, arriba o abajo. Los datos quedan en el lado opuesto. En los laterales navegas con arriba/abajo; en los bordes superior e inferior, con izquierda/derecha. La dirección hacia los datos enfoca Jugar/Editar y la dirección hacia la rueda vuelve a los logos.

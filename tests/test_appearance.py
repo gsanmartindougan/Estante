@@ -59,3 +59,19 @@ class AppearanceTests(unittest.TestCase):
         self.assertFalse(ring_for(settings, 'ps5')['focus_ring_enabled'])
         self.assertEqual(ring_for(settings, 'ps5')['focus_ring_radius'], 0)
         self.assertEqual(VIEW_NAMES['ps5'], 'Sense')
+
+
+class ListAppearanceTests(unittest.TestCase):
+    def test_logo_size_is_independent_of_cover_format(self):
+        self.assertIn('list', VIEW_NAMES)
+        self.assertEqual(cover_size_for({}, 'list'), (300, 100))
+        self.assertEqual(cover_size_for({'list_zoom': 150, 'cover_formats': {'list': 'square'}}, 'list'), (450, 150))
+        self.assertEqual(cover_size_for({'list_zoom': 500}, 'list'), (600, 200))
+
+
+class ListDetailCoverTests(unittest.TestCase):
+    def test_size_preserves_aspect_ratio_and_is_independent_of_logos(self):
+        from appearance import list_cover_size
+        self.assertEqual(list_cover_size({'list_cover_zoom': 150, 'list_zoom': 50}), (270, 405))
+        self.assertEqual(list_cover_size({'list_cover_zoom': 150, 'cover_formats': {'list': 'square'}}), (330, 330))
+        self.assertEqual(list_cover_size({'list_cover_zoom': 1000}), (315, 472))

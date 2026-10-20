@@ -1,8 +1,8 @@
 # Estante
 
-Current version: **0.1.0** · [Documentación en español](README.md)
+Version: **0.2.0** · [Documentación en español](README.md)
 
-A simple native Linux game library inspired by Cartridges. Launch games from **Faugus Launcher**, **shell scripts** and **AppImages**, using a gamepad, keyboard or mouse.
+A simple native Linux game library inspired by Cartridges. Launch games from **Steam**, **Faugus Launcher**, **shell scripts** and **AppImages**, using a gamepad, keyboard or mouse.
 
 Faugus games are imported directly: you do not need to create `.desktop` entries. Faugus keeps control of the runner, prefix and launch arguments.
 
@@ -10,19 +10,19 @@ Faugus games are imported directly: you do not need to create `.desktop` entries
 
 The **x86_64 AppImage** includes Python, GTK, libadwaita and SDL2. Faugus must be installed separately to launch its games.
 
-We recommend [Gear Lever](https://flathub.org/apps/it.mijorus.gearlever) to manage the AppImage and add Estante to your application menu. Open `Estante-0.1.0-x86_64.AppImage` with Gear Lever and use its integration option.
+We recommend [Gear Lever](https://flathub.org/apps/it.mijorus.gearlever) to manage the AppImage and add Estante to your application menu. Open `Estante-0.2.0-x86_64.AppImage` with Gear Lever and use its integration option.
 
 You can also run the file directly:
 
 ```sh
-chmod +x Estante-0.1.0-x86_64.AppImage
-./Estante-0.1.0-x86_64.AppImage
+chmod +x Estante-0.2.0-x86_64.AppImage
+./Estante-0.2.0-x86_64.AppImage
 ```
 
 If FUSE is unavailable:
 
 ```sh
-./Estante-0.1.0-x86_64.AppImage --appimage-extract
+./Estante-0.2.0-x86_64.AppImage --appimage-extract
 ./squashfs-root/AppRun
 ```
 
@@ -40,7 +40,7 @@ Requires Python 3, PyGObject, GTK **4.10 or newer**, libadwaita and SDL2 for gam
 
 `sdl2-compat` can replace `sdl2` on distributions that provide it.
 
-Extract `Estante-0.1.0-linux.tar.gz`, enter the `Estante` directory and run:
+Extract `Estante-0.2.0-linux.tar.gz`, enter the `Estante` directory and run:
 
 ```sh
 sh install.sh
@@ -64,11 +64,30 @@ Estante follows the system language by default: **Spanish for Spanish systems, E
 
 Choose **Settings → Global → Language** to use the system language, Español or English. Save and reopen Estante to apply the change. Your game titles, category names and saved game information are preserved.
 
+## Two backgrounds per game (0.2.0)
+
+Choose the first image in **Edit → Change banner…** and the second in **Choose second background…**.
+Both support the same image sources. In each layout's settings, **Background split** offers:
+
+- **Single background**: the existing behavior.
+- **Horizontal**: one image at the top and one at the bottom.
+- **Vertical**: one image on the left and one on the right.
+- **Diagonal**: divide the area between the two images diagonally.
+
+Each layout saves its own split, dividing the entire window between both heroes.
+Hero position controls cropping within each image's area, and background fill remains configurable;
+blur and dominant-color fills use both images. A missing second image falls back to the first.
+**Remove second background** clears its assignment without deleting the file or changing the first image.
+
 ## Library and controls
 
+Settings keep their save button and confirmation messages fixed below the scrolling
+content. Press **Y / Triangle** on the gamepad or **Ctrl+S** to save the current section.
+Categories are saved through their create, rename and delete actions.
+
 - **Add** accepts `.sh` files and AppImages, including arguments and a working directory. Scripts run with Bash; AppImages need execute permission.
-- Faugus games appear automatically. Use **Refresh** after adding games in Faugus. Its version must support `--game ID`.
-- Choose **Grid**, **Carousel** or **Sense** in Settings. Each layout has independent cover format, corner radius, selection ring and hero position settings.
+- Import Faugus games manually through **Settings → Scan and scraping → Scan Faugus**. Repeat the scan to import new games or refresh their Faugus data. Its version must support `--game ID`.
+- Choose **Grid**, **Carousel**, **Sense** or **List** in Settings. Each layout has independent cover format, corner radius, selection ring and hero position settings.
 - Create, rename and delete categories in **Settings → Categories**. Assign them from **Edit → Categories** for each game.
 - Choose portrait or square covers and banners from SteamGridDB, your computer or an image URL. SteamGridDB needs an API key; Steam offers 16:9 screenshots without credentials. IGDB supports games from other platforms using Twitch client credentials.
 - Find game information through Wikidata or edit it manually. Playtime and completed sessions appear beside the selected game.
@@ -79,6 +98,7 @@ Choose **Settings → Global → Language** to use the system language, Español
 | Confirm | Enter / Space | A / Cross |
 | Back | Escape | B / Circle |
 | Search | Ctrl+F or `/` | Select / Back; also X / Square |
+| Switch layout | Ctrl+Tab (Shift: previous) | LB + RB · L1 + R1 |
 | Previous / next letter | — | LB/RB · L1/R1 |
 | Previous / next category | Page Up / Page Down | LT/RT · L2/R2 |
 | Settings | Settings button | Start |
@@ -104,3 +124,28 @@ python3 packaging/build-appimage.py --builder ~/Applications/appimagebuilder.app
 Builds go into `dist/`; nothing is uploaded automatically. The version is defined in `version.py`. To run from source, use `sh run.sh`. Graphical checks require a desktop session: `python3 tests/check_ui.py`.
 
 The AppImage is built from the build machine's libraries. Graphical compatibility on other distributions still needs validation; an ARM build is not currently provided.
+
+### List layout
+
+Splits the library into logos on the left and game details on the right. Up/down, the D-pad or stick move through a circular vertical carousel with the selected game centered. The mouse wheel also changes games. Right opens Play/Edit; left returns to the list.
+
+Logos load from SteamGridDB when an API key and an unambiguous match are available. Choose another through **Edit → Logo**, including local files or a URL. Games without a logo display their title. **Settings → List** provides independent logo size, selection ring and background settings. Ctrl+Tab or LB+RB include List when cycling layouts.
+
+In **Settings → Categories**, search and assign games to each category, change their order with **Move up/Move down**, and choose the **default category** opened at startup. It defaults to **All**. This order is used by the category selector and controller triggers. Changes save automatically; renaming the default preserves it and deleting it falls back to All.
+
+
+### Manual scanning and scraping
+
+**Settings → Scan and scraping** imports Faugus games without modifying its files. Upgrading an existing library preserves a snapshot of the former automatic imports; subsequent imports require **Scan Faugus**.
+
+Scraping processes the whole library, with artwork from SteamGridDB (requires a saved API key) and information from Wikidata. **Complete missing data** keeps valid images and populated fields; **Replace existing data** replaces available data while retaining anything without a new result. Ambiguous matches are skipped. Browsing no longer downloads images automatically. Individual image and metadata selection remains available through Edit.
+
+### Importing Steam and Faugus
+
+Use **Settings → Scan and scraping → Scan Steam / Scan Faugus**. Steam scans installed games from local manifests, including libraries on other drives, without account credentials or an API key. Proton, runtimes and common Steam tools are excluded. Games launch through their native or Flatpak Steam client.
+
+Scans assign **Steam** and **Faugus** categories while retaining other categories and custom artwork. Faugus entries using the **Steam** runner or a `steam://` URI are skipped, including previously imported ones. Titles and executable names are not used to identify these duplicates. Steam and Faugus files are never modified.
+
+Remove a game through **Edit → Organization → Remove from library**. Its files are not deleted or uninstalled. Removed Steam and Faugus games are excluded from future scans; restore them with their customizations from **Settings → Scan and scraping → Removed games → Restore removed games**. Local scripts and AppImages can be added again using Add.
+
+**Settings → List → List position** places the wheel on the left, right, top or bottom, with details on the opposite side. Side wheels use up/down; top and bottom wheels use left/right. Move toward the details to focus Play/Edit and toward the wheel to return to the logos.

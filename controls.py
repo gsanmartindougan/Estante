@@ -8,6 +8,23 @@ import os
 from pathlib import Path
 
 
+def controller_buttons(settings):
+    profiles = {
+        'xbox': dict(confirm='A', back='B', save='Y', search='View', bumpers='LB/RB', triggers='LT/RT', chord='LB+RB'),
+        'sony': dict(confirm='×', back='○', save='△', search='Share', bumpers='L1/R1', triggers='L2/R2', chord='L1+R1'),
+        'nintendo': dict(confirm='B', back='A', save='X', search='−', bumpers='L/R', triggers='ZL/ZR', chord='L+R'),
+    }
+    return profiles.get(settings.get('controller_type'), profiles['xbox'])
+
+
+def controller_hint(settings):
+    return tr('← ↑ ↓ →: mover · {bumpers}: letra · {triggers}: categoría · Enter / {confirm}: abrir · Esc / {back}: volver · Ctrl+F / {search}: buscar · Ctrl+Tab / {chord}: aspecto').format(**controller_buttons(settings))
+
+
+def controller_save_hint(settings):
+    return tr('{save} · Ctrl+S: guardar').format(**controller_buttons(settings))
+
+
 def title_initial(title):
     normalized = ''.join(c for c in unicodedata.normalize('NFKD', title.strip())
                          if not unicodedata.combining(c)).upper()
@@ -73,6 +90,26 @@ class Repeater:
         return actions
 
 
+class BumperChord:
+    """Defer a single bumper until release so a chord never jumps letters."""
+    def __init__(self):
+        self.held = set()
+        self.chord = False
+
+    def update(self, pressed):
+        bumpers = pressed & {'page_previous', 'page_next'}
+        actions = []
+        if len(bumpers) == 2 and not self.chord:
+            self.chord = True
+            actions.append('cycle_view')
+        if not bumpers:
+            if not self.chord:
+                actions.extend(sorted(self.held))
+            self.chord = False
+        self.held = set(bumpers)
+        return actions
+
+
 class Gamepad:
     FLAGS = 0x2000  # SDL_INIT_GAMECONTROLLER includes joystick and event subsystems.
 
@@ -84,6 +121,7 @@ class Gamepad:
                 path = str(bundled)
         if not path:
             raise RuntimeError(tr('Instala SDL2 para usar un mando.'))
+        self.bumpers = BumperChord()
         self.sdl = C.CDLL(path)
         signatures = {
             'SDL_InitSubSystem': (C.c_int, [C.c_uint32]),
@@ -130,7 +168,7 @@ class Gamepad:
                         break
         pressed = set()
         if self.controller:
-            for index, action in {0: 'confirm', 1: 'back', 2: 'search', 4: 'search',
+            for index, action in {0: 'confirm', 1: 'back', 2: 'search', 3: 'save', 4: 'search',
                                   6: 'menu', 9: 'page_previous', 10: 'page_next', 11: 'up', 12: 'down', 13: 'left', 14: 'right'}.items():
                 if self.sdl.SDL_GameControllerGetButton(self.controller, index):
                     pressed.add(action)
@@ -143,7 +181,9 @@ class Gamepad:
                 pressed.add(('right' if x > 0 else 'left') if abs(x) > abs(y)
                             else ('down' if y > 0 else 'up'))
         active = self.active()
-        actions = self.repeater.update(pressed, now)
+        bumper_actions = self.bumpers.update(pressed)
+        pressed -= {'page_previous', 'page_next'}
+        actions = self.repeater.update(pressed, now) + bumper_actions
         if active and self.was_active:
             for action in actions:
                 self.dispatch(action, True)

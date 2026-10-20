@@ -1,10 +1,23 @@
 import ctypes as C
 import unittest
 
-from controls import Gamepad, Repeater, neighbor, alphabet_target, alphabet_window
+from controls import controller_buttons, controller_hint, controller_save_hint, Gamepad, BumperChord, Repeater, neighbor, alphabet_target, alphabet_window
 
 
 class NavigationTests(unittest.TestCase):
+    def test_controller_profile_hints(self):
+        for kind, confirm, back, save, chord in (
+            ('xbox', 'A', 'B', 'Y', 'LB+RB'),
+            ('sony', '×', '○', '△', 'L1+R1'),
+            ('nintendo', 'B', 'A', 'X', 'L+R')):
+            settings = {'controller_type': kind}
+            buttons = controller_buttons(settings)
+            self.assertEqual((buttons['confirm'], buttons['back'], buttons['save']),
+                             (confirm, back, save))
+            self.assertIn(chord, controller_hint(settings))
+            self.assertIn(save, controller_save_hint(settings))
+        self.assertEqual(controller_buttons({}), controller_buttons({'controller_type': 'unknown'}))
+
     def test_alphabet_indicator_matches_populated_letters(self):
         titles = ['Álbum', 'Another', 'Bloodborne', 'Cyberpunk', 'Zelda']
         self.assertEqual(alphabet_window(titles, 'Bloodborne'), ('A', 'B', 'C'))
@@ -39,6 +52,16 @@ class NavigationTests(unittest.TestCase):
         self.assertEqual(repeat.update({'down', 'confirm'}, .55), ['down'])
         repeat.update(set(), .6)
         self.assertEqual(repeat.update({'confirm'}, .61), ['confirm'])
+
+    def test_bumper_chord_suppresses_letters_and_does_not_repeat(self):
+        chord = BumperChord()
+        self.assertEqual(chord.update({'page_previous'}), [])
+        self.assertEqual(chord.update({'page_previous', 'page_next'}), ['cycle_view'])
+        self.assertEqual(chord.update({'page_previous', 'page_next'}), [])
+        self.assertEqual(chord.update({'page_next'}), [])
+        self.assertEqual(chord.update(set()), [])
+        self.assertEqual(chord.update({'page_next'}), [])
+        self.assertEqual(chord.update(set()), ['page_next'])
 
     def test_sdl_virtual_controller_buttons_stick_and_focus_gate(self):
         actions = []
@@ -78,13 +101,22 @@ class NavigationTests(unittest.TestCase):
         actions.clear()
         sdl.SDL_JoystickSetVirtualButton(stick, 4, 0)
         pad.poll()
+        sdl.SDL_JoystickSetVirtualButton(stick, 3, 1)
+        pad.poll()
+        self.assertEqual(actions, ['save'])
+        actions.clear()
+        pad.poll()
+        self.assertEqual(actions, [], 'Holding Y must not save repeatedly')
+        sdl.SDL_JoystickSetVirtualButton(stick, 3, 0)
+        pad.poll()
         for index, action in ((9, 'page_previous'), (10, 'page_next')):
             sdl.SDL_JoystickSetVirtualButton(stick, index, 1)
             pad.poll()
-            self.assertEqual(actions, [action])
-            actions.clear()
+            self.assertEqual(actions, [])
             sdl.SDL_JoystickSetVirtualButton(stick, index, 0)
             pad.poll()
+            self.assertEqual(actions, [action])
+            actions.clear()
         for axis, action in ((4, 'category_previous'), (5, 'category_next')):
             sdl.SDL_JoystickSetVirtualAxis(stick, axis, 24000)
             pad.poll()
