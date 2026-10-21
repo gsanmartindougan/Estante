@@ -2,9 +2,11 @@
 """A small GTK4 game shelf. Run with python3 estante.py."""
 from i18n import tr
 from i18n import set_language
+from profiling import timed
 import os
 from pathlib import Path
 import threading
+import weakref
 import time
 import math
 from datetime import datetime
@@ -14,22 +16,43 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 gi.require_version('Gsk', '4.0')
 from gi.repository import Adw, Gdk, GdkPixbuf, Gio, GLib, GObject, Graphene, Gsk, Gtk, Pango
+from image_cache import images, nearby_indices
+from game_session import wait_for_game
 from library import Library, SteamGridDB, launch, read_json
 from controls import controller_hint, controller_buttons, Gamepad, neighbor, alphabet_target, alphabet_window
 from metadata import GameMetadata
 from steam_artwork import SteamArtwork
 from igdb_artwork import IGDBArtwork
-from settings_view import SettingsView, spatial_target
+from settings_view import SettingsView, spatial_target, navigation_bounds
+from updates import latest_release
 from version import __version__
 from backgrounds import initial_background_settings, background_assets, background_split_for, paint_hero_pair, paint_split, crop_bounds
 from carousel import CarouselWheel, list_anchor
-from appearance import list_side_for, list_navigation, list_cover_size, VIEW_NAMES, ring_for, with_ring, cover_radius_for, hero_position_for, cover_format_for, cover_size_for
+from appearance import grid_page, list_side_for, list_navigation, list_cover_size, VIEW_NAMES, ring_for, with_ring, cover_radius_for, hero_position_for, cover_format_for, cover_size_for
+
+
+def blur_radius(radius):
+    """Diagnostic A/B switch; normal rendering retains all existing effects."""
+    return 0 if os.environ.get('ESTANTE_DISABLE_BLUR') == '1' else radius
 
 
 def margins(widget, size=20):
     for edge in ('top', 'bottom', 'start', 'end'):
         getattr(widget, 'set_margin_' + edge)(size)
     return widget
+
+
+def release_images(widget):
+    """Release native image buffers immediately when a view is discarded."""
+    if isinstance(widget, Gtk.Picture):
+        ticket = getattr(widget, 'image_ticket', None)
+        if ticket:
+            ticket.cancelled = True
+        widget.set_paintable(None)
+    child = widget.get_first_child()
+    while child:
+        release_images(child)
+        child = child.get_next_sibling()
 
 
 def button(label, callback, css=None):
@@ -76,12 +99,14 @@ class RoundedPicture(Gtk.Picture):
         ratios = (width/texture.get_width(), height/texture.get_height())
         scale = min(ratios) if self.get_content_fit() == Gtk.ContentFit.CONTAIN else max(ratios)
         image_width, image_height = texture.get_width() * scale, texture.get_height() * scale
-        bounds = Graphene.Rect().init(0, 0, width, height)
+        image_bounds = Graphene.Rect().init((width-image_width)/2, (height-image_height)/2,
+                                             image_width, image_height)
+        contained = self.get_content_fit() == Gtk.ContentFit.CONTAIN
+        bounds = image_bounds if contained else Graphene.Rect().init(0, 0, width, height)
         rounded = Gsk.RoundedRect()
-        rounded.init_from_rect(bounds, min(self.corner_radius, width/2, height/2))
+        rounded.init_from_rect(bounds, min(self.corner_radius, bounds.get_width()/2, bounds.get_height()/2))
         snapshot.push_rounded_clip(rounded)
-        snapshot.append_texture(texture, Graphene.Rect().init((width-image_width)/2, (height-image_height)/2,
-                                                              image_width, image_height))
+        snapshot.append_texture(texture, image_bounds)
         snapshot.pop()
 
 
@@ -167,10 +192,11 @@ class BlurredBackdrop(Gtk.Widget):
         self.colors = {}
 
     @staticmethod
+    @timed('worker.dominant_color')
     def dominant_color(path, texture=None):
         # Quantize a small sample, then average the most frequent color cluster.
         from collections import defaultdict
-        texture = texture if texture is not None else Gdk.Texture.new_from_filename(path)
+        texture = texture if texture is not None else images.load(path, 64, 64)
         image = Gdk.pixbuf_get_from_texture(texture)
         scale = min(64 / image.get_width(), 64 / image.get_height())
         image = image.scale_simple(max(1, round(image.get_width() * scale)),
@@ -233,7 +259,7 @@ class BlurredBackdrop(Gtk.Widget):
                 if self.mode == 'dominant' and color is not None:
                     snapshot.append_color(color, Graphene.Rect().init(*region))
                 else:
-                    snapshot.push_blur(38)
+                    snapshot.push_blur(blur_radius(38))
                     snapshot.append_texture(texture, crop_bounds(texture, region, 1.08))
                     snapshot.pop()
             paint_split(snapshot, width, height, self.split_mode, draw)
@@ -247,7 +273,7 @@ class BlurredBackdrop(Gtk.Widget):
         rendered_width, rendered_height = image_width * scale, image_height * scale
         bounds = Graphene.Rect().init((width - rendered_width)/2, (height - rendered_height)/2,
                                        rendered_width, rendered_height)
-        snapshot.push_blur(32)
+        snapshot.push_blur(blur_radius(32))
         snapshot.append_texture(self.texture, bounds)
         snapshot.pop()
 
@@ -258,9 +284,14 @@ class App(Adw.Application):
         self.window = None
 
     def do_activate(self):
-        if self.window is None:
+        created = self.window is None
+        if created:
             self.window = Shelf(self)
+            if self.window.settings.get('start_fullscreen', False):
+                self.window.fullscreen()
         self.window.present()
+        if created:
+            self.window.startup_update_check()
 
 
 class Shelf(Adw.ApplicationWindow):
@@ -275,6 +306,10 @@ class Shelf(Adw.ApplicationWindow):
         if self.view_mode not in VIEW_NAMES:
             self.view_mode = 'grid'
         self.processes = {}
+        self.running_sessions = set()
+        self.hidden_game_sessions = set()
+        self.game_window_hold = False
+        self.session_window_closed = False
         self.panel_revision = 0
         self.focus_revision = 0
         self.focused_game = None
@@ -342,6 +377,10 @@ class Shelf(Adw.ApplicationWindow):
             .alphabet-strip { min-height: 28px; padding: 2px 6px; border-radius: 8px; background: alpha(black, 0.2); }
             .alphabet-strip button { min-height: 0; min-width: 0; padding: 0; margin: 0; border: none; background: transparent; box-shadow: none; }
             .alphabet-current { font-weight: 800; font-size: 18px; color: @accent_color; padding: 1px 4px; }
+            .game-overview { padding: 12px 20px; }
+            .genre-chip { background: alpha(black, 0.4); border-radius: 12px; padding: 5px 10px; color: white; }
+            .compact-info { padding: 12px; }
+            .compact-info link { padding-top: 2px; padding-bottom: 2px; min-height: 0; }
             .info-text { color: alpha(white, 0.8); }
         ''')
         Gtk.StyleContext.add_provider_for_display(self.get_display(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
@@ -404,6 +443,10 @@ class Shelf(Adw.ApplicationWindow):
         self.list_flow.paint_focus_band = self.paint_list_focus_band
         scroll = Gtk.ScrolledWindow(vexpand=True, hscrollbar_policy=Gtk.PolicyType.NEVER)
         self.library_scroll = scroll
+        scroll.get_vadjustment().connect('value-changed', lambda *_: self.schedule_image_window())
+        scroll.get_vadjustment().connect('changed', lambda *_: self.schedule_image_window())
+        scroll.get_hadjustment().connect('value-changed', lambda *_: self.schedule_image_window())
+        scroll.get_hadjustment().connect('changed', lambda *_: self.schedule_image_window())
         self.library_viewport = Gtk.Viewport(scroll_to_focus=False)
         self.library_viewport.set_child(margins(self.flow, 16))
         scroll.set_child(self.library_viewport)
@@ -416,6 +459,16 @@ class Shelf(Adw.ApplicationWindow):
         scroll.get_hadjustment().connect('changed', self.strip_geometry_changed)
         self.strip = Gtk.Overlay()
         self.strip.set_child(scroll)
+        self.grid_pager = Gtk.Box(spacing=12, halign=Gtk.Align.CENTER, valign=Gtk.Align.END,
+                                  margin_bottom=8, css_classes=['toolbar'])
+        self.grid_previous = button('‹', lambda: self.change_grid_page(-1))
+        self.grid_page_label = Gtk.Label()
+        self.grid_next = button('›', lambda: self.change_grid_page(1))
+        self.grid_previous.set_tooltip_text(tr('Página anterior · Ctrl+RePág') + ' · L3')
+        self.grid_next.set_tooltip_text(tr('Página siguiente · Ctrl+AvPág') + ' · R3')
+        for item in (self.grid_previous, self.grid_page_label, self.grid_next):
+            self.grid_pager.append(item)
+        self.strip.add_overlay(self.grid_pager)
         self.ps5_selector = Gtk.Box(width_request=156, height_request=156,
             halign=Gtk.Align.START, valign=Gtk.Align.CENTER, margin_start=24,
             css_classes=['ps5-selector'], can_target=False)
@@ -449,7 +502,27 @@ class Shelf(Adw.ApplicationWindow):
         self.list_cover = Gtk.Box(halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER,
                                   margin_start=0, margin_top=16, margin_bottom=8, visible=False)
         self.list_cover_requests = set()
-        self.detail_header.append(self.list_cover)
+        self.overview = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12,
+                                hexpand=True, valign=Gtk.Align.CENTER, css_classes=['game-overview'])
+        self.overview.append(Gtk.Label(label=tr('Sinopsis'), xalign=0, css_classes=['info-heading']))
+        self.synopsis_label = Gtk.Label(xalign=0, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
+                                       lines=5, ellipsize=Pango.EllipsizeMode.END, max_width_chars=64,
+                                       css_classes=['info-text'])
+        self.overview.append(self.synopsis_label)
+        genres = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE, column_spacing=6, row_spacing=6,
+                             homogeneous=False, max_children_per_line=4, can_target=False)
+        self.genre_labels = []
+        for _ in range(8):
+            label = Gtk.Label(css_classes=['genre-chip'])
+            genres.append(label)
+            self.genre_labels.append(label)
+        self.overview.append(genres)
+        self.list_presentation = Gtk.Box(spacing=24, homogeneous=True)
+        self.list_cover_column = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12,
+                                         halign=Gtk.Align.FILL, valign=Gtk.Align.CENTER)
+        self.list_cover_column.append(self.list_cover)
+        self.list_presentation.append(self.list_cover_column)
+        self.detail_header.append(self.list_presentation)
         self.detail_header.append(self.spotlight)
         self.details_column.append(self.detail_header)
         self.info_scroll = Gtk.ScrolledWindow(vexpand=True, focusable=True, min_content_height=150,
@@ -501,7 +574,13 @@ class Shelf(Adw.ApplicationWindow):
         keys.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
         keys.connect('key-pressed', self.key_pressed)
         self.add_controller(keys)
-        self.set_content(self.toast)
+        self.input_layer = Gtk.Overlay()
+        self.input_layer.set_child(self.toast)
+        self.pointer_shield = Gtk.Box(hexpand=True, vexpand=True, can_target=True,
+                                      focusable=False, visible=False)
+        self.input_layer.add_overlay(self.pointer_shield)
+        self.set_content(self.input_layer)
+        self.pointer_tooltips = weakref.WeakKeyDictionary()
         self.gamepad_cursor_hidden = False
         self.pointer_position = None
         pointer = Gtk.EventControllerMotion()
@@ -518,7 +597,7 @@ class Shelf(Adw.ApplicationWindow):
             path = background_assets(self.settings, {})[0]
             if path and Path(path).is_file():
                 try:
-                    texture = Gdk.Texture.new_from_filename(path)
+                    texture = self.background_texture(path)
                     self.backdrop.set_paintable(texture)
                     self.backdrop_fill.set_texture(texture, path)
                 except GLib.Error:
@@ -535,6 +614,10 @@ class Shelf(Adw.ApplicationWindow):
         app.connect('shutdown', self.stop_controls)
 
     def stop_controls(self, *_):
+        self.session_window_closed = True
+        if self.game_window_hold:
+            self.game_window_hold = False
+            self.get_application().release()
         if self.gamepad_timer:
             GLib.source_remove(self.gamepad_timer)
             self.gamepad_timer = None
@@ -562,6 +645,8 @@ class Shelf(Adw.ApplicationWindow):
             return False
         if key == Gdk.KEY_slash:
             return self.navigate('search')
+        if key in (Gdk.KEY_Page_Up, Gdk.KEY_Page_Down) and state & Gdk.ModifierType.CONTROL_MASK and self.view_mode == 'grid' and not self.drawer.get_reveal_child():
+            return self.change_grid_page(-1 if key == Gdk.KEY_Page_Up else 1)
         if key in (Gdk.KEY_Page_Up, Gdk.KEY_Page_Down):
             return self.navigate('category_previous' if key == Gdk.KEY_Page_Up else 'category_next')
         directions = {Gdk.KEY_Left: 'left', Gdk.KEY_Right: 'right',
@@ -570,7 +655,7 @@ class Shelf(Adw.ApplicationWindow):
             return self.navigate(directions[key])
         if key in (Gdk.KEY_Return, Gdk.KEY_KP_Enter, Gdk.KEY_space):
             if focus and (focus.is_ancestor(self.flow) or focus == self.info_scroll or
-                          focus.is_ancestor(self.info_scroll) or focus.is_ancestor(self.spotlight) or
+                          focus.is_ancestor(self.info_scroll) or focus.is_ancestor(self.game_actions) or
                           focus.is_ancestor(self.empty_actions)):
                 return self.navigate('confirm')
         return False
@@ -594,7 +679,9 @@ class Shelf(Adw.ApplicationWindow):
     def select_tile(self, tile):
         self.active_tile = tile
         tile.button.grab_focus()
-        self.focus_game(tile.game)
+        # Entering focus already selects the game; do not rebuild it twice.
+        if self.selected_game != tile.game['id']:
+            self.focus_game(tile.game)
         if self.view_mode != 'grid':
             GLib.idle_add(self.center_tile, tile)
             return
@@ -654,7 +741,8 @@ class Shelf(Adw.ApplicationWindow):
         while parent and not isinstance(parent, (Gtk.FlowBoxChild, GameTile)):
             parent = parent.get_parent()
         self.active_tile = parent
-        self.focus_game(game)
+        if self.selected_game != game['id']:
+            self.focus_game(game)
 
     def recycle_carousel(self, tile):
         if self.view_mode == 'carousel':
@@ -779,7 +867,7 @@ class Shelf(Adw.ApplicationWindow):
             self.ps5_selector.set_halign(Gtk.Align.START)
             self.ps5_selector.set_margin_start(24)
             self.ps5_selector.set_size_request(focused_size, round(focused_size * cover_size_for(self.settings, 'ps5')[1] / 104))
-        self.ps5_selector.set_visible(self.view_mode not in ('grid', 'list') and ring_for(self.settings, self.view_mode)['focus_ring_enabled'])
+        self.ps5_selector.set_visible(self.view_mode == 'ps5' and ring_for(self.settings, self.view_mode)['focus_ring_enabled'])
         horizontal = self.view_mode not in ('grid', 'list') or list_horizontal
         self.games_page.set_orientation(Gtk.Orientation.VERTICAL if horizontal else Gtk.Orientation.HORIZONTAL)
         self.games_page.set_homogeneous(not horizontal)
@@ -787,15 +875,27 @@ class Shelf(Adw.ApplicationWindow):
             (self.view_mode == 'carousel' and self.settings.get('carousel_position', 'top') == 'bottom') or
             (self.view_mode == 'list' and self.list_flow.list_side in ('right', 'bottom'))) else None)
         self.detail_header.set_orientation(Gtk.Orientation.VERTICAL if self.view_mode == 'list' else Gtk.Orientation.HORIZONTAL)
+        parent = self.overview.get_parent()
+        if parent:
+            parent.remove(self.overview)
+        (self.list_presentation if self.view_mode == 'list' else self.spotlight).append(self.overview)
+        self.list_presentation.set_visible(self.view_mode == 'list')
         self.list_cover.set_visible(self.view_mode == 'list')
         self.spotlight_title.set_visible(self.view_mode != 'list')
         self.spotlight_title.get_next_sibling().set_visible(self.view_mode != 'list')
+        actions_parent = self.game_actions.get_parent()
+        if actions_parent:
+            actions_parent.remove(self.game_actions)
+        if self.view_mode == 'list':
+            self.list_cover_column.append(self.game_actions)
+        else:
+            self.spotlight.insert_child_after(self.game_actions, self.spotlight_title.get_next_sibling())
         self.game_actions.set_halign(Gtk.Align.CENTER if self.view_mode == 'list' else Gtk.Align.FILL)
         self.spotlight.set_margin_top(12 if self.view_mode == 'list' else 32)
         self.spotlight.set_margin_bottom(12 if self.view_mode == 'list' else 32)
         self.spotlight.set_valign(Gtk.Align.CENTER if self.view_mode == 'list' else Gtk.Align.FILL)
         self.spotlight.set_hexpand(True)
-        self.spotlight.set_visible(True)
+        self.spotlight.set_visible(self.view_mode != 'list')
         self.info_scroll.set_visible(True)
         self.strip.set_hexpand(not horizontal)
         self.library_scroll.set_policy(Gtk.PolicyType.EXTERNAL if horizontal else Gtk.PolicyType.NEVER,
@@ -872,7 +972,11 @@ class Shelf(Adw.ApplicationWindow):
                 outline: {width}px solid {color.to_string()}; outline-offset: 3px;
                 border-radius: {radius}px;
             }}
-            .carousel .game-tile.selected-game {{ transform: scale({self.carousel_zoom()}); outline: none; }}
+            .carousel .game-tile.selected-game {{
+                transform: scale({self.carousel_zoom()});
+                outline: {width / self.carousel_zoom()}px solid {color.to_string()};
+                outline-offset: 0; border-radius: {radius}px;
+            }}
             .ps5-selector {{ border: {width}px solid {color.to_string()}; border-radius: {radius}px; }}
         '''
         motion = self.settings.get('ps5_motion', True) and Gtk.Settings.get_default().get_property('gtk-enable-animations')
@@ -880,21 +984,51 @@ class Shelf(Adw.ApplicationWindow):
             'ps5-cover-drift 4s ease-in-out infinite;' if motion else 'none;') + ' }'
         self.appearance_css.load_from_data(css.encode())
 
+    def hide_pointer(self):
+        if self.gamepad_cursor_hidden:
+            return
+        self.gamepad_cursor_hidden = True
+        self.set_cursor_from_name('none')
+        # Intercept pointer picking while leaving keyboard/gamepad focus untouched.
+        self.pointer_shield.set_visible(True)
+        def clear(widget):
+            widget.unset_state_flags(Gtk.StateFlags.PRELIGHT)
+            if widget.get_has_tooltip():
+                self.pointer_tooltips[widget] = True
+                widget.set_has_tooltip(False)
+            child = widget.get_first_child()
+            while child:
+                clear(child)
+                child = child.get_next_sibling()
+        clear(self.toast)
+        self.trigger_tooltip_query()
+
     def show_pointer(self):
         if self.gamepad_cursor_hidden:
             self.gamepad_cursor_hidden = False
+            self.pointer_shield.set_visible(False)
+            for widget in list(self.pointer_tooltips):
+                widget.set_has_tooltip(True)
+            self.pointer_tooltips.clear()
             self.set_cursor(None)
 
     def pointer_moved(self, controller, x, y):
         position = (x, y)
-        if position != self.pointer_position:
+        if self.pointer_position is not None and position != self.pointer_position:
             self.show_pointer()
         self.pointer_position = position
 
+    @timed('ui.navigate')
     def navigate(self, action, gamepad=False):
-        if gamepad and not self.gamepad_cursor_hidden:
-            self.gamepad_cursor_hidden = True
-            self.set_cursor_from_name('none')
+        if gamepad:
+            self.hide_pointer()
+        if action in ('grid_page_previous', 'grid_page_next'):
+            if self.pages.get_visible_child_name() == 'library' and not self.drawer.get_reveal_child():
+                self.change_grid_page(-1 if action == 'grid_page_previous' else 1)
+            return True
+        if action == 'appearance_settings':
+            self.preferences(self.view_mode)
+            return True
         if action in ('cycle_view', 'cycle_view_previous'):
             if self.pages.get_visible_child_name() == 'library' and not self.drawer.get_reveal_child():
                 modes = tuple(VIEW_NAMES)
@@ -922,10 +1056,16 @@ class Shelf(Adw.ApplicationWindow):
                 self.recycle_carousel(selected)
                 selected = self.selected_tile()
             index = tiles.index(selected)
-            games = list({tile.game['id']: tile.game for tile in tiles}.values())
+            games = ([game for game in self.library_games if self.matches_game(game)] if self.view_mode == 'grid'
+                     else list({tile.game['id']: tile.game for tile in tiles}.values()))
             current = next(i for i, game in enumerate(games) if game['id'] == selected.game['id'])
             destination = alphabet_target([game['title'] for game in games], current, action == 'page_next')
             identity = games[destination]['id']
+            if self.view_mode == 'grid' and identity not in [tile.game['id'] for tile in tiles]:
+                self.selected_game = identity
+                self.reload()
+                self.focus_library()
+                return True
             matches = [i for i, tile in enumerate(tiles) if tile.game['id'] == identity]
             if identity == selected.game['id']:
                 return True
@@ -984,7 +1124,14 @@ class Shelf(Adw.ApplicationWindow):
                         return True
             if action == 'confirm':
                 if focus and focus.is_ancestor(self.sidebar):
-                    focus.activate()
+                    owner = next((control for control in SettingsView.controls(self.sidebar)
+                                  if focus == control or focus.is_ancestor(control)), focus)
+                    if isinstance(owner, Gtk.Switch):
+                        owner.set_active(not owner.get_active())
+                    elif isinstance(owner, Gtk.CheckButton):
+                        owner.emit('activate')
+                    else:
+                        owner.activate()
             else:
                 self.navigate_panel_direction(action, focus)
             return True
@@ -998,7 +1145,7 @@ class Shelf(Adw.ApplicationWindow):
         if focus and (focus == self.info_scroll or focus.is_ancestor(self.info_scroll)):
             return self.navigate_information(action, focus)
         carousel_bottom = self.view_mode == 'carousel' and self.settings.get('carousel_position', 'top') == 'bottom'
-        if focus and focus.is_ancestor(self.spotlight):
+        if focus and focus.is_ancestor(self.game_actions):
             if self.view_mode == 'list' and action == list_navigation(self.settings)[2]:
                 self.focus_library()
             elif action == ('up' if carousel_bottom or (self.view_mode == 'list' and list_side_for(self.settings) == 'bottom') else 'down'):
@@ -1008,11 +1155,11 @@ class Shelf(Adw.ApplicationWindow):
             elif self.view_mode != 'list' and action == ('down' if carousel_bottom else 'up'):
                 self.focus_library()
             else:
-                self.spotlight.child_focus(Gtk.DirectionType.TAB_BACKWARD if action == 'left'
+                self.game_actions.child_focus(Gtk.DirectionType.TAB_BACKWARD if action == 'left'
                                           else Gtk.DirectionType.TAB_FORWARD)
             return True
         if self.view_mode not in ('grid', 'list') and action == ('up' if carousel_bottom else 'down'):
-            self.spotlight.child_focus(Gtk.DirectionType.TAB_FORWARD)
+            self.game_actions.child_focus(Gtk.DirectionType.TAB_FORWARD)
             return True
         tiles = self.tiles()
         if not tiles:
@@ -1045,13 +1192,25 @@ class Shelf(Adw.ApplicationWindow):
             return True
         points = [(tile.get_allocation().x + tile.get_width()/2,
                    tile.get_allocation().y + tile.get_height()/2) for tile in tiles]
-        self.select_tile(tiles[neighbor(points, current, action)])
+        target = neighbor(points, current, action)
+        if self.view_mode == 'grid' and current is not None and target == current:
+            if action == 'right' and current + 1 < len(tiles):
+                self.select_tile(tiles[current + 1])
+                return True
+            if action == 'left' and current > 0:
+                self.select_tile(tiles[current - 1])
+                return True
+            if action in ('right', 'down') and self.change_grid_page(1):
+                return True
+            if action in ('left', 'up') and self.change_grid_page(-1):
+                return True
+        self.select_tile(tiles[target])
         return True
 
     def navigate_panel_direction(self, action, focus):
         controls, points = [], []
         for control in SettingsView.controls(self.sidebar):
-            valid, bounds = control.compute_bounds(self.sidebar)
+            valid, bounds = navigation_bounds(control, self.sidebar)
             if valid and bounds.get_width() > 0 and bounds.get_height() > 0:
                 controls.append(control)
                 points.append((bounds.get_x() + bounds.get_width()/2,
@@ -1131,16 +1290,43 @@ class Shelf(Adw.ApplicationWindow):
                 GLib.idle_add(done, result)
         threading.Thread(target=run, daemon=True).start()
 
-    def cover(self, game, width=156, height=234, square=False):
+    def startup_update_check(self):
+        if not self.settings.get('check_updates_on_start', False):
+            return
+        def available(release):
+            if release:
+                toast = Adw.Toast(title=tr('Nueva versión disponible: ') + release['version'],
+                                  button_label=tr('Ver actualización'), timeout=0)
+                toast.connect('button-clicked', lambda *_: self.preferences('global'))
+                self.toast.add_toast(toast)
+        # Startup is never blocked by networking; offline failures remain silent.
+        self.background(latest_release, available, lambda *_: None)
+
+    def background_texture(self, path):
+        # Keep HiDPI/fullscreen backgrounds sharp, without retaining 8K sources.
+        scale = self.get_scale_factor()
+        width = min(3840, max(1920, self.get_width() * scale))
+        height = min(2160, max(1080, self.get_height() * scale))
+        return images.load(path, width, height, kind='background')
+
+    def request_picture(self, picture, path, width, height, priority=1, kind='cover'):
+        scale = 2.5 * self.get_scale_factor()
+        @timed('ui.apply_image')
+        def ready(texture, error):
+            if texture is not None:
+                picture.set_paintable(texture)
+        picture.image_ticket = images.request(path, width * scale, height * scale, ready, priority, kind=kind)
+        return picture
+
+    def cover(self, game, width=156, height=234, square=False, priority=1):
         path = Path(game.get('cover') or '')
         if path.is_file():
             try:
-                texture = Gdk.Texture.new_from_filename(str(path))
                 radius = cover_radius_for(self.settings, self.view_mode)
-                picture = SquarePicture(texture, width, height, radius=radius)
+                picture = SquarePicture(None, width, height, radius=radius)
                 picture.set_content_fit(Gtk.ContentFit.CONTAIN if square else Gtk.ContentFit.COVER)
                 picture.set_size_request(width, height)
-                return picture
+                return self.request_picture(picture, path, width, height, priority)
             except GLib.Error:
                 pass
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.FILL,
@@ -1188,20 +1374,32 @@ class Shelf(Adw.ApplicationWindow):
         self.update_categories()
         for container in (self.grid_flow, self.horizontal_flow, self.carousel_flow, self.list_flow):
             while child := container.get_first_child():
+                release_images(child)
                 container.remove(child)
         self.active_tile = None
         self.square_queue.clear()
+        self.library_games = list(games)
+        self.grid_filter_signature = (self.search.get_text(), self.active_category)
         render_games = games
+        self.grid_pager.set_visible(False)
+        if self.view_mode == 'grid':
+            filtered = [game for game in games if self.matches_game(game)]
+            render_games, page, pages = grid_page(filtered, self.selected_game)
+            self.grid_pager.set_visible(pages > 1)
+            self.grid_page_label.set_text(tr('Página {page} de {pages}').format(page=page + 1, pages=pages) + ' · L3 / R3')
+            self.grid_previous.set_sensitive(page > 0)
+            self.grid_next.set_sensitive(page + 1 < pages)
+            self.flow.set_margin_bottom(48 if pages > 1 else 16)
         for game in render_games:
             width, height = cover_size_for(self.settings, self.view_mode)
             square = self.view_mode != 'list' and cover_format_for(self.settings, self.view_mode) == 'square'
-            image = self.cover({'cover': game.get('square_cover', '')} if square else game,
-                               width, height, square=square)
-            if self.view_mode == 'list':
-                image = self.logo_image(game, width, height)
+            image = Gtk.Box(width_request=width, height_request=height)
             target = Gtk.Button(child=image, css_classes=['flat', 'game-tile'], tooltip_text=game['title'])
             target.set_overflow(Gtk.Overflow.VISIBLE)
-            if self.view_mode != 'grid':
+            if self.view_mode == 'grid':
+                target.set_halign(Gtk.Align.CENTER)
+                target.set_valign(Gtk.Align.START)
+            else:
                 target.set_halign(Gtk.Align.START)
                 target.set_valign(Gtk.Align.START)
             target.update_property([Gtk.AccessibleProperty.LABEL], [game['title']])
@@ -1216,6 +1414,7 @@ class Shelf(Adw.ApplicationWindow):
             target.add_controller(double_click)
             child = Gtk.FlowBoxChild() if self.view_mode == 'grid' else margins(GameTile(), 6)
             child.game = game
+            child.image_loaded = False
             child.button = target
             wrapper = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
             wrapper.append(target)
@@ -1233,14 +1432,76 @@ class Shelf(Adw.ApplicationWindow):
             if self.view_mode != 'grid':
                 GLib.timeout_add(50, self.center_tile, selected)
 
+    def schedule_image_window(self):
+        if not getattr(self, 'image_window_pending', False):
+            self.image_window_pending = True
+            def update():
+                self.image_window_pending = False
+                if not getattr(self, 'reloading', False):
+                    self.update_image_window()
+                return False
+            GLib.idle_add(update)
+
+    @timed('ui.image_window')
+    def update_image_window(self):
+        tiles = self.tiles()
+        selected = next((i for i, tile in enumerate(tiles)
+                         if tile.game['id'] == self.selected_game), 0)
+        wanted = nearby_indices(len(tiles), selected, wrap=self.view_mode in ('carousel', 'list'))
+        if self.view_mode in ('grid', 'ps5'):
+            horizontal = self.view_mode == 'ps5'
+            adjustment = (self.library_scroll.get_hadjustment() if horizontal
+                          else self.library_scroll.get_vadjustment())
+            offset, page = adjustment.get_value(), adjustment.get_page_size()
+            visible = []
+            margin = self.flow.get_margin_start() if horizontal else self.flow.get_margin_top()
+            for i, tile in enumerate(tiles):
+                rect = tile.get_allocation()
+                position = (rect.x if horizontal else rect.y) + margin
+                extent = rect.width if horizontal else rect.height
+                if extent > 1 and page > 1 and position + extent > offset and position < offset + page:
+                    visible.append(i)
+            if visible:
+                wanted = set(visible)
+        retained = set()
+        width, height = cover_size_for(self.settings, self.view_mode)
+        square = self.view_mode != 'list' and cover_format_for(self.settings, self.view_mode) == 'square'
+        field = 'logo' if self.view_mode == 'list' else ('square_cover' if square else 'cover')
+        active = {id(tiles[i]) for i in wanted}
+        child = self.flow.get_first_child()
+        while child:
+            needed = id(child) in active
+            if needed:
+                retained.add(child.game.get(field, ''))
+            if needed != child.image_loaded:
+                release_images(child.button)
+                if needed:
+                    picture = (self.logo_image(child.game, width, height, priority=0 if child.game['id'] == self.selected_game else 1) if self.view_mode == 'list'
+                               else self.cover({'cover': child.game.get(field, '')}, width, height, square=square, priority=0 if child.game['id'] == self.selected_game else 1))
+                else:
+                    picture = Gtk.Box(width_request=width, height_request=height)
+                child.button.set_child(picture)
+                child.image_loaded = needed
+            if self.view_mode == 'ps5':
+                child.set_opacity(1 if needed else 0)
+            child = child.get_next_sibling()
+        current = next((tile.game for tile in tiles if tile.game['id'] == self.selected_game), {})
+        retained.update(background_assets(self.settings, current))
+        if self.view_mode == 'list':
+            retained.add(current.get('square_cover' if cover_format_for(self.settings, 'list') == 'square' else 'cover', ''))
+        images.retain_paths(retained)
+
+    @timed('ui.selected_cover')
     def update_list_cover(self, game):
         while child := self.list_cover.get_first_child():
+            release_images(child)
             self.list_cover.remove(child)
         square = cover_format_for(self.settings, 'list') == 'square'
         field = 'square_cover' if square else 'cover'
         width, height = list_cover_size(self.settings)
-        self.list_cover.append(self.cover({'cover': game.get(field, '')}, width, height, square=square))
+        self.list_cover.append(self.cover({'cover': game.get(field, '')}, width, height, square=square, priority=0))
 
+    @timed('ui.logo_capsule')
     def paint_list_focus_band(self, snapshot):
         wheel = self.list_flow
         width, height = cover_size_for(self.settings, 'list')
@@ -1270,7 +1531,7 @@ class Shelf(Adw.ApplicationWindow):
         if valid:
             snapshot.save()
             snapshot.translate(Graphene.Point().init(-position.get_x(), -position.get_y()))
-            snapshot.push_blur(18)
+            snapshot.push_blur(blur_radius(18))
             self.scene.snapshot_child(self.backdrop_fill, snapshot)
             self.scene.snapshot_child(self.backdrop, snapshot)
             snapshot.pop()
@@ -1280,12 +1541,12 @@ class Shelf(Adw.ApplicationWindow):
         snapshot.append_color(black, bounds)
         snapshot.pop()
 
-    def logo_image(self, game, width, height):
+    def logo_image(self, game, width, height, priority=1):
         path = game.get('logo', '')
         if path and Path(path).is_file():
             try:
-                texture = Gdk.Texture.new_from_filename(path)
-                return SquarePicture(texture, width, height, radius=0)
+                picture = SquarePicture(None, width, height, radius=0)
+                return self.request_picture(picture, path, width, height, priority, kind='logo')
             except GLib.Error:
                 pass
         return Gtk.Label(label=game['title'], wrap=True, justify=Gtk.Justification.CENTER,
@@ -1346,7 +1607,35 @@ class Shelf(Adw.ApplicationWindow):
         self.update_categories()
         self.filter()
 
+    def change_grid_page(self, step):
+        if self.view_mode != 'grid':
+            return False
+        games = [game for game in self.library_games if self.matches_game(game)]
+        _, page, pages = grid_page(games, self.selected_game)
+        target = page + step
+        if not 0 <= target < pages:
+            return False
+        index = target * 12 if step > 0 else min(len(games), (target + 1) * 12) - 1
+        self.selected_game = games[index]['id']
+        self.library_scroll.get_vadjustment().set_value(0)
+        self.reload()
+        self.focus_library()
+        revision = self.reload_revision
+        def reveal():
+            if revision == self.reload_revision:
+                selected = self.selected_tile()
+                if selected:
+                    self.select_tile(selected)
+            return False
+        GLib.timeout_add(80, reveal)
+        return True
+
     def filter(self):
+        if self.view_mode == 'grid' and hasattr(self, 'library_games'):
+            signature = (self.search.get_text(), self.active_category)
+            if signature != self.grid_filter_signature:
+                self.reload()
+                return
         if self.view_mode == 'grid':
             self.flow.invalidate_filter()
         count = total = 0
@@ -1359,6 +1648,9 @@ class Shelf(Adw.ApplicationWindow):
                 child.set_visible(visible)
             child = child.get_next_sibling()
         unique_count = len({tile.game['id'] for tile in self.tiles()})
+        if self.view_mode == 'grid' and hasattr(self, 'library_games'):
+            total = len(self.library_games)
+            unique_count = sum(self.matches_game(game) for game in self.library_games)
         self.count.set_text(f"{unique_count}{tr(' juegos')}")
         if self.view_mode == 'grid':
             self.flow.set_min_children_per_line(1)
@@ -1370,11 +1662,13 @@ class Shelf(Adw.ApplicationWindow):
         self.empty_add.set_visible(total == 0)
         self.empty_clear.set_visible(total > 0)
         self.stack.set_visible_child_name('games' if count else 'empty')
-        self.ps5_selector.set_visible(self.view_mode not in ('grid', 'list') and count > 0 and
+        self.ps5_selector.set_visible(self.view_mode == 'ps5' and count > 0 and
                                       ring_for(self.settings, self.view_mode)['focus_ring_enabled'])
         if count and self.selected_game not in [tile.game['id'] for tile in self.tiles()]:
             self.focus_game(self.tiles()[0].game)
         self.update_alphabet()
+        self.update_image_window()
+        self.schedule_image_window()
         if self.view_mode in ('carousel', 'list') and count:
             GLib.idle_add(self.center_tile, self.selected_tile())
 
@@ -1415,22 +1709,45 @@ class Shelf(Adw.ApplicationWindow):
         else:
             self.details(game)
 
+    @timed('ui.alphabet')
     def update_alphabet(self):
-        games = [tile.game for tile in self.tiles()]
+        games = ([game for game in self.library_games if self.matches_game(game)] if self.view_mode == 'grid'
+                 else [tile.game for tile in self.tiles()])
         current = next((game['title'] for game in games if game['id'] == self.selected_game), '')
         letters = alphabet_window([game['title'] for game in games], current)
         for label, letter in zip(self.alphabet_labels, letters):
             label.set_text(letter)
         self.alphabet_strip.set_tooltip_text(tr('LB/L1: letra anterior · ') + letters[1] + tr(' · RB/R1: letra siguiente'))
 
+    def schedule_game_information(self, game):
+        timer = getattr(self, 'information_timer', None)
+        if timer:
+            GLib.source_remove(timer)
+            self.information_timer = None
+        if getattr(self, '_information_widgets', None) is None:
+            self.update_game_information(game)
+            return
+        self.information_revision = getattr(self, 'information_revision', 0) + 1
+        revision = self.information_revision
+        def update():
+            if revision != self.information_revision:
+                return False
+            self.information_timer = None
+            if self.selected_game == game['id']:
+                self.update_game_information(game)
+            return False
+        self.information_timer = GLib.timeout_add(120, update)
+
+    @timed('ui.focus_game')
     def focus_game(self, game):
         self.spotlight_title.set_text(game['title'])
         if self.view_mode == 'list':
             self.update_list_cover(game)
         if self.selected_game != game['id']:
             self.info_scroll.get_vadjustment().set_value(0)
-        self.update_game_information(game)
+        self.schedule_game_information(game)
         self.selected_game = game['id']
+        self.update_image_window()
         self.update_alphabet()
         selected_tile = self.selected_tile()
         self.active_tile = selected_tile
@@ -1457,112 +1774,164 @@ class Shelf(Adw.ApplicationWindow):
         if self.focus_timer:
             GLib.source_remove(self.focus_timer)
             self.focus_timer = None
-        def show(path):
+        for ticket in getattr(self, 'background_tickets', []):
+            ticket.cancelled = True
+        self.background_tickets = []
+        paths = background_assets(self.settings, game)
+        scale = self.get_scale_factor()
+        width = min(3840, max(1920, self.get_width() * scale))
+        height = min(2160, max(1080, self.get_height() * scale))
+        pending = {i for i, path in enumerate(paths) if path and Path(path).is_file()}
+        results = {}
+        # Keep the last frame until its replacements are ready to avoid a flash.
+        if not pending:
+            self.backdrop.set_paintable(None)
+            self.backdrop.secondary_texture = None
+            self.backdrop_fill.set_texture(None)
+        def ready(index, path, result, error):
             if revision != self.focus_revision:
                 return
-            try:
-                texture = Gdk.Texture.new_from_filename(path)
-                secondary = None
-                secondary_path = background_assets(self.settings, latest)[1]
-                if secondary_path and Path(secondary_path).is_file():
-                    try:
-                        secondary = Gdk.Texture.new_from_filename(secondary_path)
-                    except GLib.Error:
-                        pass
-                self.backdrop.set_paintable(texture)
-                self.backdrop.secondary_texture = secondary
-                self.backdrop_fill.set_texture(texture, path, secondary, secondary_path)
-            except GLib.Error:
-                self.backdrop.set_paintable(None)
-                self.backdrop.secondary_texture = None
-                self.backdrop_fill.set_texture(None)
-        latest = next((row for row in self.library.games() if row['id'] == game['id']), game)
-        cached = background_assets(self.settings, latest)[0]
-        if cached and Path(cached).is_file():
-            show(cached)
-            return
-        self.backdrop.set_paintable(None)
-        self.backdrop.secondary_texture = None
-        self.backdrop_fill.set_texture(None)
+            if result is not None:
+                texture, color = result
+                results[index] = texture
+                self.backdrop_fill.colors[path] = color
+            pending.discard(index)
+            if pending:
+                return
+            texture, secondary = results.get(0), results.get(1)
+            self.backdrop.set_paintable(texture)
+            self.backdrop.secondary_texture = secondary
+            self.backdrop_fill.set_texture(texture, paths[0], secondary, paths[1])
+        for index in sorted(pending):
+            path = paths[index]
+            prepare = lambda texture, path=path: (texture, images.prepared(
+                'dominant-color', path, lambda: BlurredBackdrop.dominant_color(path, texture)))
+            done = lambda result, error, index=index, path=path: ready(index, path, result, error)
+            self.background_tickets.append(images.request(path, width, height, done, priority=0, prepare=prepare, kind='background'))
 
-    def update_game_information(self, game):
-        while child := self.game_information.get_first_child():
-            self.game_information.remove(child)
-        activity = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18, hexpand=True, valign=Gtk.Align.START)
+    def information_widgets(self):
+        if getattr(self, '_information_widgets', None) is not None:
+            return self._information_widgets
+        widgets = {}
+        activity = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6,
+                           hexpand=True, valign=Gtk.Align.START)
+        info = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6,
+                       hexpand=True, valign=Gtk.Align.START,
+                       css_classes=['stat-card', 'compact-info'])
         self.game_information.append(activity)
-        stats = self.library.game_stats(game)
-        process = self.processes.get(game['id'])
-        running = process is not None and process.poll() is None
+        self.game_information.append(info)
+        def label(parent, key, css='info-text', **kwargs):
+            item = Gtk.Label(xalign=0, wrap=True, css_classes=[css], **kwargs)
+            widgets[key] = item
+            parent.append(item)
+            return item
         heading = Gtk.Box(spacing=12)
-        heading.append(Gtk.Label(label=tr('Tu actividad'), xalign=0, hexpand=True, css_classes=['info-heading']))
-        heading.append(Gtk.Label(label=tr('En ejecución') if running else tr('Listo para jugar'), css_classes=['info-text']))
         activity.append(heading)
+        label(heading, 'activity_title', 'info-heading', hexpand=True).set_text(tr('Tu actividad'))
+        label(heading, 'status')
         cards = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE, homogeneous=True,
                             min_children_per_line=1, max_children_per_line=2,
-                            column_spacing=12, row_spacing=12)
-        for title, value in (
-                (tr('Tiempo jugado'), duration(stats['seconds'])),
-                (tr('Sesiones en Estante'), str(stats['sessions'])),
-                (tr('Última sesión'), duration(stats['last_seconds'])),
-                (tr('Última vez'), played_date(stats['last_played']))):
-            card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8, css_classes=['stat-card'])
-            card.append(Gtk.Label(label=title, xalign=0, css_classes=['info-text']))
-            card.append(Gtk.Label(label=value, xalign=0, wrap=True, css_classes=['stat-value']))
-            cards.append(card)
+                            column_spacing=8, row_spacing=8)
         activity.append(cards)
-        note = tr('Tiempo importado de Faugus. Las sesiones cuentan solo las registradas en Estante.') if game['kind'] == 'faugus' else tr('Actividad registrada al finalizar cada sesión iniciada desde Estante.')
-        activity.append(Gtk.Label(label=note, wrap=True, xalign=0, css_classes=['info-text']))
-        info = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        info.set_valign(Gtk.Align.START)
-        info.set_hexpand(True)
-        info.add_css_class('stat-card')
-        info.append(Gtk.Label(label=tr('Información del juego'), xalign=0, css_classes=['info-heading']))
-        metadata = game.get('metadata', {})
-        if metadata:
-            if metadata.get('description'):
-                info.append(Gtk.Label(label=metadata['description'], xalign=0, wrap=True, css_classes=['info-text']))
-            for label, field in ((tr('Estudio'), 'developers'), (tr('Editora'), 'publishers'),
-                                  (tr('Géneros'), 'genres'), (tr('Plataformas'), 'platforms')):
-                value = ', '.join(metadata.get(field, [])) or tr('Sin datos')
-                info.append(Gtk.Label(label=f'{label}: {value}', xalign=0, wrap=True, css_classes=['info-text']))
-            released = metadata.get('release_date') or tr('Sin datos')
-            try:
-                released = datetime.strptime(released, '%Y-%m-%d').strftime('%d/%m/%Y')
-            except ValueError:
-                pass
-            info.append(Gtk.Label(label=tr('Primer lanzamiento registrado: ') + released,
-                                  xalign=0, wrap=True, css_classes=['info-text']))
-            if metadata.get('source'):
-                info.append(Gtk.LinkButton(uri=metadata['source'], label=tr('Ficha en Wikidata'), halign=Gtk.Align.START))
-        else:
-            info.append(Gtk.Label(label=tr('Añade la ficha para ver estudio, editora, lanzamiento y géneros.'),
-                                  xalign=0, wrap=True, css_classes=['info-text']))
-        info.append(button(tr('Cambiar ficha') if metadata else tr('Buscar ficha del juego'), lambda: self.metadata_search(game)))
-        info.append(button(tr('Editar ficha a mano'), lambda: self.metadata_edit(game)))
-        info.append(Gtk.Separator())
-        source = 'Steam · ' + ('Flatpak' if game.get('install') == 'flatpak' else tr('Nativo')) if game['kind'] == 'steam' else 'Faugus · ' + ('Flatpak' if game.get('install') == 'flatpak' else tr('Nativo')) if game['kind'] == 'faugus' else (tr('Script de Linux') if game.get('path', '').endswith('.sh') else 'AppImage')
-        info.append(Gtk.Label(label=source, xalign=0, css_classes=['info-text']))
-        if game.get('runner'):
-            info.append(Gtk.Label(label=tr('Perfil de ejecución: ') + str(game['runner']), xalign=0, wrap=True, css_classes=['info-text']))
-        if game.get('path'):
-            info.append(Gtk.Label(label=tr('Archivo: ') + Path(game['path']).name, xalign=0, wrap=True,
-                                  tooltip_text=game['path'], css_classes=['info-text']))
-        self.game_information.append(info)
-        activity.append(Gtk.Label(label=tr('Sesiones recientes'), xalign=0, css_classes=['info-heading']))
-        if not stats['history']:
-            activity.append(Gtk.Label(label=tr('Las sesiones completadas desde Estante aparecerán aquí.'),
-                xalign=0, wrap=True, css_classes=['info-text']))
-        for session in stats['history'][:5]:
+        for key, title in (('seconds', tr('Tiempo jugado')), ('sessions', tr('Sesiones en Estante')),
+                           ('last_seconds', tr('Última sesión')), ('last_played', tr('Última vez'))):
+            card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, css_classes=['stat-card'])
+            card.append(Gtk.Label(label=title, xalign=0, css_classes=['info-text']))
+            label(card, key, 'stat-value')
+            cards.append(card)
+        label(activity, 'note')
+        label(info, 'info_title', 'info-heading').set_text(tr('Información del juego'))
+        for key in ('description', 'developers', 'publishers', 'genres', 'platforms', 'release', 'missing'):
+            label(info, key)
+        link = Gtk.LinkButton(uri='https://www.wikidata.org', label=tr('Ficha en Wikidata'), halign=Gtk.Align.START)
+        widgets['link'] = link
+        info.append(link)
+        widgets['technical_separator'] = Gtk.Separator()
+        info.append(widgets['technical_separator'])
+        for key in ('source', 'runner', 'path'):
+            label(info, key)
+        label(activity, 'history_title', 'info-heading').set_text(tr('Sesiones recientes'))
+        label(activity, 'history_empty').set_text(tr('Las sesiones completadas desde Estante aparecerán aquí.'))
+        widgets['history'] = []
+        for _ in range(5):
             row = Gtk.Box(spacing=16)
-            row.append(Gtk.Label(label=played_date(session['started']), xalign=0, hexpand=True, css_classes=['info-text']))
-            row.append(Gtk.Label(label=duration(session['seconds']), css_classes=['info-text']))
-            if session['exit_code']:
-                row.append(Gtk.Label(label=tr('Salida con error'), css_classes=['info-text']))
+            date = Gtk.Label(xalign=0, hexpand=True, css_classes=['info-text'])
+            elapsed = Gtk.Label(css_classes=['info-text'])
+            error = Gtk.Label(label=tr('Salida con error'), css_classes=['info-text'])
+            for child in (date, elapsed, error):
+                row.append(child)
             activity.append(row)
+            widgets['history'].append((row, date, elapsed, error))
+        self._information_widgets = widgets
+        return widgets
+
+    @timed('ui.information')
+    def update_game_information(self, game):
+        timer = getattr(self, 'information_timer', None)
+        if timer:
+            GLib.source_remove(timer)
+            self.information_timer = None
+        self.information_revision = getattr(self, 'information_revision', 0) + 1
+        widgets = self.information_widgets()
+        def text(key, value, visible=True):
+            widgets[key].set_text(value)
+            widgets[key].set_visible(visible)
+        stats = self.library.game_stats(game)
+        process = self.processes.get(game['id'])
+        running = game['id'] in getattr(self, 'running_sessions', set()) or (process is not None and process.poll() is None)
+        text('status', tr('En ejecución') if running else tr('Listo para jugar'))
+        for key in ('seconds', 'last_seconds'):
+            text(key, duration(stats[key]))
+        text('sessions', str(stats['sessions']))
+        text('last_played', played_date(stats['last_played']))
+        text('note', tr('Tiempo importado de Faugus. Las sesiones cuentan solo las registradas en Estante.')
+             if game['kind'] == 'faugus' else tr('Actividad registrada al finalizar cada sesión iniciada desde Estante.'))
+        metadata = game.get('metadata') or {}
+        if hasattr(self, 'synopsis_label'):
+            synopsis = metadata.get('synopsis') or metadata.get('description') or tr('Añade una sinopsis desde Editar → Editar ficha a mano.')
+            self.synopsis_label.set_text(synopsis)
+            self.synopsis_label.set_tooltip_text(synopsis)
+            for index, label in enumerate(self.genre_labels):
+                values = metadata.get('genres', [])
+                label.get_parent().set_visible(index < len(values))
+                if index < len(values):
+                    label.set_text(values[index])
+
+        text('description', metadata.get('description', ''), bool(metadata.get('description')))
+        for title, key in ((tr('Estudio'), 'developers'), (tr('Editora'), 'publishers'),
+                            (tr('Géneros'), 'genres'), (tr('Plataformas'), 'platforms')):
+            text(key, title + ': ' + (', '.join(metadata.get(key, [])) or tr('Sin datos')), bool(metadata))
+        released = metadata.get('release_date') or tr('Sin datos')
+        try:
+            released = datetime.strptime(released, '%Y-%m-%d').strftime('%d/%m/%Y')
+        except ValueError:
+            pass
+        text('release', tr('Primer lanzamiento registrado: ') + released, bool(metadata))
+        text('missing', tr('Añade la ficha para ver estudio, editora, lanzamiento y géneros.'), not metadata)
+        widgets['link'].set_visible(bool(metadata.get('source')))
+        widgets['link'].set_uri(metadata.get('source') or 'https://www.wikidata.org')
+        source = ('Steam' if game['kind'] == 'steam' else 'Faugus') + ' · ' + ('Flatpak' if game.get('install') == 'flatpak' else tr('Nativo')) if game['kind'] in ('steam', 'faugus') else (tr('Script de Linux') if game.get('path', '').endswith('.sh') else 'AppImage')
+        technical = self.settings.get('show_launcher_details', {}).get(self.view_mode, True) if hasattr(self, 'settings') else True
+        widgets['technical_separator'].set_visible(technical)
+        text('source', source, technical)
+        text('runner', tr('Perfil de ejecución: ') + str(game.get('runner', '')), technical and bool(game.get('runner')))
+        text('path', tr('Archivo: ') + Path(game.get('path') or '').name, technical and bool(game.get('path')))
+        widgets['path'].set_tooltip_text(game.get('path') or '')
+        text('history_empty', tr('Las sesiones completadas desde Estante aparecerán aquí.'), not stats['history'])
+        for index, (row, date, elapsed, error) in enumerate(widgets['history']):
+            visible = index < len(stats['history'])
+            row.set_visible(visible)
+            if visible:
+                session = stats['history'][index]
+                date.set_text(played_date(session['started']))
+                elapsed.set_text(duration(session['seconds']))
+                error.set_visible(bool(session['exit_code']))
 
     def close_panel(self):
         self.panel_revision += 1
         self.drawer.set_reveal_child(False)
+        release_images(self.sidebar)
+        self.artwork_gallery = None
         self.panel_back = None
         self.focus_library()
 
@@ -1571,6 +1940,7 @@ class Shelf(Adw.ApplicationWindow):
         self.artwork_gallery = None
         self.panel_back = back
         while child := self.sidebar.get_first_child():
+            release_images(child)
             self.sidebar.remove(child)
         header = Gtk.Box(spacing=8)
         if back:
@@ -1630,7 +2000,7 @@ class Shelf(Adw.ApplicationWindow):
         box.append(hero)
         banner_status = Gtk.Label(wrap=True, xalign=0, css_classes=['dim-label'])
         def show_banner(path):
-            backdrop.set_paintable(Gdk.Texture.new_from_filename(path))
+            backdrop.set_paintable(images.load(path, 1280, 720))
         cached = game.get('banner', '')
         if cached and Path(cached).is_file():
             try:
@@ -1668,9 +2038,39 @@ class Shelf(Adw.ApplicationWindow):
             self.reload()
         box.append(button(tr('Guardar categorías'), save, 'suggested-action'))
 
+    def wait_to_hide_for_game(self, identity, process):
+        def check():
+            if (self.session_window_closed or identity not in self.running_sessions or
+                    self.processes.get(identity) is not process):
+                return False
+            # Wait for the game to take focus instead of hiding behind a loading screen.
+            if not self.is_active():
+                self.hide_for_game(identity)
+                return False
+            return True
+        GLib.timeout_add(250, check)
+        return False
+
+    def hide_for_game(self, identity):
+        self.hidden_game_sessions.add(identity)
+        if not self.game_window_hold:
+            self.get_application().hold()
+            self.game_window_hold = True
+        self.set_visible(False)
+
+    def restore_after_game(self, identity):
+        self.hidden_game_sessions.discard(identity)
+        if self.hidden_game_sessions or not self.game_window_hold:
+            return
+        self.game_window_hold = False
+        if not self.session_window_closed:
+            self.present()
+            self.focus_library()
+        self.get_application().release()
+
     def play(self, game):
         previous = self.processes.get(game['id'])
-        if previous and previous.poll() is None:
+        if game['id'] in self.running_sessions or (previous and previous.poll() is None):
             self.error(tr('Este juego ya está en ejecución.'))
             return
         try:
@@ -1679,12 +2079,17 @@ class Shelf(Adw.ApplicationWindow):
             self.error(error)
             return
         self.processes[game['id']] = process
+        self.running_sessions.add(game['id'])
         started = datetime.now().isoformat()
         started_at = time.monotonic()
         self.close_panel()
         self.update_game_information(game)
         self.toast.add_toast(Adw.Toast(title=f"{tr('Iniciando ')}{game['title']}…"))
+        hide = self.settings.get('hide_while_playing', False)
+        def started():
+            GLib.idle_add(self.wait_to_hide_for_game, game['id'], process)
         def finished(code):
+            self.running_sessions.discard(game['id'])
             try:
                 self.library.record_session(game, time.monotonic() - started_at, started, code)
                 if self.selected_game == game['id']:
@@ -1694,7 +2099,12 @@ class Shelf(Adw.ApplicationWindow):
                 self.error(error)
             if code:
                 self.error(f"{tr('El lanzador terminó con código ')}{code}. Consulta {self.library.root / 'launch.log'}")
-        self.background(process.wait, finished)
+            self.restore_after_game(game['id'])
+        def failed(message):
+            self.running_sessions.discard(game['id'])
+            self.restore_after_game(game['id'])
+            self.error(tr(message))
+        self.background(lambda: wait_for_game(game, process, on_started=started) if hide else process.wait(), finished, failed)
 
     def remove(self, game):
         box = self.panel(tr('¿Quitar este juego?'), back=lambda: self.edit_game(game))
@@ -1801,6 +2211,11 @@ class Shelf(Adw.ApplicationWindow):
             hscrollbar_policy=Gtk.PolicyType.NEVER, vscrollbar_policy=Gtk.PolicyType.AUTOMATIC)
         description_scroll.set_child(description)
         box.append(description_scroll)
+        box.append(Gtk.Label(label=tr('Sinopsis'), xalign=0, css_classes=['heading']))
+        synopsis = Gtk.TextView(wrap_mode=Gtk.WrapMode.WORD_CHAR, height_request=130)
+        synopsis.get_buffer().set_text(metadata.get('synopsis', ''))
+        box.append(synopsis)
+        box.append(button(tr('Buscar sinopsis en Steam'), lambda: self.synopsis_search(latest)))
         feedback = Gtk.Label(wrap=True, xalign=0, css_classes=['error'])
         box.append(feedback)
         def save():
@@ -1816,8 +2231,10 @@ class Shelf(Adw.ApplicationWindow):
                     feedback.set_text(tr('Introduce una fecha válida en formato DD/MM/AAAA o deja el campo vacío.'))
                     return
             buffer = description.get_buffer()
+            synopsis_buffer = synopsis.get_buffer()
             edited = {**metadata, 'title': title.get_text().strip(), 'release_date': date,
                       'description': buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True),
+                      'synopsis': synopsis_buffer.get_text(synopsis_buffer.get_start_iter(), synopsis_buffer.get_end_iter(), True).strip(),
                       'manually_edited': True}
             edited.update({field: [value.strip() for value in entry.get_text().split(',') if value.strip()]
                            for field, entry in entries.items()})
@@ -1832,6 +2249,52 @@ class Shelf(Adw.ApplicationWindow):
             self.reload()
         box.append(button(tr('Guardar ficha'), save, 'suggested-action'))
         box.append(button(tr('Cancelar'), lambda: self.edit_game(latest)))
+
+    def synopsis_search(self, game):
+        box = self.panel(tr('Buscar sinopsis en Steam'), back=lambda: self.metadata_edit(game))
+        revision = self.panel_revision
+        query = Gtk.SearchEntry()
+        query.set_text(game['title'])
+        box.append(query)
+        status = Gtk.Label(wrap=True, xalign=0)
+        results = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        client = SteamArtwork()
+        generation = [0]
+        def choose(row):
+            generation[0] += 1
+            token = generation[0]
+            def show(text):
+                if revision != self.panel_revision or token != generation[0]:
+                    return
+                while child := results.get_first_child():
+                    results.remove(child)
+                results.append(Gtk.Label(label=row['name'], wrap=True, xalign=0, css_classes=['title-3']))
+                results.append(Gtk.Label(label=text, wrap=True, xalign=0))
+                def save():
+                    latest = next((item for item in self.library.games() if item['id'] == game['id']), None)
+                    if latest is None:
+                        return
+                    self.library.put(dict(latest, metadata={**latest.get('metadata', {}), 'synopsis': text}))
+                    self.reload()
+                    self.metadata_edit(latest)
+                results.append(button(tr('Usar esta sinopsis'), save, 'suggested-action'))
+            self.background(lambda: client.synopsis(row['id']), show, status.set_text)
+        def search():
+            generation[0] += 1
+            token = generation[0]
+            def show(rows):
+                if revision != self.panel_revision or token != generation[0]:
+                    return
+                while child := results.get_first_child():
+                    results.remove(child)
+                status.set_text(tr('Elige el juego.'))
+                for row in rows:
+                    results.append(button(row['name'], lambda row=row: choose(row)))
+            self.background(lambda: client.search(query.get_text().strip()), show, status.set_text)
+        query.connect('activate', lambda *_: search())
+        box.append(button(tr('Buscar'), search))
+        box.append(status)
+        box.append(results)
 
     def metadata_search(self, game):
         box = self.panel(tr('Ficha del juego'), back=lambda: self.edit_game(game))
@@ -1848,6 +2311,7 @@ class Shelf(Adw.ApplicationWindow):
 
         def clear():
             while child := results.get_first_child():
+                release_images(child)
                 results.remove(child)
 
         def choose(item):
@@ -1877,7 +2341,7 @@ class Shelf(Adw.ApplicationWindow):
                 def save():
                     try:
                         latest = next((row for row in self.library.games() if row['id'] == game['id']), game)
-                        self.library.put(dict(latest, metadata=metadata))
+                        self.library.put(dict(latest, metadata={**metadata, **({'synopsis': latest.get('metadata', {})['synopsis']} if latest.get('metadata', {}).get('synopsis') else {})}))
                         self.close_panel()
                         self.reload()
                     except Exception as error:
@@ -1974,7 +2438,7 @@ class Shelf(Adw.ApplicationWindow):
                 texture = None
                 if path and Path(path).is_file():
                     try:
-                        texture = Gdk.Texture.new_from_filename(path)
+                        texture = images.load(path, 960, 540)
                     except GLib.Error:
                         pass
                 picture.set_paintable(texture)
@@ -2034,13 +2498,14 @@ class Shelf(Adw.ApplicationWindow):
         selected_id = [game.get('steamgriddb_id')]
         def clear():
             while child := results.get_first_child():
+                release_images(child)
                 results.remove(child)
         def save_cover(path):
             if revision != self.panel_revision:
                 return
             try:
                 # Validate downloaded image before committing the selection.
-                Gdk.Texture.new_from_filename(path)
+                images.load(path)
                 field = 'logo' if logo else ('banner_secondary' if secondary else ('banner' if banner else ('square_cover' if square else 'cover')))
                 latest = next((row for row in self.library.games() if row['id'] == game['id']), game)
                 updated = dict(latest, **{field: path})
@@ -2124,8 +2589,10 @@ class Shelf(Adw.ApplicationWindow):
                     if not external:
                         self.background(lambda url=row['url']: client.artwork_size(url), show_size, lambda _: None)
                     def preview(path, target=card, width=width, height=height, details=details):
+                        if revision != self.panel_revision:
+                            return
                         if external:
-                            texture = Gdk.Texture.new_from_filename(path)
+                            texture = images.load(path, 320, 320)
                             if abs(texture.get_width() / texture.get_height() - 16 / 9) > 0.025:
                                 target.set_visible(False)
                                 return

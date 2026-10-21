@@ -12,10 +12,10 @@ class LogoScalingTests(TestCase):
             path = Path(directory) / 'logo.png'
             path.touch()
             texture = Mock()
-            with patch('estante.Gdk.Texture.new_from_filename', return_value=texture), \
+            with patch('estante.images.load', return_value=texture), \
                  patch('estante.SquarePicture') as picture:
-                Shelf.logo_image(None, {'logo': str(path)}, 300, 100)
-            picture.assert_called_once_with(texture, 300, 100, radius=0)
+                Shelf.logo_image(SimpleNamespace(request_picture=lambda picture, *args, **kwargs: picture), {'logo': str(path)}, 300, 100)
+            picture.assert_called_once_with(None, 300, 100, radius=0)
         logical = SimpleNamespace(cover_width=300, cover_height=100)
         self.assertEqual(SquarePicture.do_measure(logical, Gtk.Orientation.HORIZONTAL, -1), (300, 300, -1, -1))
         self.assertEqual(SquarePicture.do_measure(logical, Gtk.Orientation.VERTICAL, 300), (100, 100, -1, -1))
@@ -50,3 +50,14 @@ class LogoScalingTests(TestCase):
         bounds = snapshot.append_color.call_args.args[1]
         self.assertLess(bounds.get_x(), 0)
         self.assertAlmostEqual(bounds.get_y() + bounds.get_height()/2, 400)
+
+    def test_contained_image_rounds_actual_pixels_in_wider_allocation(self):
+        texture = SimpleNamespace(get_width=lambda: 100, get_height=lambda: 100)
+        picture = SimpleNamespace(get_paintable=lambda: texture, get_width=lambda: 300,
+                                  get_height=lambda: 100, corner_radius=16,
+                                  get_content_fit=lambda: Gtk.ContentFit.CONTAIN)
+        snapshot = Mock()
+        RoundedPicture.do_snapshot(picture, snapshot)
+        bounds = snapshot.push_rounded_clip.call_args.args[0].bounds
+        self.assertEqual((bounds.get_x(), bounds.get_y(), bounds.get_width(), bounds.get_height()),
+                         (100, 0, 100, 100))

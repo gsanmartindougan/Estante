@@ -1,28 +1,78 @@
 # Estante
 
-Version: **0.2.0** · [Documentación en español](README.md)
+Version: **0.2.1** · [Documentación en español](README.md)
 
 A simple native Linux game library inspired by Cartridges. Launch games from **Steam**, **Faugus Launcher**, **shell scripts** and **AppImages**, using a gamepad, keyboard or mouse.
 
 Faugus games are imported directly: you do not need to create `.desktop` entries. Faugus keeps control of the runner, prefix and launch arguments.
 
+## AI-assisted development and human review
+
+Estante was developed with the assistance of artificial intelligence to generate and modify code, documentation and tests. The project has undergone **thorough human review**, including validation of its behavior and design decisions.
+
+AI is a development tool; responsibility for changes and published releases rests with the project maintainer. This review does not guarantee that the software is free of bugs. Please report any issues through the repository's issue tracker.
+
+## Layouts and videos
+
+Choose a layout without changing your library. Each has independent cover, selection and background settings. These videos show **Estante 0.2.1**; click a preview to open its MP4.
+
+### Grid
+
+A cover grid with the selected game's information and activity in the right-hand panel. Customize portrait or square covers, their size and corner radius. In 0.2.1, the library uses pages of **12 games**: browse with **L3 / R3**, the page buttons or **Ctrl+PageUp / Ctrl+PageDown**.
+
+[![Grid preview](docs/showcase/01-grid.jpg)](docs/showcase/01-grid.mp4)
+
+[▶ Watch Grid](docs/showcase/01-grid.mp4)
+
+### Carousel
+
+A horizontal wheel with depth and continuous circular navigation. The selected game stays centered with adjustable focus zoom. Place the wheel at the top or bottom while viewing the game's synopsis, information and activity.
+
+[![Carousel preview](docs/showcase/02-carousel.jpg)](docs/showcase/02-carousel.mp4)
+
+[▶ Watch Carousel](docs/showcase/02-carousel.mp4)
+
+### Sense
+
+A compact cover row over the game's background. Selection stays anchored to the left while games move as you navigate. Adjust the selected cover's size and enable its gentle animation.
+
+[![Sense preview](docs/showcase/03-sense.jpg)](docs/showcase/03-sense.mp4)
+
+[▶ Watch Sense](docs/showcase/03-sense.mp4)
+
+### List
+
+A logo wheel highlights the selected game alongside its cover, synopsis and details. Place it on any of the four screen edges: navigation is vertical on the sides and horizontal at the top or bottom. Adjust logo size, selected logo size and cover size independently.
+
+[![List preview](docs/showcase/04-list.jpg)](docs/showcase/04-list.mp4)
+
+[▶ Watch List](docs/showcase/04-list.mp4)
+
+### Settings
+
+Global settings cover language, controller type, startup behavior, integrations and background source. Each layout has independent visual settings organized into collapsible sections. **L3 + R3** opens the current layout's settings directly; you can also use the gear button.
+
+[![Settings preview](docs/showcase/05-settings.jpg)](docs/showcase/05-settings.mp4)
+
+[▶ Watch Settings](docs/showcase/05-settings.mp4)
+
 ## Install the AppImage
 
 The **x86_64 AppImage** includes Python, GTK, libadwaita and SDL2. Faugus must be installed separately to launch its games.
 
-We recommend [Gear Lever](https://flathub.org/apps/it.mijorus.gearlever) to manage the AppImage and add Estante to your application menu. Open `Estante-0.2.0-x86_64.AppImage` with Gear Lever and use its integration option.
+We recommend [Gear Lever](https://flathub.org/apps/it.mijorus.gearlever) to manage the AppImage and add Estante to your application menu. Open `Estante-0.2.1-x86_64.AppImage` with Gear Lever and use its integration option.
 
 You can also run the file directly:
 
 ```sh
-chmod +x Estante-0.2.0-x86_64.AppImage
-./Estante-0.2.0-x86_64.AppImage
+chmod +x Estante-0.2.1-x86_64.AppImage
+./Estante-0.2.1-x86_64.AppImage
 ```
 
 If FUSE is unavailable:
 
 ```sh
-./Estante-0.2.0-x86_64.AppImage --appimage-extract
+./Estante-0.2.1-x86_64.AppImage --appimage-extract
 ./squashfs-root/AppRun
 ```
 
@@ -40,7 +90,7 @@ Requires Python 3, PyGObject, GTK **4.10 or newer**, libadwaita and SDL2 for gam
 
 `sdl2-compat` can replace `sdl2` on distributions that provide it.
 
-Extract `Estante-0.2.0-linux.tar.gz`, enter the `Estante` directory and run:
+Extract `Estante-0.2.1-linux.tar.gz`, enter the `Estante` directory and run:
 
 ```sh
 sh install.sh
@@ -64,7 +114,7 @@ Estante follows the system language by default: **Spanish for Spanish systems, E
 
 Choose **Settings → Global → Language** to use the system language, Español or English. Save and reopen Estante to apply the change. Your game titles, category names and saved game information are preserved.
 
-## Two backgrounds per game (0.2.0)
+## Two backgrounds per game (0.2.1)
 
 Choose the first image in **Edit → Change banner…** and the second in **Choose second background…**.
 Both support the same image sources. In each layout's settings, **Background split** offers:

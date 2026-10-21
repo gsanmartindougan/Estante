@@ -45,5 +45,5 @@ class ListNavigationTests(TestCase):
                 cover=cover)
             game = {'id': 'test', 'cover': '/portrait.png', 'square_cover': '/square.png'}
             Shelf.update_list_cover(host, game)
-            cover.assert_called_once_with({'cover': path}, width, height, square=square)
+            cover.assert_called_once_with({'cover': path}, width, height, square=square, priority=0)
             host.list_cover.append.assert_called_once_with(cover.return_value)

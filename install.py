@@ -8,11 +8,11 @@ import shutil
 import subprocess
 import sys
 
-MODULES = ('estante.py', 'appearance.py', 'carousel.py', 'controls.py', 'library.py',
+MODULES = ('game_session.py', 'profiling.py', 'image_cache.py', 'estante.py', 'appearance.py', 'carousel.py', 'controls.py', 'library.py',
            'metadata.py', 'settings_view.py', 'steam_artwork.py', 'igdb_artwork.py', 'version.py', 'updates.py', 'i18n.py', 'backgrounds.py', 'scraping.py', 'steam_import.py')
 APP_ID = 'io.github.estante.Launcher'
 SOURCE = Path(__file__).resolve().parent
-DOCUMENTS = ('README.md', 'README.en.md', 'RELEASE_NOTES.md')
+DOCUMENTS = ('README.md', 'README.en.md')
 ASSETS = tuple(str(path.relative_to(SOURCE)) for path in sorted((SOURCE / 'assets/backgrounds').glob('*')) if path.is_file())
 
 

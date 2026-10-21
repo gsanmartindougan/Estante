@@ -2,6 +2,8 @@
 from i18n import tr
 from i18n import get_language
 import json
+import re
+from html import unescape
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -15,6 +17,18 @@ class SteamArtwork:
     def search(self, title):
         rows = self.request('storesearch/', term=title, l='spanish' if get_language() == 'es' else 'english', cc='ES' if get_language() == 'es' else 'US')
         return [{'id': row['id'], 'name': row['name']} for row in rows.get('items', [])]
+
+    def synopsis(self, game_id):
+        identity = str(int(game_id))
+        result = self.request('appdetails', appids=identity,
+                              l='spanish' if get_language() == 'es' else 'english').get(identity, {})
+        data = result.get('data', {}) if result.get('success') else {}
+        text = data.get('short_description') or ''
+        text = unescape(re.sub(r'<[^>]+>', ' ', text))
+        text = ' '.join(text.split())
+        if not text:
+            raise ValueError(tr('No hay sinopsis disponible para este juego.'))
+        return text
 
     def screenshots(self, game_id):
         identity = str(int(game_id))

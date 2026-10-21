@@ -1,6 +1,6 @@
 # Estante
 
-Versión: **0.2.0**.
+Versión: **0.2.1**.
 
 [English documentation](README.en.md)
 
@@ -9,6 +9,12 @@ Una biblioteca de juegos para Linux, sencilla y nativa, inspirada en Cartridges.
 Estante lee la biblioteca de Faugus directamente: **no necesitas crear archivos `.desktop`**. Al jugar, Faugus se encarga del runner, el prefijo y los parámetros que ya tengas configurados.
 
 Proyecto en desarrollo, construido con Python, GTK 4 y libadwaita.
+
+## Desarrollo con IA y revisión humana
+
+Estante se ha desarrollado con ayuda de inteligencia artificial para generar y modificar código, documentación y pruebas. El proyecto ha pasado por una **revisión humana exhaustiva**, con validación de su comportamiento y decisiones de diseño.
+
+La IA es una herramienta de desarrollo; la responsabilidad sobre los cambios y las versiones publicadas corresponde al responsable del proyecto. Esta revisión no garantiza la ausencia de errores: los problemas detectados pueden comunicarse mediante las incidencias del repositorio.
 
 ## Funciones
 
@@ -21,6 +27,50 @@ Proyecto en desarrollo, construido con Python, GTK 4 y libadwaita.
 - Tiempo jugado, estadísticas y sesiones recientes.
 - Edición en paneles laterales superpuestos, sin desplazar la biblioteca.
 
+## Apariencias y vídeos
+
+Elige la distribución que prefieras sin cambiar tu biblioteca. Cada apariencia tiene sus propios ajustes de carátulas, selección y fondos. Los vídeos muestran **Estante 0.2.1**; haz clic en una vista previa para abrir su MP4.
+
+### Grid
+
+Una cuadrícula de carátulas con la ficha y la actividad del juego seleccionado en el panel de la derecha. Permite elegir formato vertical o cuadrado, tamaño y esquinas. En 0.2.1, la biblioteca se divide en páginas de **12 juegos**: usa **L3 / R3**, los botones de página o **Ctrl+RePág / Ctrl+AvPág** para recorrerlas.
+
+[![Vista previa de Grid](docs/showcase/01-grid.jpg)](docs/showcase/01-grid.mp4)
+
+[▶ Ver Grid](docs/showcase/01-grid.mp4)
+
+### Carousel
+
+Una rueda horizontal con profundidad y navegación circular continua. El juego seleccionado permanece en el centro y se destaca con un zoom configurable. Puedes colocar la rueda arriba o abajo, mientras consultas la sinopsis, información y actividad del juego.
+
+[![Vista previa de Carousel](docs/showcase/02-carousel.jpg)](docs/showcase/02-carousel.mp4)
+
+[▶ Ver Carousel](docs/showcase/02-carousel.mp4)
+
+### Sense
+
+Una fila compacta de carátulas sobre el fondo del juego. La selección permanece anclada a la izquierda y los juegos se desplazan al navegar. El tamaño de la carátula seleccionada y su animación suave son configurables.
+
+[![Vista previa de Sense](docs/showcase/03-sense.jpg)](docs/showcase/03-sense.mp4)
+
+[▶ Ver Sense](docs/showcase/03-sense.mp4)
+
+### Lista
+
+Una rueda de logos con el seleccionado destacado, acompañada de su carátula, sinopsis y datos. Colócala en cualquiera de los cuatro lados de la pantalla: la navegación es vertical en los laterales y horizontal arriba o abajo. Puedes ajustar por separado el tamaño de los logos, el logo seleccionado y la carátula.
+
+[![Vista previa de Lista](docs/showcase/04-list.jpg)](docs/showcase/04-list.mp4)
+
+[▶ Ver Lista](docs/showcase/04-list.mp4)
+
+### Ajustes
+
+Los ajustes globales reúnen idioma, tipo de mando, inicio, integraciones y origen del fondo. Cada apariencia dispone de su propia configuración visual, organizada en secciones desplegables. **L3 + R3** abre directamente los ajustes de la apariencia actual; también puedes entrar desde el engranaje.
+
+[![Vista previa de Ajustes](docs/showcase/05-settings.jpg)](docs/showcase/05-settings.mp4)
+
+[▶ Ver Ajustes](docs/showcase/05-settings.mp4)
+
 ## AppImage
 
 La versión AppImage para **Linux x86_64** incluye Python, PyGObject, GTK, libadwaita
@@ -32,7 +82,7 @@ Recomendamos [Gear Lever](https://github.com/mijorus/gearlever) para organizar e
 AppImage e integrar Estante en el menú de aplicaciones con su icono.
 
 1. Instala Gear Lever desde [Flathub](https://flathub.org/apps/it.mijorus.gearlever).
-2. Descarga `Estante-0.2.0-x86_64.AppImage`.
+2. Descarga `Estante-0.2.1-x86_64.AppImage`.
 3. Abre el archivo con Gear Lever y utiliza su opción de integración en el menú.
 4. Abre **Estante** desde el lanzador de tu escritorio.
 
@@ -47,12 +97,12 @@ flatpak install flathub it.mijorus.gearlever
 Si prefieres gestionar el archivo a mano:
 
 ```sh
-chmod +x Estante-0.2.0-x86_64.AppImage
-./Estante-0.2.0-x86_64.AppImage
+chmod +x Estante-0.2.1-x86_64.AppImage
+./Estante-0.2.1-x86_64.AppImage
 ```
 
 La versión aparece en el pie de la biblioteca y en **Ajustes → Globales**.
-También puedes consultarla con `./Estante-0.2.0-x86_64.AppImage --version`.
+También puedes consultarla con `./Estante-0.2.1-x86_64.AppImage --version`.
 
 Puedes mover el archivo a la carpeta que prefieras. Los datos siguen guardándose en
 la ubicación habitual de Estante. Faugus debe estar instalado aparte para ejecutar
@@ -64,7 +114,7 @@ El runtime necesita FUSE para montar el archivo. Si FUSE no está disponible, pu
 extraerlo y ejecutarlo sin montar:
 
 ```sh
-./Estante-0.2.0-x86_64.AppImage --appimage-extract
+./Estante-0.2.1-x86_64.AppImage --appimage-extract
 ./squashfs-root/AppRun
 ```
 
@@ -138,10 +188,10 @@ PyGObject, GTK y libadwaita antes de copiar la aplicación.
 
 ### Instalar desde el paquete descargable
 
-Descomprime `Estante-0.2.0-linux.tar.gz`, entra en la carpeta y ejecuta:
+Descomprime `Estante-0.2.1-linux.tar.gz`, entra en la carpeta y ejecuta:
 
 ```sh
-tar -xzf Estante-0.2.0-linux.tar.gz
+tar -xzf Estante-0.2.1-linux.tar.gz
 cd Estante
 sh install.sh
 ```
@@ -226,7 +276,7 @@ hayas guardado no se traducen ni se sobrescriben.
 
 ### Distribución
 
-En la versión 0.2.0 puedes elegir dos fondos por juego desde **Editar → Cambiar banner…**
+En la versión 0.2.1 puedes elegir dos fondos por juego desde **Editar → Cambiar banner…**
 y **Elegir segundo fondo…**. Ambos admiten las mismas fuentes de imágenes.
 En **Ajustes → Apariencia → Grid / Carousel / Sense / Lista → División de los fondos**, elige:
 
@@ -252,6 +302,7 @@ cada sección. Puedes guardar la sección abierta con **Y / Triángulo** del man
 | **Grid** | Cuadrícula de carátulas a la izquierda y datos del juego a la derecha. |
 | **Carousel** | Rueda circular horizontal con profundidad, giro animado y selección centrada. Una carátula por juego. |
 | **Sense** | Fila compacta que se desplaza alrededor de una selección fija a la izquierda. |
+| **Lista** | Rueda de logos en cualquiera de los cuatro lados, con carátula y datos del seleccionado. |
 
 Cada apariencia permite elegir carátulas **cuadradas (1:1)** o **verticales (2:3)**, redondeado de esquinas, color y grosor del anillo de selección, o quitar el anillo. El formato cuadrado utiliza su propio asset; no recorta la carátula vertical.
 
@@ -343,7 +394,7 @@ Para generar el instalador nativo, sin incluir datos personales ni credenciales:
 python3 packaging/build-release.py
 ```
 
-El resultado es `dist/Estante-0.2.0-linux.tar.gz`. Generarlo no lo publica en GitHub.
+El resultado es `dist/Estante-0.2.1-linux.tar.gz`. Generarlo no lo publica en GitHub.
 El instalador también admite `--prefix` y `--destdir` para preparar paquetes de distribución.
 
 ### Construir el AppImage
@@ -359,7 +410,7 @@ python3 packaging/build-appimage.py --builder ~/Applications/appimagebuilder.app
 ```
 
 El constructor usa el runtime Type 2 y `mksquashfs` incluidos en ese archivo para
-generar `dist/Estante-0.2.0-x86_64.AppImage` sin descargar herramientas adicionales.
+generar `dist/Estante-0.2.1-x86_64.AppImage` sin descargar herramientas adicionales.
 Incluye las dependencias locales y ejecuta `--self-test` antes de comprimir y después
 de extraer el resultado. No necesita Docker ni FUSE para construir.
 

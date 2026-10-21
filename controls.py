@@ -18,7 +18,7 @@ def controller_buttons(settings):
 
 
 def controller_hint(settings):
-    return tr('← ↑ ↓ →: mover · {bumpers}: letra · {triggers}: categoría · Enter / {confirm}: abrir · Esc / {back}: volver · Ctrl+F / {search}: buscar · Ctrl+Tab / {chord}: aspecto').format(**controller_buttons(settings))
+    return tr('← ↑ ↓ →: mover · {bumpers}: letra · {triggers}: categoría · Enter / {confirm}: abrir · Esc / {back}: volver · Ctrl+F / {search}: buscar · Ctrl+Tab / {chord}: aspecto').format(**controller_buttons(settings)) + tr(' · L3+R3: ajustes del aspecto')
 
 
 def controller_save_hint(settings):
@@ -71,6 +71,13 @@ def neighbor(points, current, direction):
     return min(candidates)[2] if candidates else current
 
 
+def appearance_chord(pressed):
+    actions = pressed - {'left_stick', 'right_stick'}
+    if {'left_stick', 'right_stick'} <= pressed:
+        actions.add('appearance_settings')
+    return actions
+
+
 class Repeater:
     def __init__(self):
         self.held = set()
@@ -110,6 +117,19 @@ class BumperChord:
         return actions
 
 
+class StickChord(BumperChord):
+    """Dispatch single stick clicks on release, reserving the chord for settings."""
+    def update(self, pressed):
+        mapped = set()
+        if 'left_stick' in pressed:
+            mapped.add('page_previous')
+        if 'right_stick' in pressed:
+            mapped.add('page_next')
+        actions = super().update(mapped)
+        return [{'page_previous': 'grid_page_previous', 'page_next': 'grid_page_next',
+                 'cycle_view': 'appearance_settings'}[action] for action in actions]
+
+
 class Gamepad:
     FLAGS = 0x2000  # SDL_INIT_GAMECONTROLLER includes joystick and event subsystems.
 
@@ -122,6 +142,7 @@ class Gamepad:
         if not path:
             raise RuntimeError(tr('Instala SDL2 para usar un mando.'))
         self.bumpers = BumperChord()
+        self.sticks = StickChord()
         self.sdl = C.CDLL(path)
         signatures = {
             'SDL_InitSubSystem': (C.c_int, [C.c_uint32]),
@@ -169,7 +190,7 @@ class Gamepad:
         pressed = set()
         if self.controller:
             for index, action in {0: 'confirm', 1: 'back', 2: 'search', 3: 'save', 4: 'search',
-                                  6: 'menu', 9: 'page_previous', 10: 'page_next', 11: 'up', 12: 'down', 13: 'left', 14: 'right'}.items():
+                                  6: 'menu', 7: 'left_stick', 8: 'right_stick', 9: 'page_previous', 10: 'page_next', 11: 'up', 12: 'down', 13: 'left', 14: 'right'}.items():
                 if self.sdl.SDL_GameControllerGetButton(self.controller, index):
                     pressed.add(action)
             x = self.sdl.SDL_GameControllerGetAxis(self.controller, 0)
@@ -182,8 +203,9 @@ class Gamepad:
                             else ('down' if y > 0 else 'up'))
         active = self.active()
         bumper_actions = self.bumpers.update(pressed)
-        pressed -= {'page_previous', 'page_next'}
-        actions = self.repeater.update(pressed, now) + bumper_actions
+        stick_actions = self.sticks.update(pressed)
+        pressed -= {'page_previous', 'page_next', 'left_stick', 'right_stick'}
+        actions = self.repeater.update(pressed, now) + bumper_actions + stick_actions
         if active and self.was_active:
             for action in actions:
                 self.dispatch(action, True)

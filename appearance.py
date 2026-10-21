@@ -60,3 +60,10 @@ def with_ring(settings, view, ring):
 def hero_position_for(settings, view):
     position = settings.get('hero_positions', {}).get(view, settings.get('hero_position', 'top'))
     return position if position in ('top', 'lower', 'full') else 'top'
+
+
+def grid_page(games, selected=None, size=12):
+    """Bound grid widgets while preserving selection across filters and edits."""
+    index = next((i for i, game in enumerate(games) if game['id'] == selected), 0)
+    page = index // size
+    return games[page * size:(page + 1) * size], page, max(1, (len(games) + size - 1) // size)

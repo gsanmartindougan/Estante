@@ -4,6 +4,7 @@ from library import SteamGridDB
 from controls import controller_save_hint
 from metadata import GameMetadata
 from scraping import scrape_game, apply_scrape_patch
+from image_cache import images
 from i18n import tr
 import gi
 gi.require_version('Gtk', '4.0')
@@ -28,6 +29,16 @@ def spatial_target(points, current, action):
         if forward > 1:
             candidates.append((forward + 2 * cross, cross, index))
     return min(candidates)[2] if candidates else current
+
+
+def navigation_bounds(control, root):
+    # A trailing switch belongs to its labelled row, not to a separate column.
+    target = control
+    if isinstance(control, Gtk.Switch):
+        parent = control.get_parent()
+        if isinstance(parent, Gtk.Box):
+            target = parent
+    return target.compute_bounds(root)
 
 
 class SettingsView(Gtk.Box):
@@ -97,7 +108,7 @@ class SettingsView(Gtk.Box):
             if isinstance(owner, Gtk.Switch):
                 owner.set_active(not owner.get_active())
             elif isinstance(owner, Gtk.CheckButton):
-                owner.set_active(True)
+                owner.emit('activate')
             elif isinstance(owner, Gtk.Button):
                 owner.emit('clicked')
             return True
@@ -112,7 +123,7 @@ class SettingsView(Gtk.Box):
         positioned = []
         points = []
         for control in controls:
-            valid, bounds = control.compute_bounds(self)
+            valid, bounds = navigation_bounds(control, self)
             if valid and bounds.get_width() > 0 and bounds.get_height() > 0:
                 positioned.append(control)
                 points.append((bounds.get_x() + bounds.get_width() / 2,
@@ -237,7 +248,7 @@ class SettingsView(Gtk.Box):
             def work():
                 results = []
                 for number, game in enumerate(games, 1):
-                    patch, errors = scrape_game(game, artwork, metadata, overwrite, Gdk.Texture.new_from_filename, fields=selected_fields)
+                    patch, errors = scrape_game(game, artwork, metadata, overwrite, images.load, fields=selected_fields)
                     results.append((game, patch, errors))
                     GLib.idle_add(advance, number, game['title'])
                 return results
@@ -483,6 +494,10 @@ class SettingsView(Gtk.Box):
             controllers[code] = choice
             box.append(choice)
         controllers[selected_controller].set_active(True)
+        startup = self.group(general, tr('Inicio'))
+        fullscreen = self.switch(startup, tr('Abrir a pantalla completa'), shelf.settings.get('start_fullscreen', False))
+        auto_updates = self.switch(startup, tr('Comprobar actualizaciones al iniciar'), shelf.settings.get('check_updates_on_start', False))
+        hide_playing = self.switch(startup, tr('Ocultar Estante mientras juego y restaurarlo al salir'), shelf.settings.get('hide_while_playing', False))
         self.updates_section(self.group(integrations, tr('Actualizaciones')))
         box = self.group(general, tr('Aspecto de la biblioteca'))
         views = {}
@@ -517,7 +532,7 @@ class SettingsView(Gtk.Box):
             for child in defaults:
                 child.get_child().set_has_frame(child.get_child().get_tooltip_text() == path.stem)
         for path in BUNDLED_BACKGROUNDS:
-            preview = Gtk.Picture.new_for_filename(str(path))
+            preview = Gtk.Picture.new_for_paintable(images.load(path, 480, 270))
             preview.set_content_fit(Gtk.ContentFit.COVER)
             preview.set_size_request(120, 68)
             target = self.button(path.stem, lambda path=path: choose_default(path))
@@ -537,7 +552,7 @@ class SettingsView(Gtk.Box):
         client = SteamGridDB('', shelf.library.root / 'covers')
         def selected(path):
             try:
-                Gdk.Texture.new_from_filename(path)
+                images.load(path)
                 global_path[0] = path
                 image_status.set_text('')
                 picker.set_visible(False)
@@ -580,7 +595,10 @@ class SettingsView(Gtk.Box):
                 selected = next(mode for mode, choice in views.items() if choice.get_active())
                 language = next(code for code, choice in languages.items() if choice.get_active())
                 language_changed = language != shelf.settings.get('language', 'system')
-                shelf.save_settings({**shelf.settings, 'steamgriddb_key': key.get_text().strip(),
+                shelf.save_settings({**shelf.settings, 'start_fullscreen': fullscreen.get_active(),
+                                     'check_updates_on_start': auto_updates.get_active(),
+                                     'hide_while_playing': hide_playing.get_active(),
+                                     'steamgriddb_key': key.get_text().strip(),
                     'igdb_client_id': igdb_id.get_text().strip(), 'igdb_client_secret': igdb_secret.get_text().strip(),
                     'background_fill': 'dominant' if dominant.get_active() else 'blur',
                     'layout': selected, 'language': language,
@@ -652,6 +670,9 @@ class SettingsView(Gtk.Box):
         ring = ring_for(shelf.settings, mode)
         box = self.page(mode, tr(VIEW_NAMES[mode]), tr('Estos ajustes se aplican solo a ') + tr(VIEW_NAMES[mode]) + '.')
         backgrounds, cover_options = self.columns(box)
+        details = self.group(cover_options, tr('Información del juego'))
+        technical = self.switch(details, tr('Mostrar datos del launcher'),
+                                shelf.settings.get('show_launcher_details', {}).get(mode, True))
         list_positions = {}
         if mode == 'list':
             position_box = self.group(backgrounds, tr('Posición de la lista'))
@@ -691,7 +712,8 @@ class SettingsView(Gtk.Box):
         split_choices[background_split_for(shelf.settings, mode)].set_active(True)
         box.append(Gtk.Label(label=tr('El segundo fondo se elige en Editar. Si falta, se muestra solo el primero.'),
                              wrap=True, xalign=0, css_classes=['dim-label']))
-        box = self.group(backgrounds, tr('Logos') if mode == 'list' else tr('Carátulas'))
+        cover_controls = self.group(cover_options, tr('Carátulas')) if mode != 'list' else None
+        box = self.group(backgrounds, tr('Logos')) if mode == 'list' else cover_controls
         carousel_zoom = carousel_bottom = None
         grid_zoom = list_zoom = list_focus_zoom = None
         if mode == 'list':
@@ -707,7 +729,7 @@ class SettingsView(Gtk.Box):
         if mode == 'ps5':
             zoom = self.scale(box, tr('Tamaño del juego con foco (px)'), shelf.ps5_focus_size(), 104, 320, 4)
             motion = self.switch(box, tr('Animación suave de la carátula'), shelf.settings.get('ps5_motion', True))
-        box = self.group(cover_options, tr('Carátulas'))
+        box = cover_controls if cover_controls is not None else self.group(cover_options, tr('Carátulas'))
         square = Gtk.CheckButton(label=tr('Cuadrada (1:1)'))
         portrait = Gtk.CheckButton(label=tr('Vertical (2:3)'))
         portrait.set_group(square)
@@ -745,6 +767,7 @@ class SettingsView(Gtk.Box):
                 settings = with_ring(shelf.settings, mode, {'focus_ring_enabled': enabled.get_active(),
                     'focus_ring_color': parsed.to_string(), 'focus_ring_width': thickness.get_value_as_int(),
                     'focus_ring_radius': radius.get_value_as_int()})
+                settings['show_launcher_details'] = {**shelf.settings.get('show_launcher_details', {}), mode: technical.get_active()}
                 settings['hero_positions'] = {view: hero_position_for(shelf.settings, view) for view in VIEW_NAMES}
                 settings['hero_positions'][mode] = 'full' if hero_full.get_active() else ('lower' if hero_lower.get_active() else 'top')
                 settings['background_splits'] = {**shelf.settings.get('background_splits', {}),

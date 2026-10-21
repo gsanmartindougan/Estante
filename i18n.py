@@ -353,3 +353,23 @@ ENGLISH = {
     "Arriba": "Top",
     "Abajo": "Bottom"
 }
+
+ENGLISH.update({
+    'Inicio': 'Startup',
+    'Abrir a pantalla completa': 'Open in fullscreen',
+    'Comprobar actualizaciones al iniciar': 'Check for updates on startup',
+    'Nueva versión disponible: ': 'New version available: ',
+    'Ver actualización': 'View update',
+})
+
+ENGLISH[' · L3+R3: ajustes del aspecto'] = ' · L3+R3: layout settings'
+
+ENGLISH['Página {page} de {pages}'] = 'Page {page} of {pages}'
+
+ENGLISH.update({'Página anterior · Ctrl+RePág': 'Previous page · Ctrl+PageUp', 'Página siguiente · Ctrl+AvPág': 'Next page · Ctrl+PageDown'})
+
+ENGLISH.update({'Sinopsis': 'Synopsis', 'Mostrar datos del launcher': 'Show launcher details', 'Añade una sinopsis desde Editar → Editar ficha a mano.': 'Add a synopsis from Edit → Edit information manually.'})
+
+ENGLISH.update({'Buscar sinopsis en Steam': 'Find synopsis on Steam', 'Usar esta sinopsis': 'Use this synopsis', 'No hay sinopsis disponible para este juego.': 'No synopsis is available for this game.'})
+
+ENGLISH.update({'Ocultar Estante mientras juego y restaurarlo al salir': 'Hide Estante while playing and restore it on exit', 'No se pudo detectar el proceso del juego de Steam.': 'Could not detect the Steam game process.'})

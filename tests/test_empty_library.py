@@ -12,7 +12,7 @@ class EmptyLibraryTests(TestCase):
         return SimpleNamespace(view_mode='list', flow=SimpleNamespace(get_first_child=lambda: children[0] if children else None),
             matches_game=lambda game: False, tiles=lambda: [], count=Mock(),
             empty=Mock(), empty_scan=Mock(), empty_add=Mock(), empty_clear=Mock(),
-            stack=Mock(), ps5_selector=Mock(), settings={}, selected_game=None, update_alphabet=Mock())
+            stack=Mock(), ps5_selector=Mock(), settings={}, selected_game=None, update_image_window=Mock(), schedule_image_window=Mock(), update_alphabet=Mock())
 
     def test_empty_library_offers_scan_and_local_game(self):
         host = self.host(0)

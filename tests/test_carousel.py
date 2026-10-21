@@ -17,7 +17,7 @@ class WheelTests(unittest.TestCase):
 
     def test_wrap_rotates_one_position_without_copies(self):
         rows = [object(), object(), object()]
-        wheel = SimpleNamespace(children=lambda: rows, destination=2., phase=2.)
+        wheel = SimpleNamespace(children=lambda: rows, animation_tick=None, add_tick_callback=lambda callback: 1, layout_tick=lambda *_: False, destination=2., phase=2.)
         CarouselWheel.select(wheel, rows[0])
         self.assertEqual(wheel.destination, 3)
         wheel.destination = wheel.phase = 0.

@@ -1,4 +1,5 @@
 """A horizontal wheel with one widget per game."""
+from profiling import timed
 import math
 import gi
 gi.require_version('Gtk', '4.0')
@@ -82,7 +83,7 @@ class CarouselWheel(Gtk.Widget):
         self.destination = 0.0
         self.animation = None
         self.depths = []
-        self.add_tick_callback(self.layout_tick)
+        self.animation_tick = None
 
     def append(self, child):
         child.set_parent(self)
@@ -120,8 +121,12 @@ class CarouselWheel(Gtk.Widget):
         target = rows.index(child)
         count = len(rows)
         delta = (target - self.destination + count / 2) % count - count / 2
+        if abs(delta) < 0.000001:
+            return
         self.destination += delta
         self.animation = (self.phase, self.destination, GLib.get_monotonic_time())
+        if self.animation_tick is None:
+            self.animation_tick = self.add_tick_callback(self.layout_tick)
 
     def layout_tick(self, *_):
         if self.animation:
@@ -131,8 +136,12 @@ class CarouselWheel(Gtk.Widget):
             if progress == 1:
                 self.animation = None
             self.queue_allocate()
+        if self.animation is None:
+            self.animation_tick = None
+            return False
         return True
 
+    @timed('ui.wheel_layout')
     def do_size_allocate(self, width, height, baseline):
         rows = self.children()
         self.depths = []
@@ -140,7 +149,7 @@ class CarouselWheel(Gtk.Widget):
             x, y, scale, depth = wheel_position(index, self.phase, len(rows), self.get_width())
             _, width, _, _ = child.measure(Gtk.Orientation.HORIZONTAL, -1)
             _, height, _, _ = child.measure(Gtk.Orientation.VERTICAL, width)
-            center_x, center_y = self.get_width()/2 + x, self.get_height()/2 + y
+            center_x, center_y = self.get_width()/2 + x, self.get_height()/2 + y - min(24, self.get_height() * .04)
             if self.vertical:
                 center_x, center_y, scale, depth = list_coordinates(index, self.phase, len(rows),
                     self.get_width(), self.get_height(), width, height, self.focus_scale, self.list_side)
@@ -148,12 +157,13 @@ class CarouselWheel(Gtk.Widget):
                 center_x - width*scale/2, center_y - height*scale/2)).scale(scale, scale)
             child.allocate(width, height, -1, transform)
             opacity = list_opacity(depth) if self.vertical else .45 + .55 * depth
-            child.set_opacity(opacity)
+            child.set_opacity(opacity if getattr(child, 'image_loaded', True) else 0)
             if self.vertical:
                 child.set_can_target(opacity > .01)
             self.depths.append((depth, index, child))
         self.queue_draw()
 
+    @timed('ui.wheel_snapshot')
     def do_snapshot(self, snapshot):
         if self.vertical and self.children() and self.paint_focus_band:
             self.paint_focus_band(snapshot)

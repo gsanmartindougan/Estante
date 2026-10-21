@@ -141,3 +141,35 @@ class NavigationTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class AppearanceShortcutTests(unittest.TestCase):
+    def test_both_stick_buttons_open_settings_once_per_press(self):
+        from controls import appearance_chord
+        repeat = Repeater()
+        self.assertEqual(appearance_chord({'left_stick'}), set())
+        self.assertEqual(appearance_chord({'right_stick'}), set())
+        pressed = appearance_chord({'left_stick', 'right_stick'})
+        self.assertEqual(repeat.update(pressed, 0), ['appearance_settings'])
+        self.assertEqual(repeat.update(pressed, 2), [])
+        repeat.update(set(), 3)
+        self.assertEqual(repeat.update(pressed, 4), ['appearance_settings'])
+
+
+class StickPageTests(unittest.TestCase):
+    def test_single_sticks_change_pages_on_release(self):
+        from controls import StickChord
+        chord = StickChord()
+        self.assertEqual(chord.update({'left_stick'}), [])
+        self.assertEqual(chord.update(set()), ['grid_page_previous'])
+        self.assertEqual(chord.update({'right_stick'}), [])
+        self.assertEqual(chord.update(set()), ['grid_page_next'])
+
+    def test_chord_never_changes_pages_and_fires_once(self):
+        from controls import StickChord
+        chord = StickChord()
+        self.assertEqual(chord.update({'left_stick'}), [])
+        self.assertEqual(chord.update({'left_stick', 'right_stick'}), ['appearance_settings'])
+        self.assertEqual(chord.update({'left_stick', 'right_stick'}), [])
+        self.assertEqual(chord.update({'right_stick'}), [])
+        self.assertEqual(chord.update(set()), [])
