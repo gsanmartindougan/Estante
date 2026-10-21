@@ -29,6 +29,24 @@ def thumbnail_dimensions(path):
     return width, height
 
 
+def decode_pixbuf(path, width, height):
+    """Use GDK's in-process codecs when bundled Glycin cannot be started."""
+    if not os.environ.get('ESTANTE_APPDIR'):
+        try:
+            return GdkPixbuf.Pixbuf.new_from_file_at_scale(str(path), width, height, True)
+        except GLib.Error:
+            pass
+    # GDK decodes PNG/JPEG internally, without the external Glycin service.
+    texture = Gdk.Texture.new_from_filename(str(path))
+    pixbuf = Gdk.pixbuf_get_from_texture(texture)
+    ratio = min(1, width / pixbuf.get_width(), height / pixbuf.get_height())
+    scaled_width = max(1, round(pixbuf.get_width() * ratio))
+    scaled_height = max(1, round(pixbuf.get_height() * ratio))
+    if (scaled_width, scaled_height) != (pixbuf.get_width(), pixbuf.get_height()):
+        pixbuf = pixbuf.scale_simple(scaled_width, scaled_height, GdkPixbuf.InterpType.BILINEAR)
+    return pixbuf
+
+
 class ImageCache:
     def __init__(self, max_bytes=64 * 1024 * 1024, disk_dir=None, disk_bytes=128 * 1024 * 1024):
         self.max_bytes = max_bytes
@@ -154,7 +172,7 @@ class ImageCache:
                     ratio = min(1, width / source_width, height / source_height)
                     cached_width = max(1, round(source_width * ratio))
                     cached_height = max(1, round(source_height * ratio))
-                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(str(thumbnail), cached_width, cached_height, True)
+                    pixbuf = decode_pixbuf(thumbnail, cached_width, cached_height)
                     thumbnail.touch()
                     count('images.' + kind + '.disk_reads')
                 except (GLib.Error, OSError, ValueError):
@@ -168,7 +186,7 @@ class ImageCache:
                 _, original_width, original_height = info
                 ratio = min(1, width / original_width, height / original_height)
                 width, height = max(1, round(original_width * ratio)), max(1, round(original_height * ratio))
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(str(path), width, height, True)
+            pixbuf = decode_pixbuf(path, width, height)
             if thumbnail is not None:
                 self._queue_thumbnail(pixbuf, thumbnail)
         texture = Gdk.Texture.new_for_pixbuf(pixbuf)

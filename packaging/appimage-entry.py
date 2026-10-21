@@ -75,6 +75,7 @@ if sys.argv[1:] == ['--self-test']:
         color = BlurredBackdrop.dominant_color('/unused/hero.img', texture)
         assert color.red > .9 and color.green > .5 and color.blue > .3
     from backgrounds import BUNDLED_BACKGROUNDS, DEFAULT_BACKGROUND, resolve_background
+    from image_cache import ImageCache
     from steam_import import read_vdf, is_faugus_steam
     from scraping import scrape_game
     from appearance import list_side_for
@@ -83,6 +84,20 @@ if sys.argv[1:] == ['--self-test']:
     for background in BUNDLED_BACKGROUNDS:
         texture = Gdk.Texture.new_from_filename(str(background))
         assert texture.get_width() > 0 and texture.get_height() > 0
+    # Exercise the same scaled loader used by covers and Settings previews.
+    with tempfile.TemporaryDirectory(prefix='estante-image-check-') as directory:
+        decoder = ImageCache(disk_dir=Path(directory))
+        for background in BUNDLED_BACKGROUNDS:
+            texture = decoder.load(background, 480, 270)
+            assert 0 < texture.get_width() <= 480
+            assert 0 < texture.get_height() <= 270
+        for extension, data in (('png', png), ('jpg', jpeg)):
+            fixture = Path(directory) / ('fixture.' + extension)
+            fixture.write_bytes(data)
+            assert decoder.load(fixture, 64, 64).get_width() == 1
+        assert decoder.wait_for_writes(15), 'La caché de miniaturas no terminó'
+        decoder.retain_paths([])
+        assert decoder.load(BUNDLED_BACKGROUNDS[0], 480, 270).get_width() > 0
     assert is_faugus_steam({'runner': 'Steam'})
     assert list_side_for({}) == 'left'
     from backgrounds import paint_hero_pair
