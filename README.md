@@ -57,7 +57,11 @@ Una cuadrícula de carátulas con la ficha y la actividad del juego seleccionado
 
 [![Vista previa de Grid](docs/showcase/01-grid.jpg)](docs/showcase/01-grid.mp4)
 
-[▶ Ver Grid](docs/showcase/01-grid.mp4)
+
+
+https://github.com/user-attachments/assets/6405abc2-90da-4c85-a0f3-5d1a093912eb
+
+
 
 ### Carousel
 
@@ -65,7 +69,11 @@ Una rueda horizontal con profundidad y navegación circular continua. El juego s
 
 [![Vista previa de Carousel](docs/showcase/02-carousel.jpg)](docs/showcase/02-carousel.mp4)
 
-[▶ Ver Carousel](docs/showcase/02-carousel.mp4)
+
+
+https://github.com/user-attachments/assets/f72e4073-0019-45f0-814c-ec76a0275f88
+
+
 
 ### Sense
 
@@ -73,7 +81,11 @@ Una fila compacta de carátulas sobre el fondo del juego. La selección permanec
 
 [![Vista previa de Sense](docs/showcase/03-sense.jpg)](docs/showcase/03-sense.mp4)
 
-[▶ Ver Sense](docs/showcase/03-sense.mp4)
+
+
+
+https://github.com/user-attachments/assets/d21d7f6b-d3ac-46d8-9a1c-4502e62b9404
+
 
 ### Lista
 
@@ -81,7 +93,11 @@ Una rueda de logos con el seleccionado destacado, acompañada de su carátula, s
 
 [![Vista previa de Lista](docs/showcase/04-list.jpg)](docs/showcase/04-list.mp4)
 
-[▶ Ver Lista](docs/showcase/04-list.mp4)
+
+
+https://github.com/user-attachments/assets/06e8ba2b-1bde-4645-9580-bab35b6029d1
+
+
 
 ### Ajustes
 
@@ -89,7 +105,11 @@ Los ajustes globales reúnen idioma, tipo de mando, inicio, salvapantallas y ori
 
 [![Vista previa de Ajustes](docs/showcase/05-settings.jpg)](docs/showcase/05-settings.mp4)
 
-[▶ Ver Ajustes](docs/showcase/05-settings.mp4)
+
+
+https://github.com/user-attachments/assets/10eda9ba-affb-4b02-9602-236a06ff9ed0
+
+
 
 ## AppImage
 
