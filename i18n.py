@@ -25,6 +25,18 @@ def tr(message):
 
 
 ENGLISH = {
+    "Destaca el fondo a pantalla completa y oculta sinopsis, actividad y ficha. Conserva los controles y evita duplicar la carátula seleccionada.": "Emphasizes the fullscreen background and hides synopsis, activity and game information. Keeps the controls without duplicating the selected cover.",
+    "Imagen de fondo": "Background image",
+    "Oscurecimiento del fondo (%)": "Background dimming (%)",
+    "Desenfoque del fondo (px)": "Background blur (px)",
+    "Destaca el fondo a pantalla completa y oculta sinopsis, actividad y ficha. Mantiene la carátula centrada y los controles.": "Emphasizes the fullscreen background and hides synopsis, activity and game information. Keeps the centered cover and controls.",
+    "Presentación": "Presentation",
+    "Presentación mínima": "Minimal presentation",
+    "Destaca el fondo a pantalla completa y oculta sinopsis, actividad y ficha. Conserva la carátula, los botones y los logos.": "Emphasizes the fullscreen background and hides synopsis, activity and game information. Keeps the cover, buttons and logos.",
+    "Cerrar Estante y reabrirlo al salir": "Close Estante and reopen it after playing",
+    "Cierra las otras partidas antes de transferir la supervisión. Estante seguirá abierto.": "Close the other games before transferring supervision. Estante will remain open.",
+    "Actividad": "Activity",
+    "Mostrar historial de sesiones": "Show session history",
     "Fondos": "Backgrounds",
     "Fondo principal…": "Primary background…",
     "Segundo fondo…": "Second background…",
@@ -373,3 +385,84 @@ ENGLISH.update({'Sinopsis': 'Synopsis', 'Mostrar datos del launcher': 'Show laun
 ENGLISH.update({'Buscar sinopsis en Steam': 'Find synopsis on Steam', 'Usar esta sinopsis': 'Use this synopsis', 'No hay sinopsis disponible para este juego.': 'No synopsis is available for this game.'})
 
 ENGLISH.update({'Ocultar Estante mientras juego y restaurarlo al salir': 'Hide Estante while playing and restore it on exit', 'No se pudo detectar el proceso del juego de Steam.': 'Could not detect the Steam game process.'})
+
+ENGLISH.update({
+    'Elegir icono de categoría': 'Choose category icon',
+    'Elegir icono…': 'Choose icon…',
+    'Usar texto': 'Use text',
+    'Icono de Todos': 'All category icon',
+})
+
+ENGLISH.update({
+    'Buscar icono…': 'Find icon…',
+    'Buscando iconos…': 'Searching for icons…',
+    'Sin resultados. Prueba con otro nombre.': 'No results. Try another name.',
+    'Fuente y licencia': 'Source and license',
+    'Dirección de icono no válida.': 'Invalid icon URL.',
+})
+
+ENGLISH.update({
+    'Busca en inglés: controller, heart, steam…': 'Search in English: controller, heart, steam…',
+    '{count} iconos · Página {page} de {pages}': '{count} icons · Page {page} of {pages}',
+    'Explorar iconos': 'Browse icons',
+    'Más resultados': 'More results',
+    'No se pudo cargar el catálogo de Bootstrap Icons.': 'Could not load the Bootstrap Icons catalogue.',
+})
+
+ENGLISH.update({
+    'Iconify solicita una pausa. Reintentando en {seconds} s…': 'Iconify requested a pause. Retrying in {seconds} s…',
+    'Iconify solicita una pausa de {seconds} s. Prueba más tarde.': 'Iconify requested a {seconds} s pause. Please try again later.',
+    'Respuesta de Iconify no válida.': 'Invalid response from Iconify.',
+})
+
+ENGLISH.update({
+    'Salvapantallas': 'Screensaver',
+    'Activar tras un periodo de inactividad': 'Enable after inactivity',
+    'Inactividad (minutos)': 'Idle time (minutes)',
+    'Cambiar fondo cada (segundos)': 'Change background every (seconds)',
+    'Libera la biblioteca de la memoria y recupera tu selección al volver. No se activa durante una partida.': 'Unloads the library from memory and restores your selection when you return. Disabled while playing.',
+})
+
+ENGLISH.update({
+    'Probar salvapantallas': 'Test screensaver',
+    'No hay fondos disponibles para el salvapantallas.': 'No backgrounds available for the screensaver.',
+    'No se pudo iniciar el salvapantallas: ': 'Could not start screensaver: ',
+})
+
+ENGLISH['Oscurecimiento del salvapantallas (%)'] = 'Screensaver dimming (%)'
+
+ENGLISH['Espera a que terminen las tareas de la biblioteca.'] = 'Wait for library tasks to finish.'
+
+ENGLISH.update({
+    'Preferencias': 'Preferences', 'Biblioteca y servicios': 'Library and services',
+    'Servicios e integraciones': 'Services and integrations',
+    'Segundos': 'Seconds', 'Minutos': 'Minutes', 'Activar después de': 'Start after',
+    'Cambiar fondo cada': 'Change background every', 'Origen de las imágenes': 'Image source',
+    'Fondos de los juegos': 'Game backgrounds', 'Fondo de la aplicación': 'Application background',
+    'Seleccionar fondo': 'Choose background', 'Fondo {number}': 'Background {number}',
+})
+
+ENGLISH.update({
+    'Mientras juegas': 'While playing', 'Al abrir el juego': 'When the game opens',
+    'Mantener Estante abierto': 'Keep Estante open',
+    'Ocultar Estante y restaurarlo al salir': 'Hide Estante and restore on exit',
+    'Mostrar salvapantallas hasta cerrar el juego': 'Show screensaver until the game closes',
+    'Minimizar a la bandeja del sistema': 'Minimize to system tray',
+    'Se aplica cuando el juego ya está abierto. Al terminar, Estante recupera su estado. Pulsa el icono de la bandeja para mostrarlo durante la partida.': 'Applies once the game is open. Estante restores its state when the game ends. Click the tray icon to show it during play.',
+    'No hay bandeja del sistema disponible. Estante seguirá abierto.': 'No system tray is available. Estante will stay open.',
+    'Mostrar Estante': 'Show Estante',
+})
+
+ENGLISH.update({
+    '{bumpers}: letra': '{bumpers}: letter',
+    '{bumpers}: página': '{bumpers}: page',
+    'Paginación': 'Pagination',
+    'Página': 'Page',
+    'Página anterior': 'Previous page',
+    'Página siguiente': 'Next page',
+    'Cuadrícula · juegos por página': 'Grid · games per page',
+})
+
+ENGLISH.update({
+    ' · L3: página anterior · R3: página siguiente': ' · L3: previous page · R3: next page',
+})

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Record repeatable Estante showcases without recording the rest of the desktop."""
+"""Record repeatable Qt Estante showcases without recording the rest of the desktop."""
 import argparse
 from datetime import datetime
 import json
@@ -86,21 +86,46 @@ class Recorder:
             raise RuntimeError(self.error)
 
 
-def descendants(widget):
-    yield widget
-    child = widget.get_first_child()
-    while child:
+def descendants(item):
+    """Walk Qt Quick's visual tree, including popup content."""
+    yield item
+    for child in item.childItems():
         yield from descendants(child)
-        child = child.get_next_sibling()
+
+
+def recording_settings(settings):
+    """Use a private profile without credentials or external startup actions."""
+    settings = dict(settings)
+    for key in ('steamgriddb_key', 'igdb_client_id', 'igdb_client_secret'):
+        settings.pop(key, None)
+    settings.update(check_updates_on_start=False, start_fullscreen=False,
+                    onscreen_keyboard='disabled', keyboard_fallback=False,
+                    show_launcher_details={mode: False for mode in MODES})
+    for client in ('steam', 'faugus', 'heroic'):
+        settings['start_' + client + '_on_start'] = False
+        settings['close_' + client + '_on_exit'] = False
+    return settings
+
+
+def rgba_pixels(image, width, height):
+    from PySide6.QtGui import QImage
+    if image.isNull():
+        raise RuntimeError('Qt returned an empty window capture; use a supported Qt rendering platform.')
+    if image.width() != width or image.height() != height:
+        image = image.scaled(width, height)
+    image = image.convertToFormat(QImage.Format_RGBA8888)
+    data = bytes(image.constBits())
+    stride, row_size = image.bytesPerLine(), width * 4
+    return data if stride == row_size else b''.join(data[y*stride:y*stride+row_size] for y in range(height))
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output', type=Path, default=ROOT / 'dist' / ('showcase-' + datetime.now().strftime('%Y%m%d-%H%M%S')))
-    parser.add_argument('--width', type=int, default=1920)
-    parser.add_argument('--height', type=int, default=1080)
+    parser.add_argument('--output', type=Path, default=ROOT / 'dist' / ('showcase-qt-' + datetime.now().strftime('%Y%m%d-%H%M%S')))
+    parser.add_argument('--width', type=int, default=2560)
+    parser.add_argument('--height', type=int, default=1440)
     parser.add_argument('--fps', type=int, choices=[24, 30, 60], default=30)
-    parser.add_argument('--seconds', type=int, default=6, help='Duration of each layout clip')
+    parser.add_argument('--seconds', type=int, default=6, help='Duration of each layout clip; settings uses 12 seconds')
     parser.add_argument('--data-dir', type=Path, default=Path(os.environ.get('XDG_DATA_HOME', Path.home() / '.local/share')) / 'estante')
     args = parser.parse_args()
     if args.seconds < 6 or min(args.width, args.height) < 320 or args.width % 2 or args.height % 2:
@@ -109,218 +134,188 @@ def main():
         parser.error('FFmpeg is required')
     if not (args.data_dir / 'library.json').is_file():
         parser.error('No library.json found; specify --data-dir')
+    sys.path.insert(0, str(ROOT))
+    try:
+        from PySide6.QtCore import QObject, QUrl, QTimer, Qt
+        from PySide6.QtGui import QCursor
+        from PySide6.QtWidgets import QApplication
+        from PySide6.QtQml import QQmlApplicationEngine
+    except ImportError:
+        parser.error('Use the Qt Python environment: .venv-qt/bin/python tools/showcase.py')
+    from library import Library
+    from i18n import set_language, tr
+    from qt_app.main import LibraryController
+    from qt_app.images import ArtworkProvider
+    from qt_app.theme import apply_system_palette
+    from qt_app.translation import Translator
+    from qt_app.launcher_processes import running_clients, CLIENT_NAMES
     args.output.mkdir(parents=True, exist_ok=False)
-    with tempfile.TemporaryDirectory(prefix='estante-showcase-') as temporary:
-        temporary = Path(temporary)
-        library = temporary / 'library'
-        library.mkdir()
-        shutil.copyfile(args.data_dir / 'library.json', library / 'library.json')
+    with tempfile.TemporaryDirectory(prefix='estante-showcase-qt-') as temporary:
+        library_path = Path(temporary) / 'library'
+        library_path.mkdir()
+        shutil.copyfile(args.data_dir / 'library.json', library_path / 'library.json')
         settings_file = args.data_dir / 'settings.json'
-        settings = json.loads(settings_file.read_text()) if settings_file.is_file() else {}
-        settings.update(check_updates_on_start=False, start_fullscreen=False, hide_while_playing=False)
-        (library / 'settings.json').write_text(json.dumps(settings))
-        for directory in args.data_dir.iterdir():
-            if directory.is_dir():
-                (library / directory.name).symlink_to(directory.resolve(), target_is_directory=True)
-        os.environ['ESTANTE_DATA_DIR'] = str(library)
-        os.environ['ESTANTE_PROFILE'] = '0'
-        os.environ['ESTANTE_DISABLE_BLUR'] = '0'
-        sys.path.insert(0, str(ROOT))
-        from estante import App, Gtk, Gdk, GLib, Graphene
-        from appearance import list_navigation
-        from i18n import tr
-        if not Gtk.init_check() or Gdk.Display.get_default() is None:
-            print('Run this command from a terminal in your graphical desktop.', file=sys.stderr)
-            return 2
-        app = App()
-        app.set_application_id('io.github.estante.Showcase')
-        state = {'clip': -1, 'recorder': None, 'failed': False, 'results': []}
+        settings = recording_settings(json.loads(settings_file.read_text()) if settings_file.is_file() else {})
+        (library_path / 'settings.json').write_text(json.dumps(settings))
+        # Existing absolute artwork paths stay read-only; relative paths resolve as
+        # in the normal app. No links to the user's writable profile are created.
+        library = Library(data_dir=library_path)
+        if len(library.games()) < 4:
+            parser.error('Import at least four games before recording the showcase.')
+        set_language(settings.get('language', 'system'))
+        app = QApplication(sys.argv[:1])
+        app.setDesktopFileName('io.github.estante.Showcase')
+        apply_system_palette(app)
+        translator = Translator(app)
+        app.installTranslator(translator)
+        controller = LibraryController(library.games(), settings, library_path, allow_launch=False)
+        engine = QQmlApplicationEngine()
+        engine.addImageProvider('artwork', ArtworkProvider(Path(temporary)/'thumbnails'))
+        controller.use_image_provider = True
+        controller.appearanceChanged.connect(engine.retranslate)
+        engine.rootContext().setContextProperty('libraryController', controller)
+        engine.load(QUrl.fromLocalFile(str(ROOT/'qt_app/Library.qml')))
+        if not engine.rootObjects():
+            controller.manager.shutdown()
+            return 1
+        window = engine.rootObjects()[0]
+        controller.window = window
+        window.resize(args.width, args.height)
+        window.setMinimumSize(window.size())
+        window.setMaximumSize(window.size())
+        window.setCursor(QCursor(Qt.BlankCursor))
+        try:
+            running = running_clients()
+            controller.launchers.apply_snapshot({key: 'open' if key in running else 'closed' for key in CLIENT_NAMES}, '')
+        except OSError:
+            pass
         clips = [('01-grid', 'grid'), ('02-carousel', 'carousel'), ('03-sense', 'ps5'),
                  ('04-list', 'list'), ('05-settings', 'settings')]
+        state = dict(clip=-1, recorder=None, recording=False, failed=False, results=[])
+        capture_timer = QTimer()
+        animation_timer = QTimer()
+        actions = []
+
+        def popup(name):
+            return window.findChild(QObject, name)
+
         def fail(error):
-            state['failed'] = True
             print(str(error), file=sys.stderr)
-            recorder = state.get('recorder')
+            state['failed'] = True
             state['recording'] = False
-            def stop():
-                if recorder:
-                    try:
-                        recorder.finish()
-                    except Exception:
-                        pass
-                GLib.idle_add(app.quit)
-            Thread(target=stop, daemon=True).start()
-            return False
-        def setup_mode(mode):
-            shelf = app.window
-            shelf.leave_preferences()
-            shelf.close_panel()
-            shelf.change_view(mode)
-            shelf.clear_library_filters()
-            rows = shelf.tiles()
-            if rows:
-                shelf.select_tile(rows[0])
-            shelf.hide_pointer()
-        def advance():
-            if not state.get('recording'):
-                return False
-            shelf = app.window
-            if state['mode'] == 'grid':
-                rows = shelf.tiles()
-                current = shelf.selected_tile()
-                index = rows.index(current) if current in rows else -1
-                if rows:
-                    shelf.select_tile(rows[(index + 1) % len(rows)])
-            else:
-                action = list_navigation(shelf.settings)[0][1] if state['mode'] == 'list' else 'right'
-                shelf.navigate(action)
-            return False
-        def edit_second():
-            shelf = app.window
-            tile = shelf.selected_tile()
-            if tile:
-                shelf.edit_game(tile.game)
-            return False
-        def scroll_editor(duration):
-            shelf = app.window
-            clip = state['clip']
-            started = time.monotonic()
-            def scroll():
-                if not state.get('recording') or state['clip'] != clip or not shelf.drawer.get_reveal_child():
-                    return False
-                adjustment = shelf.sidebar.get_last_child().get_vadjustment()
-                maximum = max(0, adjustment.get_upper() - adjustment.get_page_size())
-                progress = min(1, (time.monotonic() - started) / duration)
-                adjustment.set_value(maximum * progress)
-                return progress < 1
-            GLib.timeout_add(100, scroll)
-            return False
-        def reveal_settings(section):
-            if not state.get('recording'):
-                return False
-            shelf = app.window
-            shelf.preferences(section)
-            page = shelf.preferences_view.sections.get_visible_child()
-            # Open appearance controls, but never API/credential sections.
-            allowed = {tr('Inicio'), tr('Idioma'), tr('Tipo de mando')}
-            for widget in descendants(page):
-                if isinstance(widget, Gtk.Revealer):
-                    card = widget.get_parent()
-                    header = card.get_first_child()
-                    if not isinstance(header, Gtk.Button):
-                        continue
-                    title = header.get_child().get_first_child().get_label()
-                    if section in MODES or title in allowed:
-                        widget.set_reveal_child(True)
-            started = time.monotonic()
-            def scroll():
-                if not state.get('recording') or page != shelf.preferences_view.sections.get_visible_child():
-                    return False
-                adjustment = page.get_first_child().get_vadjustment()
-                maximum = max(0, adjustment.get_upper() - adjustment.get_page_size())
-                progress = min(1, max(0, (time.monotonic() - started - .2) / 1.7))
-                adjustment.set_value(maximum * progress)
-                return progress < 1
-            GLib.timeout_add(100, scroll)
-            return False
+            capture_timer.stop()
+            animation_timer.stop()
+            app.quit()
+
         def capture():
-            if not state.get('recording'):
-                return False
+            if not state['recording']: return
             try:
-                shelf = app.window
-                snapshot = Gtk.Snapshot()
-                state['paintable'].snapshot(snapshot, args.width, args.height)
-                node = snapshot.to_node()
-                if node is not None:
-                    texture = shelf.get_renderer().render_texture(node, Graphene.Rect().init(0, 0, args.width, args.height))
-                    pixbuf = Gdk.pixbuf_get_from_texture(texture)
-                    if not pixbuf.get_has_alpha():
-                        pixbuf = pixbuf.add_alpha(False, 0, 0, 0)
-                    pixels = pixbuf.get_pixels()
-                    stride = pixbuf.get_rowstride()
-                    row_size = args.width * 4
-                    if stride != row_size:
-                        pixels = b''.join(pixels[y*stride:y*stride+row_size] for y in range(args.height))
-                    state['recorder'].submit(time.monotonic() - state['started'], pixels)
-                return True
+                pixels = rgba_pixels(window.grabWindow(), args.width, args.height)
+                state['recorder'].submit(time.monotonic()-state['started'], pixels)
             except Exception as error:
-                return fail(error)
-        def finish_clip():
-            if not state.get('recording'):
-                return False
-            state['recording'] = False
-            for source in state.pop('repeat_timers', []):
-                GLib.source_remove(source)
-            recorder = state['recorder']
-            def finish():
-                try:
-                    recorder.finish()
-                    state['results'].append({'clip': state['name'] + '.mp4', 'dropped_capture_samples': recorder.dropped})
-                    GLib.idle_add(next_clip)
-                except Exception as error:
-                    GLib.idle_add(fail, error)
-            Thread(target=finish, daemon=True).start()
-            return False
+                fail(error)
+
+        def schedule(delay, action):
+            actions.append((delay, action))
+
+        def tick():
+            elapsed = time.monotonic()-state['started']
+            while actions and actions[0][0] <= elapsed:
+                _, action = actions.pop(0)
+                try: action()
+                except Exception as error: fail(error); return
+            if elapsed >= state['duration']:
+                finish_clip()
+
+        def scroll_content(progress):
+            # Both the editor and settings use Qt Quick flickables.
+            active = popup('gameEditor') if controller.editing else popup('managementPanel')
+            if not active or not active.property('visible'): return
+            # Popup.contentItem belongs to the visual overlay, not QObject.children().
+            content = active.property('contentItem')
+            for item in descendants(content):
+                if item.metaObject().indexOfProperty('contentY') < 0: continue
+                maximum = max(0, item.property('contentHeight')-item.height())
+                if maximum: item.setProperty('contentY', maximum*progress)
+
+        def reveal_settings(section):
+            panel = popup('managementPanel')
+            panel.openSection(section, False)
+            allowed = {tr('Inicio'), tr('Idioma'), tr('Tipo de mando')}
+            for item in descendants(window.contentItem()):
+                if item.objectName().startswith('settingsGroup:'):
+                    title = item.objectName().split(':',1)[1]
+                    if section != 4 or title in allowed: item.setProperty('expanded', True)
+
         def start_clip():
             try:
-                duration = 12 if state['mode'] == 'settings' else args.seconds
-                state['recorder'] = Recorder(args.output / (state['name'] + '.mp4'), args.width, args.height, args.fps, duration)
+                state['duration'] = 12 if state['mode']=='settings' else args.seconds
+                state['recorder'] = Recorder(args.output/(state['name']+'.mp4'), args.width, args.height, args.fps, state['duration'])
                 state['started'] = time.monotonic()
                 state['recording'] = True
-                print('Recording ' + state['name'], flush=True)
-                state['repeat_timers'] = [GLib.timeout_add(max(1, round(1000 / args.fps)), capture)]
-                if state['mode'] == 'settings':
-                    for index, section in enumerate(('global', 'grid', 'carousel', 'ps5', 'list')):
-                        GLib.timeout_add(200 + index * 2300, reveal_settings, section)
+                actions.clear()
+                if state['mode']=='settings':
+                    for index, section in enumerate((4,8,9,10,7)):
+                        schedule(.2+index*2.3, lambda section=section: reveal_settings(section))
                 else:
-                    clip = state['clip']
-                    def later(delay, action):
-                        def run():
-                            if state.get('recording') and state['clip'] == clip:
-                                action()
-                            return False
-                        GLib.timeout_add(round(delay * 1000), run)
-                    for fraction in (.12, .24, .36):
-                        later(duration * fraction, advance)
-                    later(duration * .5, edit_second)
-                    later(duration * .65, lambda: scroll_editor(duration * .3))
-                GLib.timeout_add(duration * 1000, finish_clip)
+                    for fraction in (.12,.24,.36): schedule(state['duration']*fraction, lambda: controller.move(1))
+                    schedule(state['duration']*.5, controller.edit)
+                    for step in range(1,11):
+                        schedule(state['duration']*(.65+.03*step),lambda step=step:scroll_content(step/10))
+                actions.sort(key=lambda row:row[0])
+                print('Recording Qt '+state['name'], flush=True)
+                capture()
+                capture_timer.start(round(1000/args.fps))
+                animation_timer.start(16)
             except Exception as error:
-                return fail(error)
-            return False
+                fail(error)
+
+        def finish_clip():
+            state['recording'] = False
+            capture_timer.stop()
+            animation_timer.stop()
+            try:
+                state['recorder'].finish()
+                state['results'].append(dict(clip=state['name']+'.mp4',frontend='qt',dropped_capture_samples=state['recorder'].dropped))
+                QTimer.singleShot(0,next_clip)
+            except Exception as error:
+                fail(error)
+
         def next_clip():
             state['clip'] += 1
             if state['clip'] == len(clips):
-                (args.output / 'recording.json').write_text(json.dumps(state['results'], indent=2))
-                print('Videos saved in ' + str(args.output), flush=True)
+                (args.output/'recording.json').write_text(json.dumps(state['results'],indent=2))
+                print('Qt videos saved in '+str(args.output),flush=True)
                 app.quit()
-                return False
-            state['name'], state['mode'] = clips[state['clip']]
+                return
+            state['name'],state['mode'] = clips[state['clip']]
             try:
-                if state['mode'] == 'settings':
-                    app.window.preferences('global')
-                else:
-                    setup_mode(state['mode'])
-                GLib.timeout_add(1000, start_clip)
+                controller.cancelEdit()
+                popup('managementPanel').close()
+                controller.search('')
+                controller.category(0)
+                controller.select(0)
+                if state['mode']=='settings': reveal_settings(4)
+                else: controller.changeView(state['mode'])
+                QTimer.singleShot(1000,start_clip)
             except Exception as error:
-                return fail(error)
-            return False
-        def setup():
-            shelf = app.window
-            if len(shelf.library.games()) < 4:
-                return fail('Import at least four games before recording the showcase.')
-            shelf.fullscreen()
-            state['paintable'] = Gtk.WidgetPaintable.new(shelf)
-            next_clip()
-            return False
-        app.connect('activate', lambda *_: GLib.idle_add(setup))
+                fail(error)
+
+        capture_timer.timeout.connect(capture)
+        animation_timer.timeout.connect(tick)
+        QTimer.singleShot(1000,next_clip)
         try:
-            app.run([sys.argv[0]])
+            app.exec()
         finally:
-            recorder = state.get('recorder')
             state['recording'] = False
-            if recorder and recorder.thread.is_alive():
-                recorder.finish()
+            capture_timer.stop()
+            animation_timer.stop()
+            recorder = state.get('recorder')
+            if recorder and recorder.thread.is_alive(): recorder.finish()
+            controller.manager.shutdown()
+            controller.idle_timer.stop()
+            window.close()
+            del engine
         return 1 if state['failed'] else 0
 
 

@@ -8,17 +8,21 @@ import shutil
 import subprocess
 import sys
 
-MODULES = ('game_session.py', 'profiling.py', 'image_cache.py', 'estante.py', 'appearance.py', 'carousel.py', 'controls.py', 'library.py',
-           'metadata.py', 'settings_view.py', 'steam_artwork.py', 'igdb_artwork.py', 'version.py', 'updates.py', 'i18n.py', 'backgrounds.py', 'scraping.py', 'steam_import.py')
+MODULES = ('native_memory.py', 'background_jobs.py', 'game_supervisor.py', 'tray.py', 'screensaver_config.py', 'screensaver.py', 'game_session.py', 'profiling.py', 'image_cache.py', 'estante.py', 'appearance.py', 'carousel.py', 'controls.py', 'library.py',
+           'metadata.py', 'settings_view.py', 'steam_artwork.py', 'igdb_artwork.py', 'version.py', 'updates.py', 'i18n.py', 'backgrounds.py', 'scraping.py', 'steam_import.py', 'heroic_import.py')
+QT_FILES = tuple('qt_app/' + path.name for path in sorted((Path(__file__).resolve().parent / 'qt_app').iterdir()) if path.suffix in ('.py', '.qml', '.js'))
+MODULES += ('tools/memory_fixture.py', 'estante_qt.py', 'requirements-qt.txt', *QT_FILES)
 APP_ID = 'io.github.estante.Launcher'
 SOURCE = Path(__file__).resolve().parent
 DOCUMENTS = ('README.md', 'README.en.md')
-ASSETS = tuple(str(path.relative_to(SOURCE)) for path in sorted((SOURCE / 'assets/backgrounds').glob('*')) if path.is_file())
+ASSETS = ('packaging/io.github.estante.Launcher.svg',) + tuple(str(path.relative_to(SOURCE)) for path in sorted((SOURCE / 'assets/backgrounds').glob('*')) if path.is_file())
 
 
 def main():
     from version import __version__
     parser = argparse.ArgumentParser(description='Instala Estante para tu usuario o para todo el sistema.')
+    parser.add_argument('--frontend', choices=('gtk','qt'), default='qt')
+    parser.add_argument('--python', default=None, help='Intérprete Python del lanzador instalado')
     parser.add_argument('--version', action='version', version='Estante ' + __version__)
     location = parser.add_mutually_exclusive_group()
     location.add_argument('--user', action='store_true', help='Instalar en ~/.local (predeterminado)')
@@ -49,18 +53,23 @@ def main():
             for directory in (app / 'assets/backgrounds', app / 'assets'):
                 if directory.is_dir() and not any(directory.iterdir()):
                     directory.rmdir()
+            for name in MODULES:
+                module=Path(name)
+                bytecode=app/module.parent/'__pycache__'
+                if bytecode.is_dir():
+                    for compiled in bytecode.glob(module.stem+'.*.pyc'): compiled.unlink()
+            for directory in sorted((p for p in app.rglob('*') if p.is_dir()), key=lambda p: len(p.parts), reverse=True):
+                if not any(directory.iterdir()): directory.rmdir()
             if not any(app.iterdir()):
                 app.rmdir()
         print('Estante desinstalado. Tus juegos, ajustes e imágenes se conservan.')
     else:
         if not args.destdir:
-            check = subprocess.run([sys.executable, '-c',
-                "import gi; gi.require_version('Gtk', '4.0'); gi.require_version('Adw', '1'); "
-                "from gi.repository import Gtk, Adw; "
-                "assert (Gtk.get_major_version(), Gtk.get_minor_version()) >= (4, 10)"],
-                capture_output=True, text=True)
+            probe = ("from PySide6 import QtCore, QtQuick, QtQml, QtWidgets, QtSvg" if args.frontend == 'qt' else
+                     "import gi; gi.require_version('Gtk', '4.0'); gi.require_version('Adw', '1'); from gi.repository import Gtk, Adw")
+            check = subprocess.run([args.python or sys.executable, '-c', probe], capture_output=True, text=True)
             if check.returncode:
-                parser.exit(1, 'Faltan dependencias: Python 3 con PyGObject, GTK >= 4.10 y libadwaita. Consulta README.md.\n')
+                parser.exit(1, 'Faltan dependencias del frontend ' + args.frontend + '. Consulta README.md.\n')
         for name in (*MODULES, *DOCUMENTS, *ASSETS):
             if not (SOURCE / name).is_file():
                 parser.exit(1, 'Paquete incompleto: falta ' + name + '\n')
@@ -70,8 +79,9 @@ def main():
             (app / name).parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(SOURCE / name, app / name)
             (app / name).chmod(0o644)
-        command = shlex.quote(str(prefix / 'share/estante/estante.py'))
-        launcher.write_text('#!/bin/sh\nexec /usr/bin/env python3 ' + command + ' "$@"\n')
+        command = shlex.quote(str(prefix / 'share/estante' / ('estante_qt.py' if args.frontend == 'qt' else 'estante.py')))
+        interpreter = shlex.quote(args.python) if args.python else '/usr/bin/env python3'
+        launcher.write_text('#!/bin/sh\nexec ' + interpreter + ' ' + command + ' "$@"\n')
         launcher.chmod(0o755)
         text = (SOURCE / 'packaging' / (APP_ID + '.desktop')).read_text()
         # Desktop Exec uses its own quoting rules, rather than shell escaping.

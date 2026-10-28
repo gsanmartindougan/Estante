@@ -67,3 +67,14 @@ class ThumbnailWriterTests(TestCase):
             self.assertTrue(saved.wait(2))
             self.assertTrue(cache.wait_for_writes(2))
             self.assertEqual(cache.write_bytes, 0)
+
+    def test_alpha_images_remain_png_and_opaque_images_use_jpeg(self):
+        for alpha, suffix in ((True, '.png'), (False, '.jpg')):
+            cache = ImageCache()
+            image = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, alpha, 8, 8, 8)
+            image.fill(0x12345680 if alpha else 0x123456ff)
+            with patch.object(cache, '_save_thumbnail') as save:
+                cache._queue_thumbnail(image, Path('/cached.png'))
+                self.assertTrue(cache.wait_for_writes(2))
+                self.assertEqual(save.call_args.args[1].suffix, suffix)
+                self.assertEqual(image.get_has_alpha(), alpha)

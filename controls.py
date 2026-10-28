@@ -171,6 +171,7 @@ class Gamepad:
         self.scan_at = 0
         self.repeater = Repeater()
         self.was_active = False
+        self.input_ready = False
 
     def poll(self):
         now = time.monotonic()
@@ -179,6 +180,7 @@ class Gamepad:
         if self.controller and not self.sdl.SDL_GameControllerGetAttached(self.controller):
             self.sdl.SDL_GameControllerClose(self.controller)
             self.controller = None
+            self.input_ready = False
             self.repeater.update(set(), now)
         if not self.controller and now >= self.scan_at:
             self.scan_at = now + 1
@@ -186,6 +188,7 @@ class Gamepad:
                 if self.sdl.SDL_IsGameController(index):
                     self.controller = self.sdl.SDL_GameControllerOpen(index)
                     if self.controller:
+                        self.input_ready = False
                         break
         pressed = set()
         if self.controller:
@@ -201,6 +204,11 @@ class Gamepad:
             if max(abs(x), abs(y)) > 16000:
                 pressed.add(('right' if x > 0 else 'left') if abs(x) > abs(y)
                             else ('down' if y > 0 else 'up'))
+        # Ignore held/stale controls on attachment until the controller is neutral.
+        # Otherwise a stuck direction repeats forever and prevents idle detection.
+        if not self.input_ready:
+            self.input_ready = not pressed
+            pressed = set()
         active = self.active()
         bumper_actions = self.bumpers.update(pressed)
         stick_actions = self.sticks.update(pressed)

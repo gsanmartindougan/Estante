@@ -120,11 +120,11 @@ class SteamImportTests(TestCase):
     def test_launch_uses_correct_steam_client_and_validates_id(self):
         with patch('library.shutil.which', return_value='/usr/bin/steam'):
             command, cwd = launch_command({'kind': 'steam', 'steam_appid': '42', 'install': 'native'})
-        self.assertEqual(command, ['/usr/bin/steam', 'steam://rungameid/42'])
+        self.assertEqual(command, ['/usr/bin/steam', '-silent', '-applaunch', '42'])
         self.assertIsNone(cwd)
         with patch('library.shutil.which', return_value='/usr/bin/flatpak'):
             command, _ = launch_command({'kind': 'steam', 'steam_appid': '42', 'install': 'flatpak'})
-        self.assertEqual(command, ['flatpak', 'run', 'com.valvesoftware.Steam', 'steam://rungameid/42'])
+        self.assertEqual(command, ['flatpak', 'run', 'com.valvesoftware.Steam', '-silent', '-applaunch', '42'])
         with self.assertRaises(ValueError):
             launch_command({'kind': 'steam', 'steam_appid': '42; echo unsafe'})
 

@@ -98,6 +98,7 @@ if sys.argv[1:] == ['--self-test']:
         assert decoder.wait_for_writes(15), 'La caché de miniaturas no terminó'
         decoder.retain_paths([])
         assert decoder.load(BUNDLED_BACKGROUNDS[0], 480, 270).get_width() > 0
+        assert decoder.wait_for_writes(15), 'La última miniatura no terminó'
     assert is_faugus_steam({'runner': 'Steam'})
     assert list_side_for({}) == 'left'
     from backgrounds import paint_hero_pair
@@ -113,12 +114,23 @@ if sys.argv[1:] == ['--self-test']:
         pixels = surface.get_data()
         assert tuple(pixels[10 * surface.get_stride() + 10 * 4:10 * surface.get_stride() + 10 * 4 + 4]) == (0, 0, 255, 255)
         assert tuple(pixels[70 * surface.get_stride() + 110 * 4:70 * surface.get_stride() + 110 * 4 + 4]) == (255, 0, 0, 255)
+    # Exercise the SVG-to-PNG path used by Bootstrap Icons and Iconify.
+    from metadata import CategoryIcons
+    with tempfile.TemporaryDirectory(prefix='estante-svg-check-') as directory:
+        target = Path(directory) / 'icon.png'
+        CategoryIcons.render_svg(b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill="currentColor" d="M4 4h8v8H4z"/></svg>', target)
+        icon = Gdk.Texture.new_from_filename(str(target))
+        assert (icon.get_width(), icon.get_height()) == (128, 128)
+        pixbuf = Gdk.pixbuf_get_from_texture(icon)
+        center = 64 * pixbuf.get_rowstride() + 64 * 4
+        assert tuple(pixbuf.get_pixels()[center:center + 4]) == (255, 255, 255, 255)
+        assert pixbuf.get_pixels()[3] == 0
     # Confirm critical libraries were loaded from the bundle, not the host.
     maps = Path('/proc/self/maps').read_text().splitlines()
-    for name in ('libgtk-4.so', 'libadwaita-1.so', 'libgobject-2.0.so'):
+    for name in ('libgtk-4.so', 'libadwaita-1.so', 'libgobject-2.0.so', 'librsvg-2.so'):
         paths = [line.split(maxsplit=5)[-1] for line in maps if name in line]
         assert paths and all(str(root) in path for path in paths), name + ' externo al AppImage'
-    print('AppImage: Python, GTK, libadwaita, SDL2, fondos PNG/JPEG, color y certificados OK.')
+    print('AppImage: Python, GTK, libadwaita, SDL2, fondos PNG/JPEG, iconos SVG, color y certificados OK.')
 elif sys.argv[1:] == ['--version']:
     from version import __version__
     print('Estante ' + __version__)

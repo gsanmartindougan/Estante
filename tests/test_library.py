@@ -59,11 +59,14 @@ class LibraryTests(unittest.TestCase):
         self.assertEqual(Path(client.import_artwork(source)).read_bytes(), content)
         response = MagicMock()
         response.__enter__.return_value = response
-        response.read.return_value = content
+        from io import BytesIO
+        stream = BytesIO(content)
+        response.read.side_effect = stream.read
         with patch('library.urlopen', return_value=response):
             target = client.download('https://cdn.steamgriddb.com/large.png')
         self.assertEqual(Path(target).read_bytes(), content)
-        response.read.assert_called_once_with()
+        self.assertGreater(response.read.call_count, 1)
+        self.assertTrue(all(call.args == (256 * 1024,) for call in response.read.call_args_list))
 
     def test_remove_faugus_persists_across_scan_and_can_be_restored(self):
         manifest = self.faugus()
@@ -219,6 +222,12 @@ class LibraryTests(unittest.TestCase):
         other = self.library.sources[1][0]
         other.mkdir(parents=True)
         (other / 'games.json').write_bytes(manifest.read_bytes())
+        self.assertEqual(self.library.scan_faugus(), (0, 1))
+        self.assertEqual([g['title'] for g in self.library.games()], ['B'])
+        # Previously imported source-hidden rows must stay invisible as well.
+        self.library.state['faugus'].append(dict(gameid='a', title='A', hidden=True,
+            id='faugus:native:a', kind='faugus', install='native'))
+        self.library.state['overrides']['faugus:native:a'] = {'hidden': False}
         self.assertEqual([g['title'] for g in self.library.games()], ['B'])
 
     def test_script_launch_preserves_arguments_and_working_directory(self):
@@ -318,7 +327,7 @@ class LibraryTests(unittest.TestCase):
                      'ESTANTE_HOST_PYTHONHOME': '', 'ESTANTE_HOST_GI_TYPELIB_PATH': '/host/typelibs',
                      'ESTANTE_HOST_XDG_DATA_DIRS': '/host/share', 'PATH': '/bundle/bin:/host/bin',
                      'ESTANTE_HOST_PATH': '/host/bin', 'GLYCIN_DATA_DIR': '/bundle/glycin',
-                     'ESTANTE_HOST_GLYCIN_DATA_DIR': ''}
+                     'ESTANTE_HOST_GLYCIN_DATA_DIR': '', 'ESTANTE_HOST_GDK_PIXBUF_MODULE_FILE': ''}
         with patch.dict(os.environ, variables), patch('library.subprocess.Popen') as popen:
             launch(game, self.library.root)
             env = popen.call_args.kwargs['env']
@@ -329,6 +338,22 @@ class LibraryTests(unittest.TestCase):
             self.assertEqual(env['PATH'], '/host/bin')
             self.assertEqual(env['GI_TYPELIB_PATH'], '/host/typelibs')
             self.assertEqual(env['XDG_DATA_DIRS'], '/host/share')
+
+    def test_qt_bundle_launch_preserves_unmodified_host_environment(self):
+        (self.root / 'game.sh').write_text('#!/bin/sh\n')
+        game = self.library.local_game('Test', str(self.root / 'game.sh'))
+        variables = {'ESTANTE_APPDIR': '/tmp/Estante.AppDir', 'PATH': '/host/bin',
+                     'XDG_DATA_DIRS': '/host/share', 'QT_PLUGIN_PATH': '/bundle/plugins',
+                     'ESTANTE_HOST_QT_PLUGIN_PATH': '', 'PYTHONPATH': '/bundle/python',
+                     'ESTANTE_HOST_PYTHONPATH': '/host/python'}
+        with patch.dict(os.environ, variables, clear=True), patch('library.subprocess.Popen') as popen:
+            launch(game, self.library.root)
+            env = popen.call_args.kwargs['env']
+            self.assertEqual(env['PATH'], '/host/bin')
+            self.assertEqual(env['XDG_DATA_DIRS'], '/host/share')
+            self.assertEqual(env['PYTHONPATH'], '/host/python')
+            self.assertNotIn('QT_PLUGIN_PATH', env)
+            self.assertFalse(any(key.startswith('ESTANTE_HOST_') for key in env))
 
     def test_banner_uses_known_id_and_persists_without_changing_faugus(self):
         manifest = self.faugus()
@@ -389,6 +414,18 @@ class LibraryTests(unittest.TestCase):
              patch.object(client, 'api') as api:
             self.assertIsNone(client.banner({'title': 'BloodBorne'}))
             api.assert_not_called()
+
+    def test_launch_assigns_unique_inherited_session_tokens_including_flatpak(self):
+        with patch('library.launch_command', return_value=(['flatpak', 'run', 'example.Game'], None)), \
+             patch('library.subprocess.Popen') as popen:
+            first = launch({'kind': 'faugus'}, self.library.root)
+            first_token = first.estante_session_token
+            args = popen.call_args
+            self.assertEqual(args.kwargs['env']['ESTANTE_GAME_SESSION'], first_token)
+            self.assertIn('--env=ESTANTE_GAME_SESSION=' + first_token, args.args[0])
+            self.assertTrue(args.kwargs['start_new_session'])
+            second = launch({'kind': 'faugus'}, self.library.root)
+            self.assertNotEqual(first_token, second.estante_session_token)
 
 
 if __name__ == '__main__':

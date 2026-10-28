@@ -38,3 +38,12 @@ class BackgroundSourceTests(unittest.TestCase):
                          resolve_background('bundled:6.png'))
         self.assertEqual({path.stem for path in BUNDLED_BACKGROUNDS},
                          {str(number) for number in range(1, 7)})
+
+    def test_single_background_layout_does_not_load_or_retain_secondary(self):
+        game = {'banner': 'primary.png', 'banner_secondary': 'secondary.png'}
+        for view in ('grid', 'carousel', 'ps5', 'list'):
+            self.assertEqual(background_assets({}, game, view), ('primary.png', ''))
+            settings = {'background_splits': {view: 'horizontal'}}
+            self.assertEqual(background_assets(settings, game, view), ('primary.png', 'secondary.png'))
+        # Editing and slideshows can still inspect all saved assets.
+        self.assertEqual(background_assets({}, game), ('primary.png', 'secondary.png'))

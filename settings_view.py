@@ -2,16 +2,18 @@
 from pathlib import Path
 from library import SteamGridDB
 from controls import controller_save_hint
-from metadata import GameMetadata
-from scraping import scrape_game, apply_scrape_patch
-from image_cache import images
+from metadata import GameMetadata, CategoryIcons, IconifyIcons
+from scraping import scrape_game, apply_scrape_results
+from image_cache import images, validate_image
 from i18n import tr
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Adw, Gdk, Gtk
-from appearance import list_side_for, VIEW_NAMES, ring_for, with_ring, cover_radius_for, hero_position_for, cover_format_for
+from gi.repository import Adw, Gdk, Gtk, GLib, Gio, GObject
+from appearance import background_effects_for, minimal_for, list_side_for, VIEW_NAMES, ring_for, with_ring, cover_radius_for, hero_position_for, cover_format_for
 from version import __version__
+from screensaver_config import time_choice
+from game_session import playing_behavior
 from backgrounds import BUNDLED_BACKGROUNDS, resolve_background, background_split_for
 from updates import latest_release, appimage_path, update_available, install_appimage, RELEASES_URL
 
@@ -41,17 +43,64 @@ def navigation_bounds(control, root):
     return target.compute_bounds(root)
 
 
+def descendant(widget, kind):
+    child = widget.get_first_child()
+    while child:
+        if isinstance(child, kind):
+            return child
+        found = descendant(child, kind)
+        if found is not None:
+            return found
+        child = child.get_next_sibling()
+    return None
+
+
+def dropdown_input(owner, action):
+    """Use the native popup selection; do not commit values on initial confirm."""
+    popup = descendant(owner, Gtk.Popover)
+    if popup is not None and popup.get_visible():
+        if action in ('back', 'menu'):
+            popup.popdown()
+            owner.grab_focus()
+            return True
+        listing = descendant(popup, Gtk.ListView)
+        if listing is None:
+            return True
+        model = listing.get_model()
+        count = model.get_n_items()
+        if not count:
+            return True
+        selected = model.get_selection().get_nth(0)
+        if selected >= count:
+            selected = min(owner.get_selected(), count - 1)
+        if action in ('up', 'down'):
+            selected = max(0, min(count - 1, selected + (1 if action == 'down' else -1)))
+            model.select_item(selected, True)
+            if hasattr(listing, 'scroll_to'):
+                listing.scroll_to(selected, Gtk.ListScrollFlags.FOCUS, None)
+        elif action == 'confirm':
+            listing.emit('activate', selected)
+        return True
+    if action == 'confirm':
+        owner.emit('activate')
+        return True
+    return False
+
+
 class SettingsView(Gtk.Box):
     def __init__(self, shelf, button, margins, section='global'):
-        super().__init__(orientation=Gtk.Orientation.VERTICAL, css_classes=['background'])
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, css_classes=['background', 'glass-settings'])
         self.shelf, self.button, self.margins = shelf, button, margins
         self.footers = {}
         self.save_buttons = {}
         self.save_hints = []
-        header = Gtk.Box(spacing=14)
+        header = Gtk.Box(spacing=14, css_classes=['glass-settings-header'])
         header.append(button(tr('← Biblioteca'), shelf.leave_preferences))
         header.append(Gtk.Label(label=tr('Ajustes'), xalign=0, hexpand=True, css_classes=['title-2']))
-        header.append(Gtk.WindowControls(side=Gtk.PackType.END))
+        window_controls = Gtk.WindowControls(side=Gtk.PackType.END)
+        shelf.bind_property('fullscreened', window_controls, 'visible',
+                            GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.INVERT_BOOLEAN)
+        header.append(window_controls)
         handle = Gtk.WindowHandle()
         handle.set_child(margins(header, 16))
         self.append(handle)
@@ -59,6 +108,7 @@ class SettingsView(Gtk.Box):
         body = Gtk.Box(vexpand=True)
         self.append(body)
         nav = self.navigation = margins(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10, width_request=160), 16)
+        nav.add_css_class('glass-navigation')
         body.append(nav)
         body.append(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL))
         self.sections = Gtk.Stack(hexpand=True, vexpand=True, transition_type=Gtk.StackTransitionType.CROSSFADE)
@@ -69,11 +119,6 @@ class SettingsView(Gtk.Box):
         nav.append(margins(Gtk.Label(label=tr('APARIENCIA'), xalign=0, css_classes=['dim-label']), 8))
         for mode, name in VIEW_NAMES.items():
             nav.append(button(tr(name), lambda mode=mode: self.show_section(mode)))
-        self.global_page()
-        self.categories_page()
-        self.scanning_page()
-        for mode in VIEW_NAMES:
-            self.appearance_page(mode)
         self.show_section(section)
         for control in self.controls(self):
             control.add_css_class('settings-control')
@@ -81,7 +126,7 @@ class SettingsView(Gtk.Box):
     @staticmethod
     def controls(root):
         types = (Gtk.Button, Gtk.CheckButton, Gtk.Switch, Gtk.Range, Gtk.SpinButton,
-                 Gtk.Entry, Gtk.PasswordEntry)
+                 Gtk.Entry, Gtk.PasswordEntry, Gtk.DropDown)
         child = root.get_first_child()
         while child:
             if child.get_visible():
@@ -99,10 +144,16 @@ class SettingsView(Gtk.Box):
         navigation = list(self.controls(self.navigation))
         page = list(self.controls(self.sections.get_visible_child()))
         controls = navigation + page
+        popup_owner = next((control for control in controls if isinstance(control, Gtk.DropDown)
+                            and (popup := descendant(control, Gtk.Popover)) is not None and popup.get_visible()), None)
+        if popup_owner is not None:
+            return dropdown_input(popup_owner, action)
         owner = next((control for control in controls
                       if focus == control or (focus and focus.is_ancestor(control))), None)
         if owner is None:
             navigation[0].grab_focus()
+            return True
+        if isinstance(owner, Gtk.DropDown) and dropdown_input(owner, action):
             return True
         if action == 'confirm':
             if isinstance(owner, Gtk.Switch):
@@ -133,8 +184,30 @@ class SettingsView(Gtk.Box):
             positioned[target].grab_focus()
         return True
 
+    def dismiss_popup(self):
+        for control in self.controls(self.sections.get_visible_child()):
+            if isinstance(control, Gtk.DropDown):
+                popup = descendant(control, Gtk.Popover)
+                if popup is not None and popup.get_visible():
+                    popup.popdown()
+                    control.grab_focus()
+                    return True
+        return False
+
     def show_section(self, section):
-        self.sections.set_visible_child_name(section if section in ('global', 'categories', 'scanning', *VIEW_NAMES) else 'global')
+        section = section if section in ('global', 'categories', 'scanning', *VIEW_NAMES) else 'global'
+        if self.sections.get_child_by_name(section) is None:
+            if section == 'global':
+                self.global_page()
+            elif section == 'categories':
+                self.categories_page()
+            elif section == 'scanning':
+                self.scanning_page()
+            else:
+                self.appearance_page(section)
+            for control in self.controls(self.sections.get_child_by_name(section)):
+                control.add_css_class('settings-control')
+        self.sections.set_visible_child_name(section)
 
     def save_current(self):
         target = self.save_buttons.get(self.sections.get_visible_child_name())
@@ -248,23 +321,13 @@ class SettingsView(Gtk.Box):
             def work():
                 results = []
                 for number, game in enumerate(games, 1):
-                    patch, errors = scrape_game(game, artwork, metadata, overwrite, images.load, fields=selected_fields)
+                    patch, errors = scrape_game(game, artwork, metadata, overwrite, validate_image, fields=selected_fields)
                     results.append((game, patch, errors))
                     GLib.idle_add(advance, number, game['title'])
                 return results
             def finished(results):
                 try:
-                    changed = failures = 0
-                    messages = []
-                    for original, patch, errors in results:
-                        failures += len(errors)
-                        messages.extend(original['title'] + ': ' + error for error in errors)
-                        current = next((game for game in shelf.library.games() if game['id'] == original['id']), None)
-                        if current is not None:
-                            updated = apply_scrape_patch(current, original, patch)
-                            if updated != current:
-                                shelf.library.put(updated)
-                                changed += 1
+                    changed, failures, messages = apply_scrape_results(shelf.library, results)
                     shelf.reload()
                     status.set_text(tr('Scraping completado: {changed} juegos actualizados, {errors} errores.').format(changed=changed, errors=failures))
                     if messages:
@@ -284,6 +347,190 @@ class SettingsView(Gtk.Box):
         start = self.button(tr('Iniciar scraping'), run, 'suggested-action')
         scrape_box.append(start)
         self.footers['scanning'].append(status)
+
+    def category_icon_search(self, card, name, save):
+        shelf = self.shelf
+        clients = (CategoryIcons(shelf.library.root / 'category-icons'),
+                   IconifyIcons(shelf.library.root / 'category-icons'))
+        search_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8, visible=False)
+        card.append(search_box)
+        sources = Gtk.Box(spacing=12)
+        bootstrap = Gtk.CheckButton(label='Bootstrap Icons', active=True)
+        iconify = Gtk.CheckButton(label='Iconify', group=bootstrap)
+        sources.append(bootstrap)
+        sources.append(iconify)
+        search_box.append(sources)
+        query = Gtk.Entry(text=name or '', hexpand=True)
+        search_box.append(query)
+        search_box.append(Gtk.Label(label=tr('Busca en inglés: controller, heart, steam…'),
+                                    wrap=True, xalign=0, css_classes=['dim-label']))
+        status = Gtk.Label(wrap=True, xalign=0)
+        results = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE,
+                              min_children_per_line=1, max_children_per_line=3,
+                              column_spacing=8, row_spacing=8)
+        generation = [0]
+        previews = []
+        state = {'rows': [], 'page': 0, 'client': clients[0], 'more': False}
+
+        def clear():
+            for picture in previews:
+                picture.set_paintable(None)
+            previews.clear()
+            while child := results.get_first_child():
+                results.remove(child)
+
+        def render():
+            generation[0] += 1
+            token = generation[0]
+            clear()
+            rows = state['rows']
+            pages = max(1, (len(rows) + 11) // 12)
+            state['page'] = max(0, min(state['page'], pages - 1))
+            previous.set_sensitive(state['page'] > 0)
+            following.set_sensitive(state['page'] + 1 < pages)
+            more.set_visible(state['more'])
+            status.set_text(tr('{count} iconos · Página {page} de {pages}').format(
+                count=len(rows), page=state['page'] + 1, pages=pages) if rows else
+                tr('Sin resultados. Prueba con otro nombre.'))
+            client = state['client']
+            def active():
+                return (generation[0] == token and shelf.preferences_view is self
+                        and search_box.get_visible())
+            failed_load = [False]
+            def failed(error):
+                if active():
+                    failed_load[0] = True
+                    status.set_text(str(error))
+            def waiting(seconds):
+                if active():
+                    status.set_text(tr('Iconify solicita una pausa. Reintentando en {seconds} s…').format(seconds=round(seconds)))
+            if isinstance(client, IconifyIcons):
+                client.on_wait = lambda seconds: GLib.idle_add(waiting, seconds)
+            page_rows = rows[state['page'] * 12:(state['page'] + 1) * 12]
+            jobs = []
+            for row in page_rows:
+                box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+                picture = Gtk.Picture(width_request=64, height_request=64,
+                                      can_shrink=True, content_fit=Gtk.ContentFit.CONTAIN)
+                previews.append(picture)
+                loaded = [None]
+                def choose(loaded=loaded, row=row):
+                    if loaded[0]:
+                        save(loaded[0], row)
+                        generation[0] += 1
+                        search_box.set_visible(False)
+                        clear()
+                target = self.button(row['name'], choose)
+                target.set_sensitive(False)
+                content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+                content.append(picture)
+                content.append(Gtk.Label(label=row['name'], wrap=True, max_width_chars=16))
+                target.set_child(content)
+                box.append(target)
+                credit = ' · '.join(value for value in (row['author'], row['license']) if value)
+                source = Gtk.LinkButton(uri=row['source'], label=tr('Fuente y licencia'))
+                source.set_tooltip_text(credit)
+                box.append(source)
+                results.append(box)
+                def load(row=row):
+                    if token != generation[0] or shelf.preferences_view is not self:
+                        return None
+                    path = client.download(row['url'])
+                    if token != generation[0] or shelf.preferences_view is not self:
+                        return None
+                    return path, images.load(path, 96, 96, kind='category')
+                def ready(result, picture=picture, target=target, loaded=loaded):
+                    if result is not None and active():
+                        loaded[0], texture = result
+                        picture.set_paintable(texture)
+                        target.set_sensitive(True)
+                jobs.append((load, ready))
+            def load_page():
+                cancelled = lambda: token != generation[0] or shelf.preferences_view is not self
+                if cancelled():
+                    return
+                if isinstance(client, IconifyIcons):
+                    client.prepare(page_rows, cancelled=cancelled)
+                for load, ready in jobs:
+                    if cancelled():
+                        return
+                    try:
+                        result = load()
+                    except Exception as error:
+                        GLib.idle_add(failed, str(error))
+                    else:
+                        GLib.idle_add(ready, result)
+            def finished(_):
+                if active() and not failed_load[0]:
+                    status.set_text(tr('{count} iconos · Página {page} de {pages}').format(
+                        count=len(rows), page=state['page'] + 1, pages=pages))
+            shelf.background(load_page, finished, failed)
+
+        def run(expand=False):
+            generation[0] += 1
+            token = generation[0]
+            clear()
+            more.set_visible(False)
+            previous.set_sensitive(False)
+            following.set_sensitive(False)
+            status.set_text(tr('Buscando iconos…'))
+            client = clients[1 if iconify.get_active() else 0]
+            text = query.get_text()
+            if client is clients[1] and not text.strip():
+                text = 'game'
+                query.set_text(text)
+            def active():
+                return (generation[0] == token and shelf.preferences_view is self
+                        and search_box.get_visible())
+            def failed(error):
+                if active():
+                    status.set_text(str(error))
+            def show(rows):
+                if active():
+                    state.update(rows=rows, page=state['page'] if expand else 0, client=client,
+                                 more=client is clients[1] and not expand and len(rows) == 64)
+                    render()
+            def waiting(seconds):
+                if active():
+                    status.set_text(tr('Iconify solicita una pausa. Reintentando en {seconds} s…').format(seconds=round(seconds)))
+            if isinstance(client, IconifyIcons):
+                client.on_wait = lambda seconds: GLib.idle_add(waiting, seconds)
+            shelf.background(lambda: client.search(text, full=expand) if client is clients[1]
+                             else client.search(text), show, failed)
+
+        query.connect('activate', lambda *_: run())
+        search_box.append(self.button(tr('Buscar'), run))
+        def browse():
+            query.set_text('game' if iconify.get_active() else '')
+            run()
+        search_box.append(self.button(tr('Explorar iconos'), browse))
+        search_box.append(status)
+        search_box.append(results)
+        pagination = Gtk.Box(spacing=8, homogeneous=True)
+        def move(step):
+            state['page'] += step
+            render()
+        previous = self.button(tr('Anterior'), lambda: move(-1))
+        following = self.button(tr('Siguiente'), lambda: move(1))
+        pagination.append(previous)
+        pagination.append(following)
+        search_box.append(pagination)
+        more = self.button(tr('Más resultados'), lambda: run(True))
+        more.set_visible(False)
+        search_box.append(more)
+        def source_changed(control):
+            if control.get_active() and search_box.get_visible():
+                run()
+        bootstrap.connect('toggled', source_changed)
+        iconify.connect('toggled', source_changed)
+        def toggle():
+            search_box.set_visible(not search_box.get_visible())
+            if search_box.get_visible():
+                run()
+            else:
+                generation[0] += 1
+                clear()
+        return self.button(tr('Buscar icono…'), toggle)
 
     def categories_page(self):
         shelf = self.shelf
@@ -326,6 +573,67 @@ class SettingsView(Gtk.Box):
                 selected.discard(identity)
             execute(lambda: shelf.library.set_category_games(name, selected))
 
+        def icon_controls(card, name):
+            preview = Gtk.Picture(width_request=32, height_request=32,
+                                  content_fit=Gtk.ContentFit.CONTAIN, can_shrink=True)
+            path = shelf.library.category_icon(name)
+            if path:
+                try:
+                    images.request_picture(preview, path, 64, 64, kind='category')
+                except (GLib.Error, OSError, ValueError):
+                    pass
+            card.append(preview)
+            source = Gtk.LinkButton(uri='https://icons.getbootstrap.com/', label=tr('Fuente y licencia'))
+            credit_label = Gtk.Label(wrap=True, xalign=0)
+            card.append(source)
+            card.append(credit_label)
+            def update_credit():
+                credit = shelf.library.state.get('category_icon_sources', {}).get(name or '', {})
+                source.set_visible(bool(credit.get('source')))
+                if credit.get('source'):
+                    source.set_uri(credit['source'])
+                text = ' · '.join(value for value in (credit.get('author'), credit.get('license')) if value)
+                credit_label.set_text(text)
+                credit_label.set_visible(bool(text))
+            update_credit()
+            def apply_icon(path, credit=None):
+                execute(lambda: shelf.library.set_category_icon(name, path, credit))
+                stored = shelf.library.category_icon(name)
+                if stored:
+                    images.request_picture(preview, stored, 64, 64, kind='category')
+                update_credit()
+            def select_icon():
+                dialog = Gtk.FileDialog(title=tr('Elegir icono de categoría'))
+                image_filter = Gtk.FileFilter(name=tr('Imágenes'))
+                image_filter.add_pixbuf_formats()
+                filters = Gio.ListStore.new(Gtk.FileFilter)
+                filters.append(image_filter)
+                dialog.set_filters(filters)
+                dialog.set_default_filter(image_filter)
+                def selected(dialog, result):
+                    try:
+                        selected_file = dialog.open_finish(result)
+                    except GLib.Error:
+                        return
+                    path = selected_file.get_path()
+                    if path:
+                        def validate():
+                            images.load(path, 64, 64, kind='category')
+                            return path
+                        shelf.background(validate, apply_icon, feedback.set_text)
+                dialog.open(shelf, None, selected)
+            card.append(self.category_icon_search(card, name, apply_icon))
+            actions = Gtk.Box(spacing=8, homogeneous=True)
+            actions.append(self.button(tr('Elegir icono…'), select_icon))
+            def remove_icon():
+                execute(lambda: shelf.library.set_category_icon(name))
+                preview.set_paintable(None)
+                update_credit()
+            actions.append(self.button(tr('Usar texto'), remove_icon))
+            card.append(actions)
+
+        icon_controls(self.group(creation, tr('Icono de Todos')), None)
+
         def refresh():
             for container in (rows, primary_choices):
                 while child := container.get_first_child():
@@ -341,7 +649,6 @@ class SettingsView(Gtk.Box):
                     execute(lambda: shelf.library.set_primary_category(name)) if control.get_active() else None)
                 primary_choices.append(choice)
             names = shelf.library.categories()
-            games = shelf.library.games()
             for index, name in enumerate(names):
                 card = self.group(rows, name)
                 value = Gtk.Entry(text=name, hexpand=True)
@@ -350,6 +657,7 @@ class SettingsView(Gtk.Box):
                 actions.append(self.button(tr('Renombrar'), lambda name=name, value=value: change(value.get_text(), name)))
                 actions.append(self.button(tr('Eliminar'), lambda name=name: change('', name, True)))
                 card.append(actions)
+                icon_controls(card, name)
                 order = Gtk.Box(spacing=8, homogeneous=True)
                 up = self.button(tr('Subir'), lambda name=name: execute(lambda: shelf.library.move_category(name, -1), True))
                 down = self.button(tr('Bajar'), lambda name=name: execute(lambda: shelf.library.move_category(name, 1), True))
@@ -358,23 +666,8 @@ class SettingsView(Gtk.Box):
                 order.append(up)
                 order.append(down)
                 card.append(order)
-                card.append(Gtk.Label(label=tr('Juegos de la categoría'), xalign=0, css_classes=['heading']))
-                search = Gtk.SearchEntry(placeholder_text=tr('Buscar juegos…'))
-                card.append(search)
-                choices = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-                game_choices = []
-                for game in games:
-                    choice = Gtk.CheckButton(label=game['title'], active=name in game.get('categories', []))
-                    choice.connect('toggled', lambda control, name=name, identity=game['id']:
-                                   assign(name, identity, control.get_active()))
-                    choices.append(choice)
-                    game_choices.append((game['title'].casefold(), choice))
-                search.connect('search-changed', lambda field, items=game_choices:
-                    [choice.set_visible(field.get_text().casefold() in title) for title, choice in items])
-                scroll = Gtk.ScrolledWindow(hscrollbar_policy=Gtk.PolicyType.NEVER,
-                    min_content_height=140, max_content_height=300, propagate_natural_height=True)
-                scroll.set_child(choices)
-                card.append(scroll)
+                self.group(card, tr('Juegos de la categoría'),
+                           on_open=lambda content, name=name: self.category_game_choices(content, name, assign))
             for root in (rows, primary_choices):
                 for control in self.controls(root):
                     control.add_css_class('settings-control')
@@ -405,7 +698,37 @@ class SettingsView(Gtk.Box):
         self.sections.add_named(page, key)
         return box
 
-    def group(self, parent, title):
+    @staticmethod
+    def load_group_once(content, build):
+        loaded = False
+        def revealed(reveal, *_):
+            nonlocal loaded
+            if reveal.get_reveal_child() and not loaded:
+                build(content)
+                loaded = True
+        return revealed
+
+    def category_game_choices(self, card, name, assign):
+        search = Gtk.SearchEntry(placeholder_text=tr('Buscar juegos…'))
+        card.append(search)
+        choices = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        game_choices = []
+        for game in self.shelf.library.games():
+            choice = Gtk.CheckButton(label=game['title'], active=name in game.get('categories', []))
+            choice.connect('toggled', lambda control, identity=game['id']:
+                           assign(name, identity, control.get_active()))
+            choices.append(choice)
+            game_choices.append((game['title'].casefold(), choice))
+        search.connect('search-changed', lambda field:
+            [choice.set_visible(field.get_text().casefold() in title) for title, choice in game_choices])
+        scroll = Gtk.ScrolledWindow(hscrollbar_policy=Gtk.PolicyType.NEVER,
+            min_content_height=140, max_content_height=300, propagate_natural_height=True)
+        scroll.set_child(choices)
+        card.append(scroll)
+        for control in self.controls(card):
+            control.add_css_class('settings-control')
+
+    def group(self, parent, title, on_open=None):
         card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0,
                        css_classes=['settings-group'])
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12,
@@ -413,6 +736,8 @@ class SettingsView(Gtk.Box):
         reveal = Gtk.Revealer(reveal_child=False, transition_duration=180,
                               transition_type=Gtk.RevealerTransitionType.SLIDE_DOWN)
         reveal.set_child(content)
+        if on_open is not None:
+            reveal.connect('notify::reveal-child', self.load_group_once(content, on_open))
         def toggle():
             expanded = not reveal.get_reveal_child()
             reveal.set_reveal_child(expanded)
@@ -461,9 +786,10 @@ class SettingsView(Gtk.Box):
     def global_page(self):
         shelf = self.shelf
         box = self.page('global', tr('Ajustes globales'), tr('Biblioteca, fondo e integraciones compartidas entre los aspectos.'))
-        general, integrations = self.columns(box)
-        box = general
         box.append(Gtk.Label(label='Estante ' + __version__, xalign=0, css_classes=['dim-label']))
+        general, appearance = self.columns(box)
+        general.append(Gtk.Label(label=tr('Preferencias'), xalign=0, css_classes=['title-3']))
+        appearance.append(Gtk.Label(label=tr('Biblioteca y servicios'), xalign=0, css_classes=['title-3']))
         box = self.group(general, tr('Idioma'))
         languages = {}
         previous = None
@@ -497,9 +823,85 @@ class SettingsView(Gtk.Box):
         startup = self.group(general, tr('Inicio'))
         fullscreen = self.switch(startup, tr('Abrir a pantalla completa'), shelf.settings.get('start_fullscreen', False))
         auto_updates = self.switch(startup, tr('Comprobar actualizaciones al iniciar'), shelf.settings.get('check_updates_on_start', False))
-        hide_playing = self.switch(startup, tr('Ocultar Estante mientras juego y restaurarlo al salir'), shelf.settings.get('hide_while_playing', False))
-        self.updates_section(self.group(integrations, tr('Actualizaciones')))
-        box = self.group(general, tr('Aspecto de la biblioteca'))
+        activity = self.group(appearance, tr('Actividad'))
+        session_history = self.switch(activity, tr('Mostrar historial de sesiones'), shelf.settings.get('show_session_history', True))
+        playing = self.group(general, tr('Mientras juegas'))
+        playing.append(Gtk.Label(label=tr('Al abrir el juego'), xalign=0))
+        playing_modes = ('none', 'hide', 'screensaver', 'tray')
+        playing_choice = Gtk.DropDown.new_from_strings([
+            tr('Mantener Estante abierto'), tr('Cerrar Estante y reabrirlo al salir'),
+            tr('Mostrar salvapantallas hasta cerrar el juego'), tr('Minimizar a la bandeja del sistema')])
+        playing_choice.set_selected(playing_modes.index(playing_behavior(shelf.settings)))
+        playing.append(playing_choice)
+        playing.append(Gtk.Label(label=tr('Se aplica cuando el juego ya está abierto. Al terminar, Estante recupera su estado. Pulsa el icono de la bandeja para mostrarlo durante la partida.'), wrap=True, xalign=0,
+                                 css_classes=['dim-label']))
+        saver = self.group(general, tr('Salvapantallas'))
+        saver_enabled = self.switch(saver, tr('Activar tras un periodo de inactividad'), shelf.settings.get('screensaver_enabled', False))
+        def time_selector(title, kind):
+            saver.append(Gtk.Label(label=title, xalign=0))
+            row = Gtk.Box(spacing=12)
+            value, unit = time_choice(shelf.settings, kind)
+            number = Gtk.SpinButton.new_with_range(1, 60, 1)
+            number.set_numeric(True)
+            number.set_value(value)
+            units = Gtk.DropDown.new_from_strings([tr('Segundos'), tr('Minutos')])
+            units.set_selected(1 if unit == 'minutes' else 0)
+            units.set_hexpand(True)
+            row.append(number)
+            row.append(units)
+            saver.append(row)
+            return number, units
+        saver_idle, saver_idle_unit = time_selector(tr('Activar después de'), 'idle')
+        saver_interval, saver_interval_unit = time_selector(tr('Cambiar fondo cada'), 'slide')
+        saver.append(Gtk.Label(label=tr('Origen de las imágenes'), xalign=0))
+        saver_source = Gtk.DropDown.new_from_strings([tr('Fondos de los juegos'), tr('Fondo de la aplicación')])
+        saver_source.set_selected(1 if shelf.settings.get('screensaver_source') == 'application' else 0)
+        saver.append(saver_source)
+        application_bg = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        application_bg.set_visible(saver_source.get_selected() == 1)
+        saver.append(application_bg)
+        application_bg.append(Gtk.Label(label=tr('Seleccionar fondo'), xalign=0))
+        saver_background = Gtk.DropDown.new_from_strings([
+            tr('Fondo {number}').format(number=i + 1) for i in range(len(BUNDLED_BACKGROUNDS))])
+        current_bg = shelf.settings.get('screensaver_background', 'bundled:6.png')
+        saver_background.set_selected(next((i for i, path in enumerate(BUNDLED_BACKGROUNDS)
+                                            if current_bg == 'bundled:' + path.name), 0))
+        application_bg.append(saver_background)
+        saver_preview = Gtk.Picture(can_shrink=True, content_fit=Gtk.ContentFit.CONTAIN, height_request=140)
+        application_bg.append(saver_preview)
+        def show_saver_preview(*_):
+            if not saver_preview.get_mapped() or not BUNDLED_BACKGROUNDS:
+                return
+            previous = getattr(saver_preview, 'image_ticket', None)
+            if previous:
+                previous.cancelled = True
+            path = BUNDLED_BACKGROUNDS[saver_background.get_selected()]
+            def loaded(texture, error):
+                if error is None:
+                    saver_preview.set_paintable(texture)
+            saver_preview.image_ticket = images.request(path, 480, 270, loaded, kind='settings')
+        saver_preview.connect('map', show_saver_preview)
+        saver_background.connect('notify::selected', show_saver_preview)
+        saver_source.connect('notify::selected', lambda *_: application_bg.set_visible(saver_source.get_selected() == 1))
+        saver_dim = self.scale(saver, tr('Oscurecimiento del salvapantallas (%)'), shelf.settings.get('screensaver_dim', 35), 0, 85, 5)
+        saver.append(Gtk.Label(label=tr('Libera la biblioteca de la memoria y recupera tu selección al volver. No se activa durante una partida.'), wrap=True, xalign=0))
+        def saver_settings():
+            return {
+                'screensaver_enabled': saver_enabled.get_active(),
+                'screensaver_idle_value': saver_idle.get_value_as_int(),
+                'screensaver_idle_unit': 'minutes' if saver_idle_unit.get_selected() else 'seconds',
+                'screensaver_slide_value': saver_interval.get_value_as_int(),
+                'screensaver_slide_unit': 'minutes' if saver_interval_unit.get_selected() else 'seconds',
+                'screensaver_source': 'application' if saver_source.get_selected() else 'games',
+                'screensaver_background': ('bundled:' + BUNDLED_BACKGROUNDS[saver_background.get_selected()].name
+                                            if BUNDLED_BACKGROUNDS else ''),
+                'screensaver_dim': int(saver_dim.get_value()),
+            }
+        def preview_screensaver():
+            config = {**shelf.settings, **saver_settings()}
+            GLib.idle_add(lambda: shelf.screensaver.preview(config))
+        saver.append(self.button(tr('Probar salvapantallas'), preview_screensaver))
+        box = self.group(appearance, tr('Aspecto de la biblioteca'))
         views = {}
         previous = None
         for mode, name in VIEW_NAMES.items():
@@ -510,7 +912,7 @@ class SettingsView(Gtk.Box):
             choice.set_active(shelf.view_mode == mode)
             views[mode] = choice
             box.append(choice)
-        box = self.group(general, tr('Origen del fondo'))
+        box = self.group(appearance, tr('Origen del fondo'))
         per_game = Gtk.CheckButton(label=tr('Personalizado por juego'))
         global_bg = Gtk.CheckButton(label=tr('Fondo global'))
         global_bg.set_group(per_game)
@@ -531,8 +933,10 @@ class SettingsView(Gtk.Box):
             global_bg.set_active(True)
             for child in defaults:
                 child.get_child().set_has_frame(child.get_child().get_tooltip_text() == path.stem)
+        previews = []
         for path in BUNDLED_BACKGROUNDS:
-            preview = Gtk.Picture.new_for_paintable(images.load(path, 480, 270))
+            preview = Gtk.Picture(can_shrink=True)
+            previews.append((preview, path))
             preview.set_content_fit(Gtk.ContentFit.COVER)
             preview.set_size_request(120, 68)
             target = self.button(path.stem, lambda path=path: choose_default(path))
@@ -540,37 +944,52 @@ class SettingsView(Gtk.Box):
             target.set_tooltip_text(path.stem)
             defaults.append(target)
         box.append(defaults)
-        picker = Gtk.FileChooserWidget(action=Gtk.FileChooserAction.OPEN)
-        picker.set_size_request(-1, 240)
-        image_filter = Gtk.FileFilter()
-        image_filter.set_name(tr('Imágenes'))
-        image_filter.add_pixbuf_formats()
-        picker.add_filter(image_filter)
-        picker.set_visible(False)
-        box.append(self.button(tr('Desde mi equipo…'), lambda: picker.set_visible(not picker.get_visible())))
-        box.append(picker)
+        def load_previews(_):
+            for preview, path in previews:
+                images.request_picture(preview, path, 480, 270)
+        box.get_parent().connect('notify::reveal-child', self.load_group_once(box, load_previews))
+        picker = None
+        picker_host = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        def toggle_picker():
+            nonlocal picker
+            if picker is None:
+                picker = Gtk.FileChooserWidget(action=Gtk.FileChooserAction.OPEN)
+                picker.set_size_request(-1, 240)
+                image_filter = Gtk.FileFilter()
+                image_filter.set_name(tr('Imágenes'))
+                image_filter.add_pixbuf_formats()
+                picker.add_filter(image_filter)
+                picker_host.append(picker)
+                for control in self.controls(picker_host):
+                    control.add_css_class('settings-control')
+            else:
+                picker.set_visible(not picker.get_visible())
+        box.append(self.button(tr('Desde mi equipo…'), toggle_picker))
+        box.append(picker_host)
         client = SteamGridDB('', shelf.library.root / 'covers')
         def selected(path):
             try:
-                images.load(path)
                 global_path[0] = path
                 image_status.set_text('')
-                picker.set_visible(False)
+                if picker is not None:
+                    picker.set_visible(False)
             except Exception as error:
                 image_status.set_text(str(error))
         def import_local():
-            chosen = picker.get_file()
+            chosen = picker.get_file() if picker is not None else None
             if chosen and chosen.get_path():
-                shelf.background(lambda: client.import_artwork(chosen.get_path()), selected, image_status.set_text)
+                shelf.background(lambda: validate_image(client.import_artwork(chosen.get_path())), selected, image_status.set_text)
             else:
                 image_status.set_text(tr('Selecciona una imagen de tu equipo.'))
         box.append(self.button(tr('Usar archivo seleccionado'), import_local))
         address = Gtk.Entry(placeholder_text='https://…')
         box.append(address)
-        box.append(self.button(tr('Usar imagen de URL'), lambda: shelf.background(
-            lambda: client.download(address.get_text().strip(), custom=True), selected, image_status.set_text)))
+        def import_url():
+            url = address.get_text().strip()
+            shelf.background(lambda: validate_image(client.download(url, custom=True)), selected, image_status.set_text)
+        box.append(self.button(tr('Usar imagen de URL'), import_url))
         box.append(image_status)
-        box = self.group(general, tr('Relleno del fondo'))
+        box = self.group(appearance, tr('Relleno del fondo'))
         blurred = Gtk.CheckButton(label=tr('Hero desenfocado'))
         dominant = Gtk.CheckButton(label=tr('Color predominante del hero'))
         dominant.set_group(blurred)
@@ -578,6 +997,8 @@ class SettingsView(Gtk.Box):
         blurred.set_active(not dominant.get_active())
         box.append(blurred)
         box.append(dominant)
+        integrations = self.group(appearance, tr('Servicios e integraciones'))
+        self.updates_section(self.group(integrations, tr('Actualizaciones')))
         box = self.group(integrations, 'SteamGridDB')
         key = shelf.field(box, tr('Clave API'), shelf.settings.get('steamgriddb_key', ''), True)
         box.append(Gtk.LinkButton(uri='https://www.steamgriddb.com/profile/preferences/api', label=tr('Obtener mi clave API')))
@@ -597,7 +1018,10 @@ class SettingsView(Gtk.Box):
                 language_changed = language != shelf.settings.get('language', 'system')
                 shelf.save_settings({**shelf.settings, 'start_fullscreen': fullscreen.get_active(),
                                      'check_updates_on_start': auto_updates.get_active(),
-                                     'hide_while_playing': hide_playing.get_active(),
+                                     'show_session_history': session_history.get_active(),
+                                     'playing_behavior': playing_modes[playing_choice.get_selected()],
+                                     'hide_while_playing': playing_modes[playing_choice.get_selected()] == 'hide',
+                                     **saver_settings(),
                                      'steamgriddb_key': key.get_text().strip(),
                     'igdb_client_id': igdb_id.get_text().strip(), 'igdb_client_secret': igdb_secret.get_text().strip(),
                     'background_fill': 'dominant' if dominant.get_active() else 'blur',
@@ -671,6 +1095,9 @@ class SettingsView(Gtk.Box):
         box = self.page(mode, tr(VIEW_NAMES[mode]), tr('Estos ajustes se aplican solo a ') + tr(VIEW_NAMES[mode]) + '.')
         backgrounds, cover_options = self.columns(box)
         details = self.group(cover_options, tr('Información del juego'))
+        presentation = self.group(cover_options, tr('Presentación'))
+        minimal = self.switch(presentation, tr('Presentación mínima'), minimal_for(shelf.settings, mode))
+        presentation.append(Gtk.Label(label=tr('Destaca el fondo a pantalla completa y oculta sinopsis, actividad y ficha. Conserva los controles y evita duplicar la carátula seleccionada.'), wrap=True, xalign=0))
         technical = self.switch(details, tr('Mostrar datos del launcher'),
                                 shelf.settings.get('show_launcher_details', {}).get(mode, True))
         list_positions = {}
@@ -686,6 +1113,10 @@ class SettingsView(Gtk.Box):
                 choice.set_active(list_side_for(shelf.settings) == side)
                 list_positions[side] = choice
                 position_box.append(choice)
+        effects = background_effects_for(shelf.settings, mode)
+        effects_box = self.group(backgrounds, tr('Imagen de fondo'))
+        background_dim = self.scale(effects_box, tr('Oscurecimiento del fondo (%)'), effects['dim'], 0, 100, 1)
+        background_blur = self.scale(effects_box, tr('Desenfoque del fondo (px)'), effects['blur'], 0, 40, 1)
         box = self.group(backgrounds, tr('Posición del hero'))
         hero_top = Gtk.CheckButton(label=tr('Parte superior'))
         hero_lower = Gtk.CheckButton(label=tr('Mitad inferior'))
@@ -768,10 +1199,14 @@ class SettingsView(Gtk.Box):
                     'focus_ring_color': parsed.to_string(), 'focus_ring_width': thickness.get_value_as_int(),
                     'focus_ring_radius': radius.get_value_as_int()})
                 settings['show_launcher_details'] = {**shelf.settings.get('show_launcher_details', {}), mode: technical.get_active()}
+                settings['background_dim'] = {**shelf.settings.get('background_dim', {}), mode: round(background_dim.get_value())}
+                settings['background_blur'] = {**shelf.settings.get('background_blur', {}), mode: round(background_blur.get_value())}
                 settings['hero_positions'] = {view: hero_position_for(shelf.settings, view) for view in VIEW_NAMES}
                 settings['hero_positions'][mode] = 'full' if hero_full.get_active() else ('lower' if hero_lower.get_active() else 'top')
                 settings['background_splits'] = {**shelf.settings.get('background_splits', {}),
                     mode: next(key for key, choice in split_choices.items() if choice.get_active())}
+                if minimal is not None:
+                    settings['minimal_views'] = {**shelf.settings.get('minimal_views', {}), mode: minimal.get_active()}
                 if list_zoom is not None:
                     settings['list_side'] = next(side for side, choice in list_positions.items() if choice.get_active())
                     settings['list_zoom'] = round(list_zoom.get_value())

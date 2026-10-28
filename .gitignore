@@ -1,3 +1,9 @@
 __pycache__/
 *.pyc
 dist/
+
+.reset-image-cache
+
+.venv-qt/
+
+Debug.log

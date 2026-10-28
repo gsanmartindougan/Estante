@@ -30,7 +30,10 @@ class WheelTests(unittest.TestCase):
             self.assertEqual(points[0], (0, 0, 1.5, 1))
             if count > 1:
                 self.assertGreater(points[0][2], max(point[2] for point in points[1:]))
-            self.assertEqual(len({(round(point[0], 6), round(point[1], 6)) for point in points}), count)
+            if count <= 5:
+                self.assertEqual(len({(round(point[0], 6), round(point[1], 6)) for point in points}), count)
+            else:
+                self.assertEqual(sum(list_opacity(point[3]) > .01 for point in points), 3)
             for index in range(count):
                 for actual, expected in zip(list_position(index, 0, count, 700, 100),
                                             list_position(index, count, count, 700, 100)):

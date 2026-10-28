@@ -2,6 +2,17 @@
 VIEW_NAMES = {'grid': 'Grid', 'carousel': 'Carousel', 'ps5': 'Sense', 'list': 'Lista'}
 
 
+def minimal_for(settings, view):
+    return bool(settings.get('minimal_views', {}).get(view, settings.get('list_minimal', False) if view == 'list' else False))
+
+
+def background_effects_for(settings, view):
+    defaults = {'grid': 78, 'carousel': 60, 'ps5': 45, 'list': 78}
+    dim = settings.get('background_dim', {}).get(view, 30 if minimal_for(settings, view) else defaults.get(view, 78))
+    blur = settings.get('background_blur', {}).get(view, 0)
+    return {'dim': max(0, min(100, float(dim))), 'blur': max(0, min(40, float(blur)))}
+
+
 def cover_format_for(settings, view):
     default = 'square' if view == 'ps5' else 'portrait'
     value = settings.get('cover_formats', {}).get(view, default)

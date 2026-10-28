@@ -1,6 +1,6 @@
 import json
 import unittest
-from appearance import cover_format_for, cover_size_for
+from appearance import cover_format_for, cover_size_for, minimal_for
 
 
 class CoverFormatTests(unittest.TestCase):
@@ -75,3 +75,12 @@ class ListDetailCoverTests(unittest.TestCase):
         self.assertEqual(list_cover_size({'list_cover_zoom': 150, 'list_zoom': 50}), (270, 405))
         self.assertEqual(list_cover_size({'list_cover_zoom': 150, 'cover_formats': {'list': 'square'}}), (330, 330))
         self.assertEqual(list_cover_size({'list_cover_zoom': 1000}), (315, 472))
+
+
+class MinimalPresentationTests(unittest.TestCase):
+    def test_mode_preferences_override_legacy_list_setting_and_survive_json(self):
+        settings = json.loads(json.dumps({'list_minimal': True, 'minimal_views': {'grid': True, 'list': False}}))
+        self.assertTrue(minimal_for(settings, 'grid'))
+        self.assertFalse(minimal_for(settings, 'list'))
+        self.assertFalse(minimal_for(settings, 'carousel'))
+        self.assertTrue(minimal_for({'list_minimal': True}, 'list'))

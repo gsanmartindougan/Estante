@@ -41,12 +41,23 @@ class LogoScalingTests(TestCase):
         wheel = SimpleNamespace(focus_scale=1.5, get_width=lambda: 700,
                                 get_height=lambda: 800,
                                 compute_bounds=lambda _: (True, Graphene.Rect().init(16, 40, 700, 800)))
-        shelf = SimpleNamespace(list_flow=wheel, settings={}, scene=scene,
+        shelf = SimpleNamespace(list_flow=wheel, settings={}, view_mode='list', scene=scene,
                                 backdrop_fill=object(), backdrop=object())
         Shelf.paint_list_focus_band(shelf, snapshot)
         snapshot.push_rounded_clip.assert_called_once()
         snapshot.push_blur.assert_called_once_with(18)
         self.assertEqual(scene.snapshot_child.call_count, 2)
+        scene.snapshot_child.reset_mock()
+        snapshot.push_blur.reset_mock()
+        shelf.settings['background_blur'] = {'list': 0}
+        Shelf.paint_list_focus_band(shelf, snapshot)
+        scene.snapshot_child.assert_not_called()
+        snapshot.push_blur.assert_not_called()
+        shelf.settings['background_blur'] = {'list': 18}
+        shelf.settings['minimal_views'] = {'list': True}
+        Shelf.paint_list_focus_band(shelf, snapshot)
+        scene.snapshot_child.assert_not_called()
+        snapshot.push_blur.assert_not_called()
         bounds = snapshot.append_color.call_args.args[1]
         self.assertLess(bounds.get_x(), 0)
         self.assertAlmostEqual(bounds.get_y() + bounds.get_height()/2, 400)

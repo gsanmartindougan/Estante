@@ -1,3 +1,4 @@
+from unittest.mock import patch
 import ctypes as C
 import unittest
 
@@ -87,8 +88,19 @@ class NavigationTests(unittest.TestCase):
         self.addCleanup(sdl.SDL_JoystickDetachVirtual, index)
         stick = sdl.SDL_JoystickOpen(index)
         self.addCleanup(sdl.SDL_JoystickClose, stick)
+        # A device can attach with stale buttons or an uncalibrated stick.
+        sdl.SDL_JoystickSetVirtualButton(stick, 14, 1)
+        sdl.SDL_JoystickSetVirtualAxis(stick, 0, 24000)
         pad.poll()
         self.assertTrue(pad.controller)
+        self.assertFalse(pad.input_ready)
+        with patch('controls.time.monotonic', return_value=100000):
+            pad.poll()
+        self.assertEqual(actions, [], 'Attachment must not emit repeating input or reset idle')
+        sdl.SDL_JoystickSetVirtualButton(stick, 14, 0)
+        sdl.SDL_JoystickSetVirtualAxis(stick, 0, 0)
+        pad.poll()
+        self.assertTrue(pad.input_ready)
         sdl.SDL_JoystickSetVirtualButton(stick, 0, 1)
         pad.poll()
         self.assertIn('confirm', actions)

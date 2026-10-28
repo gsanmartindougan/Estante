@@ -29,10 +29,13 @@ def initial_background_settings(settings, first_run=False):
     return settings
 
 
-def background_assets(settings, game):
+def background_assets(settings, game, view=None):
     if settings.get('background_source', 'game') == 'global':
         return resolve_background(settings.get('global_background', '')), ''
-    return game.get('banner', ''), game.get('banner_secondary', '')
+    secondary = game.get('banner_secondary', '')
+    if view is not None and background_split_for(settings, view) == 'single':
+        secondary = ''
+    return game.get('banner', ''), secondary
 
 
 def background_split_for(settings, view):

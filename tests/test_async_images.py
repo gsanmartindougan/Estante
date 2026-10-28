@@ -56,15 +56,62 @@ class AsyncImageTests(TestCase):
 
     def test_picture_request_does_not_decode_on_ui_and_uses_hidpi(self):
         picture = Mock()
-        host = SimpleNamespace(get_scale_factor=lambda: 2)
+        host = SimpleNamespace(get_scale_factor=lambda: 2, view_mode='list')
         with patch('estante.images.request') as request, patch('estante.images.load') as decode:
             Shelf.request_picture(host, picture, '/logo', 300, 100, priority=0)
             decode.assert_not_called()
             args = request.call_args.args
-            self.assertEqual(args[:3], ('/logo', 1500, 500))
+            self.assertEqual(args[:3], ('/logo', 600, 200))
             self.assertEqual(args[4], 0)
             args[3]('texture', None)
             picture.set_paintable.assert_called_once_with('texture')
+
+    def test_list_logos_use_display_pixels_and_only_selected_logo_uses_focus_zoom(self):
+        for density in (1, 2):
+            for zoom in (100, 150, 250):
+                for priority in (0, 1):
+                    host = SimpleNamespace(get_scale_factor=lambda: density, view_mode='list',
+                                           settings={'list_focus_zoom': zoom})
+                    with patch('estante.images.request') as request:
+                        Shelf.request_picture(host, Mock(), '/logo', 300, 100, priority, kind='logo')
+                    factor = density * (zoom / 100 if priority == 0 else 1)
+                    self.assertEqual(request.call_args.args[:3], ('/logo', 300 * factor, 100 * factor))
+                    self.assertEqual(request.call_args.kwargs['kind'], 'logo')
+
+    def test_grid_requests_display_pixels_without_focus_oversampling(self):
+        for density in (1, 2):
+            for width, height in ((156, 234), (312, 468), (156, 156)):
+                with self.subTest(density=density, size=(width, height)):
+                    picture = Mock()
+                    host = SimpleNamespace(get_scale_factor=lambda: density, view_mode='grid')
+                    with patch('estante.images.request') as request:
+                        Shelf.request_picture(host, picture, '/cover', width, height)
+                    self.assertEqual(request.call_args.args[:3],
+                                     ('/cover', width * density, height * density))
+
+    def test_list_selected_cover_is_loaded_at_display_resolution(self):
+        for density in (1, 2):
+            host = SimpleNamespace(get_scale_factor=lambda: density, view_mode='list')
+            with patch('estante.images.request') as request:
+                Shelf.request_picture(host, Mock(), '/cover', 180, 270, priority=0)
+            self.assertEqual(request.call_args.args[:3], ('/cover', 180 * density, 270 * density))
+
+    def test_other_layouts_load_neighbours_at_actual_hidpi_resolution(self):
+        for mode in ('carousel', 'ps5'):
+            with self.subTest(mode=mode), patch('estante.images.request') as request:
+                host = SimpleNamespace(get_scale_factor=lambda: 2, view_mode=mode)
+                Shelf.request_picture(host, Mock(), '/cover', 100, 150, priority=1)
+                self.assertEqual(request.call_args.args[:3], ('/cover', 200, 300))
+
+    def test_selected_covers_preserve_configured_focus_zoom(self):
+        for mode, settings, expected in (
+                ('carousel', {'carousel_zoom': 175}, (350, 525)),
+                ('ps5', {'ps5_focus_size': 320}, (640, 960))):
+            with self.subTest(mode=mode), patch('estante.images.request') as request:
+                host = SimpleNamespace(get_scale_factor=lambda: 2, view_mode=mode, settings=settings)
+                Shelf.request_picture(host, Mock(), '/cover', 104 if mode=='ps5' else 100,
+                                      156 if mode=='ps5' else 150, priority=0)
+                self.assertEqual(request.call_args.args[:3], ('/cover', *expected))
 
     def test_decode_errors_are_delivered_without_killing_worker(self):
         cache = ImageCache()
@@ -97,3 +144,21 @@ class AsyncImageTests(TestCase):
             ticket.cancelled = True
             callbacks[0]()
             done.assert_not_called()
+
+    def test_settings_previews_are_async_and_cancel_previous_request(self):
+        cache = ImageCache()
+        picture = Mock()
+        previous = SimpleNamespace(cancelled=False)
+        picture.image_ticket = previous
+        ticket = SimpleNamespace(cancelled=False)
+        with patch.object(cache, 'request', return_value=ticket) as request, patch.object(cache, 'load') as load:
+            cache.request_picture(picture, '/preview', 480, 270)
+            self.assertTrue(previous.cancelled)
+            self.assertIs(picture.image_ticket, ticket)
+            load.assert_not_called()
+            request.call_args.args[3]('texture', None)
+            picture.set_paintable.assert_called_once_with('texture')
+            cache.request_picture(picture, '', 480, 270)
+            self.assertTrue(ticket.cancelled)
+            self.assertIsNone(picture.image_ticket)
+            picture.set_paintable.assert_called_with(None)

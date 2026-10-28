@@ -1,0 +1,16 @@
+[
+  {
+    "games": 100,
+    "model_20_reads_ms": 89.398,
+    "navigation_500_steps_ms": 92.949,
+    "model_json_KiB": 110.54,
+    "model_20_reads_python_peak_KiB": 212.82
+  },
+  {
+    "games": 1000,
+    "model_20_reads_ms": 909.677,
+    "navigation_500_steps_ms": 804.863,
+    "model_json_KiB": 1106.34,
+    "model_20_reads_python_peak_KiB": 2106.98
+  }
+]

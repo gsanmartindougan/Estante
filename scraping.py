@@ -70,3 +70,21 @@ def apply_scrape_patch(current, original, patch):
     """A later manual edit takes precedence over an in-flight scrape."""
     return {**current, **{field: value for field, value in patch.items()
                           if current.get(field) == original.get(field)}}
+
+
+def apply_scrape_results(library, results):
+    """Merge against current edits once, then persist the changed games together."""
+    current_games = {game['id']: game for game in library.games()}
+    updates, messages = [], []
+    failures = 0
+    for original, patch, errors in results:
+        failures += len(errors)
+        messages.extend(original['title'] + ': ' + error for error in errors[:max(0, 5-len(messages))])
+        current = current_games.get(original['id'])
+        if current is not None:
+            updated = apply_scrape_patch(current, original, patch)
+            if updated != current:
+                current_games[original['id']] = updated
+                updates.append(updated)
+    library.put_many(updates)
+    return len(updates), failures, messages

@@ -40,10 +40,10 @@ class ListNavigationTests(TestCase):
                 ('square', '/square.png', 220, 220, True)):
             cover = Mock()
             host = SimpleNamespace(
-                settings={'cover_formats': {'list': format_name}},
+                view_mode='list', settings={'cover_formats': {'list': format_name}}, get_scale_factor=lambda: 1,
                 list_cover=SimpleNamespace(get_first_child=lambda: None, append=Mock()),
                 cover=cover)
             game = {'id': 'test', 'cover': '/portrait.png', 'square_cover': '/square.png'}
             Shelf.update_list_cover(host, game)
-            cover.assert_called_once_with({'cover': path}, width, height, square=square, priority=0)
+            cover.assert_called_once_with({'cover': path}, width, height, square=square, priority=0, presentation=True)
             host.list_cover.append.assert_called_once_with(cover.return_value)

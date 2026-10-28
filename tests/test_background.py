@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import Mock, patch
 import zlib
 
-from estante import BlurredBackdrop, Gdk, GLib
+from estante import BlurredBackdrop, TopAlignedPicture, Gdk, GLib
 
 
 def solid_texture(red, green, blue, alpha=255):
@@ -39,3 +39,17 @@ class BackgroundTests(unittest.TestCase):
             self.assertIs(backdrop.texture, texture)
             self.assertIsNotNone(backdrop.color)
             backdrop.queue_draw.assert_called_once()
+
+
+class BackgroundEffectSnapshotTests(unittest.TestCase):
+    def test_blur_wraps_entire_background_and_zero_avoids_blur_node(self):
+        from types import SimpleNamespace
+        from unittest.mock import Mock, patch
+        for radius in (0, 18):
+            snapshot = Mock()
+            host = SimpleNamespace(blur=radius, snapshot_background=Mock())
+            with patch('estante.blur_radius', side_effect=lambda value: value):
+                TopAlignedPicture.do_snapshot(host, snapshot)
+            host.snapshot_background.assert_called_once_with(snapshot)
+            self.assertEqual(snapshot.push_blur.call_count, int(radius > 0))
+            self.assertEqual(snapshot.pop.call_count, int(radius > 0))

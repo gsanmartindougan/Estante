@@ -104,3 +104,67 @@ class DiskThumbnailTests(TestCase):
                 thumbnail_dimensions(path)
         path.write_bytes(png_header(1920, 1080) + b'pixel data is decoded separately')
         self.assertEqual(thumbnail_dimensions(path), (1920, 1080))
+
+    def test_opaque_png_is_cached_as_jpeg_and_reused_without_decoding_original(self):
+        from PIL import Image
+        from image_cache import decode_pixbuf
+        paths = []
+        def decode(path, width, height):
+            paths.append(Path(path))
+            if Path(path) == self.source:
+                image = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, False, 8, width, height)
+                image.fill(0xcc6633ff)
+                return image
+            return decode_pixbuf(path, width, height)
+        def save(image, target):
+            # Replace only the OS encoder: decode the resulting real JPEG normally.
+            target.parent.mkdir(parents=True, exist_ok=True)
+            Image.new('RGB', (image.get_width(), image.get_height()), '#cc6633').save(target, 'JPEG', quality=95)
+        cache = ImageCache(disk_dir=self.disk)
+        with patch('image_cache.GdkPixbuf.Pixbuf.get_file_info', return_value=(object(), 4096, 2048)) as info, \
+             patch('image_cache.decode_pixbuf', side_effect=decode), patch.object(cache, '_save_thumbnail', side_effect=save):
+            cache.load(self.source, 128, 128)
+            self.assertTrue(cache.wait_for_writes(2))
+            self.assertEqual(len(list(self.disk.glob('*.jpg'))), 1)
+            self.assertFalse(list(self.disk.glob('*.png')))
+            cache.retain_paths([])
+            info.reset_mock()
+            texture = cache.load(self.source, 128, 128)
+            info.assert_not_called()
+            self.assertEqual((texture.get_width(), texture.get_height()), (128, 64))
+            self.assertEqual(paths, [self.source, next(self.disk.glob('*.jpg'))])
+        self.assertEqual(self.source.read_bytes(), b'original remains untouched')
+
+    def test_jpeg_write_is_atomic_removes_only_legacy_cache_and_uses_quality_95(self):
+        cache = ImageCache(disk_dir=self.disk)
+        self.disk.mkdir()
+        legacy = self.disk / 'same.png'
+        legacy.write_bytes(b'old cache')
+        pixbuf = Mock()
+        pixbuf.savev.side_effect = lambda path, *args: Path(path).write_bytes(b'jpeg encoded')
+        cache._save_thumbnail(pixbuf, self.disk / 'same.jpg')
+        self.assertEqual(pixbuf.savev.call_args.args[1:], ('jpeg', ['quality'], ['95']))
+        self.assertEqual((self.disk / 'same.jpg').read_bytes(), b'jpeg encoded')
+        self.assertFalse(legacy.exists())
+        self.assertEqual(self.source.read_bytes(), b'original remains untouched')
+        self.assertFalse(list(self.disk.glob('.thumbnail-*')))
+
+    def test_failed_jpeg_conversion_preserves_previous_png_cache(self):
+        cache = ImageCache(disk_dir=self.disk)
+        self.disk.mkdir()
+        legacy = self.disk / 'same.png'
+        legacy.write_bytes(b'previous PNG')
+        pixbuf = Mock()
+        pixbuf.savev.side_effect = OSError('encoder failed')
+        cache._save_thumbnail(pixbuf, self.disk / 'same.jpg')
+        self.assertEqual(legacy.read_bytes(), b'previous PNG')
+        self.assertFalse((self.disk / 'same.jpg').exists())
+        self.assertFalse(list(self.disk.glob('.thumbnail-*')))
+
+    def test_disk_quota_counts_both_jpeg_and_png_files(self):
+        cache = ImageCache(disk_dir=self.disk, disk_bytes=12)
+        pixbuf = Mock()
+        pixbuf.savev.side_effect = lambda path, *args: Path(path).write_bytes(b'12345678')
+        cache._save_thumbnail(pixbuf, self.disk / 'first.png')
+        cache._save_thumbnail(pixbuf, self.disk / 'second.jpg')
+        self.assertLessEqual(sum(path.stat().st_size for path in self.disk.iterdir()), 12)

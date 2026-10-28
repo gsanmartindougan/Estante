@@ -1,10 +1,27 @@
 # Estante
 
-Version: **0.2.1** · [Documentación en español](README.md)
+Version: **0.3.0** · [Documentación en español](README.md)
 
-A simple native Linux game library inspired by Cartridges. Launch games from **Steam**, **Faugus Launcher**, **shell scripts** and **AppImages**, using a gamepad, keyboard or mouse.
+A simple native Linux game library inspired by Cartridges. Launch games from **Steam**, **Faugus Launcher**, **Heroic Games Launcher**, **shell scripts** and **AppImages**, using a gamepad, keyboard or mouse.
 
 Faugus games are imported directly: you do not need to create `.desktop` entries. Faugus keeps control of the runner, prefix and launch arguments.
+
+## Qt frontend (Linux)
+
+The default frontend is now Qt Quick/PySide6. The previous GTK frontend remains
+available through `./run-gtk.sh`.
+
+```sh
+python3 -m venv .venv-qt
+.venv-qt/bin/pip install -r requirements-qt.txt
+./run.sh
+```
+
+`./run.sh --games 100` uses a temporary test library. Do not run both frontends
+against the same data simultaneously. Installation and AppImage builds default to
+Qt; `--frontend gtk` selects the previous frontend. See the [Qt guide](qt_app/README.md)
+and [migration evidence](docs/migracion-qt-2026-10-24.md) (Spanish).
+The videos on this page show the Qt frontend in 0.3.0.
 
 ## AI-assisted development and human review
 
@@ -12,13 +29,17 @@ Estante was developed with the assistance of artificial intelligence to generate
 
 AI is a development tool; responsibility for changes and published releases rests with the project maintainer. This review does not guarantee that the software is free of bugs. Please report any issues through the repository's issue tracker.
 
+The configurable **screensaver** smoothly cycles through game backgrounds, unloads the library from memory and restores the selected game, category and search when you return. Enable it in Settings → Global → Screensaver. Idle activation stays disabled while playing. Timers accept 1–60 seconds or minutes, with game backgrounds or a selected bundled background. Adjustable dimming and proportional fitting support standard, ultrawide and portrait displays without excessively enlarging small images. The screensaver stays in the same window, also works from Settings, preserves unsaved edits and restores the selection on return.
+
+**While playing**, in Global settings: keep open, hide and restore, show the screensaver until the game ends, or minimize to the system tray. Clicking the tray icon restores the window; if no tray is available, Estante stays visible.
+
 ## Layouts and videos
 
-Choose a layout without changing your library. Each has independent cover, selection and background settings. These videos show **Estante 0.2.1**; click a preview to open its MP4.
+Choose a layout without changing your library. Each has independent cover, selection and background settings. These videos show **Estante 0.3.0 (Qt)**; click a preview to open its MP4.
 
 ### Grid
 
-A cover grid with the selected game's information and activity in the right-hand panel. Customize portrait or square covers, their size and corner radius. In 0.2.1, the library uses pages of **12 games**: browse with **L3 / R3**, the page buttons or **Ctrl+PageUp / Ctrl+PageDown**.
+A cover grid with the selected game's information and activity in the right-hand panel. Customize portrait or square covers, their size and corner radius. Grid shows **10 games per page** by default; change it under **Settings → Grid → Pagination**. Browse with **L3 / R3**, LB/RB or the page buttons.
 
 [![Grid preview](docs/showcase/01-grid.jpg)](docs/showcase/01-grid.mp4)
 
@@ -58,21 +79,21 @@ Global settings cover language, controller type, startup behavior, integrations 
 
 ## Install the AppImage
 
-The **x86_64 AppImage** includes Python, GTK, libadwaita and SDL2. Faugus must be installed separately to launch its games.
+The **x86_64 AppImage** includes Python, Qt Quick/PySide6 and SDL2. Faugus must be installed separately to launch its games.
 
-We recommend [Gear Lever](https://flathub.org/apps/it.mijorus.gearlever) to manage the AppImage and add Estante to your application menu. Open `Estante-0.2.1-x86_64.AppImage` with Gear Lever and use its integration option.
+We recommend [Gear Lever](https://flathub.org/apps/it.mijorus.gearlever) to manage the AppImage and add Estante to your application menu. Open `Estante-0.3.0-x86_64.AppImage` with Gear Lever and use its integration option.
 
 You can also run the file directly:
 
 ```sh
-chmod +x Estante-0.2.1-x86_64.AppImage
-./Estante-0.2.1-x86_64.AppImage
+chmod +x Estante-0.3.0-x86_64.AppImage
+./Estante-0.3.0-x86_64.AppImage
 ```
 
 If FUSE is unavailable:
 
 ```sh
-./Estante-0.2.1-x86_64.AppImage --appimage-extract
+./Estante-0.3.0-x86_64.AppImage --appimage-extract
 ./squashfs-root/AppRun
 ```
 
@@ -80,23 +101,20 @@ To uninstall, remove Estante through Gear Lever, or delete the AppImage if you m
 
 ## Native installation
 
-Requires Python 3, PyGObject, GTK **4.10 or newer**, libadwaita and SDL2 for gamepad support.
+Requires Python 3.10+, PySide6 and SDL2. Install SDL2 with your distribution's
+package manager (`SDL2` on Fedora, `sdl2` on Arch, `libsdl2-2.0-0` on Debian/Ubuntu).
 
-| Distribution | Dependencies |
-| --- | --- |
-| Fedora | `sudo dnf install python3 python3-gobject gtk4 libadwaita SDL2` |
-| Arch / CachyOS | `sudo pacman -S python python-gobject gtk4 libadwaita sdl2` |
-| Ubuntu 24.04+ / Debian 13+ | `sudo apt install python3 python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 gir1.2-gdkpixbuf-2.0 libsdl2-2.0-0` |
-
-`sdl2-compat` can replace `sdl2` on distributions that provide it.
-
-Extract `Estante-0.2.1-linux.tar.gz`, enter the `Estante` directory and run:
+Extract `Estante-0.3.0-linux.tar.gz`, enter `Estante`, and use a persistent Qt environment:
 
 ```sh
-sh install.sh
+python3 -m venv "$HOME/.local/share/estante-venv"
+"$HOME/.local/share/estante-venv/bin/pip" install -r requirements-qt.txt
+"$HOME/.local/share/estante-venv/bin/python" install.py --python "$HOME/.local/share/estante-venv/bin/python"
 ```
 
-This installs into `~/.local`, without administrator privileges. Launch Estante from the application menu or run `~/.local/bin/estante`. For all users, use `sudo sh install.sh --system` instead.
+This installs into `~/.local` without administrator privileges. Launch Estante from
+the menu or `~/.local/bin/estante`. Keep `estante-venv` after installation. The old
+GTK frontend requires PyGObject, GTK 4.10+, libadwaita and `--frontend gtk`.
 
 Run the new installer again to update. To uninstall, use the matching command from a copy of the installer:
 
@@ -139,6 +157,7 @@ Categories are saved through their create, rename and delete actions.
 - Import Faugus games manually through **Settings → Scan and scraping → Scan Faugus**. Repeat the scan to import new games or refresh their Faugus data. Its version must support `--game ID`.
 - Choose **Grid**, **Carousel**, **Sense** or **List** in Settings. Each layout has independent cover format, corner radius, selection ring and hero position settings.
 - Create, rename and delete categories in **Settings → Categories**. Assign them from **Edit → Categories** for each game.
+- Assign optional category icons through **Choose icon…**. **Find icon…** searches Bootstrap Icons and Iconify with an editable query and selectable previews, without an API key. Switch providers, browse Bootstrap, and navigate results in pages of 12 icons. **Use text** restores the name. **All** can also have an icon; names remain available as tooltips and accessibility labels.
 - Choose portrait or square covers and banners from SteamGridDB, your computer or an image URL. SteamGridDB needs an API key; Steam offers 16:9 screenshots without credentials. IGDB supports games from other platforms using Twitch client credentials.
 - Find game information through Wikidata or edit it manually. Playtime and completed sessions appear beside the selected game.
 
@@ -199,3 +218,22 @@ Scans assign **Steam** and **Faugus** categories while retaining other categorie
 Remove a game through **Edit → Organization → Remove from library**. Its files are not deleted or uninstalled. Removed Steam and Faugus games are excluded from future scans; restore them with their customizations from **Settings → Scan and scraping → Removed games → Restore removed games**. Local scripts and AppImages can be added again using Add.
 
 **Settings → List → List position** places the wheel on the left, right, top or bottom, with details on the opposite side. Side wheels use up/down; top and bottom wheels use left/right. Move toward the details to focus Play/Edit and toward the wheel to return to the logos.
+
+### Image decoding
+
+Pillow is optional when running from source: it is used for large JPEGs requiring substantial downscaling if the system scaled decoder fails. Building the AppImage requires Pillow on the build machine and bundles it to avoid creating original-resolution JPEG textures for thumbnails. PNG keeps the GDK decoder and can still require its source buffer.
+
+
+### Heroic Games Launcher
+
+Open **Settings → Scan and scraping → Import games from Heroic**. Estante reads
+native and Flatpak installations for installed Epic, GOG, Amazon and locally
+sideloaded games, creating a Heroic category. Rescan after installing or removing
+games. Artwork and category edits remain in Estante; Heroic configuration and
+credentials are not modified.
+
+Games start through Heroic with `--no-gui`, preserving its runner and prefix.
+Session monitoring uses Heroic's per-game environment identifiers, including when
+Heroic was already running. The 25-second starting screen, session recording and
+selected playing behavior also apply. Available cached artwork URLs are downloaded
+without a SteamGridDB key; artwork failures do not prevent importing a game.

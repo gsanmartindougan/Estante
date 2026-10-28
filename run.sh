@@ -1,4 +1,4 @@
 #!/bin/sh
 set -eu
 cd -- "$(dirname -- "$0")"
-exec python3 estante.py "$@"
+exec ./run-qt.sh "$@"

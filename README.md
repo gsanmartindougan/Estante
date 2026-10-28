@@ -1,14 +1,32 @@
 # Estante
 
-Versión: **0.2.1**.
+Versión: **0.3.0**.
 
 [English documentation](README.en.md)
 
-Una biblioteca de juegos para Linux, sencilla y nativa, inspirada en Cartridges. Reúne juegos de **Steam**, **Faugus Launcher**, scripts **`.sh`** y **AppImages**, con navegación por mando, teclado y ratón.
+Una biblioteca de juegos para Linux, sencilla y nativa, inspirada en Cartridges. Reúne juegos de **Steam**, **Faugus Launcher**, **Heroic Games Launcher**, scripts **`.sh`** y **AppImages**, con navegación por mando, teclado y ratón.
 
 Estante lee la biblioteca de Faugus directamente: **no necesitas crear archivos `.desktop`**. Al jugar, Faugus se encarga del runner, el prefijo y los parámetros que ya tengas configurados.
 
-Proyecto en desarrollo, construido con Python, GTK 4 y libadwaita.
+Proyecto en desarrollo, con interfaz principal Python y Qt Quick/PySide6 para Linux.
+La interfaz GTK 4 anterior sigue disponible como alternativa.
+
+## Ejecutar la versión Qt
+
+```sh
+python3 -m venv .venv-qt
+.venv-qt/bin/pip install -r requirements-qt.txt
+./run.sh
+```
+
+`./run.sh --games 100` usa una biblioteca temporal para pruebas. Para volver a GTK,
+cierra Qt y ejecuta `./run-gtk.sh`. No ejecutes ambas interfaces sobre los mismos
+datos a la vez. El instalador y el constructor AppImage seleccionan Qt por defecto;
+aceptan `--frontend gtk` para la alternativa anterior.
+
+Consulta [la guía Qt](qt_app/README.md) y [la validación de la migración](docs/migracion-qt-2026-10-24.md).
+Los vídeos de esta página muestran la interfaz Qt de 0.3.0. GTK queda disponible
+como alternativa con `./run-gtk.sh`.
 
 ## Desarrollo con IA y revisión humana
 
@@ -18,22 +36,24 @@ La IA es una herramienta de desarrollo; la responsabilidad sobre los cambios y l
 
 ## Funciones
 
-- Importación manual de Steam y Faugus desde Ajustes, tanto nativos como Flatpak, con categorías por origen.
+- Importación manual de Steam, Faugus y Heroic desde Ajustes, tanto nativos como Flatpak, con categorías por origen.
 - Juegos locales con parámetros y directorio de trabajo personalizados.
 - Cuatro apariencias: **Grid**, **Carousel**, **Sense** y **Lista**.
 - Categorías propias, búsqueda y navegación rápida por inicial.
 - Carátulas verticales y cuadradas, banners y fondos personalizados.
 - Información del juego desde Wikidata o editada a mano.
 - Tiempo jugado, estadísticas y sesiones recientes.
+- Salvapantallas configurable con fondos y transiciones suaves: descarga la biblioteca de la memoria y recupera el juego, categoría y búsqueda al volver. Se configura en Ajustes → Globales → Salvapantallas y su activación por inactividad se pausa durante las partidas. Permite ajustar los tiempos entre 1 y 60 segundos o minutos y elegir fondos de juegos o un fondo incluido en la aplicación. Incluye oscurecimiento ajustable y encaje proporcional para pantallas normales, ultrawide y verticales; los fondos pequeños no se amplían excesivamente. Se muestra en la misma ventana, también desde Ajustes, conserva los cambios sin guardar y restaura la selección al salir.
+- **Mientras juegas**, en Ajustes globales: mantener abierto, ocultar y restaurar, salvapantallas hasta terminar o minimizar a la bandeja. La bandeja permite recuperar la ventana con un clic; si no está disponible, Estante permanece visible.
 - Edición en paneles laterales superpuestos, sin desplazar la biblioteca.
 
 ## Apariencias y vídeos
 
-Elige la distribución que prefieras sin cambiar tu biblioteca. Cada apariencia tiene sus propios ajustes de carátulas, selección y fondos. Los vídeos muestran **Estante 0.2.1**; haz clic en una vista previa para abrir su MP4.
+Elige la distribución que prefieras sin cambiar tu biblioteca. Cada apariencia tiene sus propios ajustes de carátulas, selección y fondos. Los vídeos muestran **Estante 0.3.0 (Qt)**; haz clic en una vista previa para abrir su MP4.
 
 ### Grid
 
-Una cuadrícula de carátulas con la ficha y la actividad del juego seleccionado en el panel de la derecha. Permite elegir formato vertical o cuadrado, tamaño y esquinas. En 0.2.1, la biblioteca se divide en páginas de **12 juegos**: usa **L3 / R3**, los botones de página o **Ctrl+RePág / Ctrl+AvPág** para recorrerlas.
+Una cuadrícula de carátulas con la ficha y la actividad del juego seleccionado en el panel de la derecha. Permite elegir formato vertical o cuadrado, tamaño y esquinas. La biblioteca se divide en páginas de **10 juegos** por defecto: cambia la cantidad en **Ajustes → Grid → Paginación**. Usa **L3 / R3**, LB/RB o los botones de página para recorrerlas.
 
 [![Vista previa de Grid](docs/showcase/01-grid.jpg)](docs/showcase/01-grid.mp4)
 
@@ -65,7 +85,7 @@ Una rueda de logos con el seleccionado destacado, acompañada de su carátula, s
 
 ### Ajustes
 
-Los ajustes globales reúnen idioma, tipo de mando, inicio, integraciones y origen del fondo. Cada apariencia dispone de su propia configuración visual, organizada en secciones desplegables. **L3 + R3** abre directamente los ajustes de la apariencia actual; también puedes entrar desde el engranaje.
+Los ajustes globales reúnen idioma, tipo de mando, inicio, salvapantallas y origen del fondo. Las credenciales de SteamGridDB e IGDB están en **Escaneo y scraping**. Cada apariencia dispone de su propia configuración visual, organizada en secciones desplegables. **L3 + R3** abre directamente los ajustes de la apariencia actual; también puedes entrar desde el engranaje.
 
 [![Vista previa de Ajustes](docs/showcase/05-settings.jpg)](docs/showcase/05-settings.mp4)
 
@@ -73,7 +93,7 @@ Los ajustes globales reúnen idioma, tipo de mando, inicio, integraciones y orig
 
 ## AppImage
 
-La versión AppImage para **Linux x86_64** incluye Python, PyGObject, GTK, libadwaita
+La versión AppImage para **Linux x86_64** incluye Python, Qt Quick/PySide6
 y SDL2. No necesita instalar esas bibliotecas ni ejecutar el instalador nativo.
 
 ### Instalar con Gear Lever (recomendado)
@@ -82,7 +102,7 @@ Recomendamos [Gear Lever](https://github.com/mijorus/gearlever) para organizar e
 AppImage e integrar Estante en el menú de aplicaciones con su icono.
 
 1. Instala Gear Lever desde [Flathub](https://flathub.org/apps/it.mijorus.gearlever).
-2. Descarga `Estante-0.2.1-x86_64.AppImage`.
+2. Descarga `Estante-0.3.0-x86_64.AppImage`.
 3. Abre el archivo con Gear Lever y utiliza su opción de integración en el menú.
 4. Abre **Estante** desde el lanzador de tu escritorio.
 
@@ -97,12 +117,12 @@ flatpak install flathub it.mijorus.gearlever
 Si prefieres gestionar el archivo a mano:
 
 ```sh
-chmod +x Estante-0.2.1-x86_64.AppImage
-./Estante-0.2.1-x86_64.AppImage
+chmod +x Estante-0.3.0-x86_64.AppImage
+./Estante-0.3.0-x86_64.AppImage
 ```
 
 La versión aparece en el pie de la biblioteca y en **Ajustes → Globales**.
-También puedes consultarla con `./Estante-0.2.1-x86_64.AppImage --version`.
+También puedes consultarla con `./Estante-0.3.0-x86_64.AppImage --version`.
 
 Puedes mover el archivo a la carpeta que prefieras. Los datos siguen guardándose en
 la ubicación habitual de Estante. Faugus debe estar instalado aparte para ejecutar
@@ -114,7 +134,7 @@ El runtime necesita FUSE para montar el archivo. Si FUSE no está disponible, pu
 extraerlo y ejecutarlo sin montar:
 
 ```sh
-./Estante-0.2.1-x86_64.AppImage --appimage-extract
+./Estante-0.3.0-x86_64.AppImage --appimage-extract
 ./squashfs-root/AppRun
 ```
 
@@ -161,51 +181,28 @@ Puedes instalar Estante como aplicación, con icono en el menú, sin mantener ab
 la carpeta del proyecto. El instalador funciona en las distribuciones Linux que
 dispongan de las dependencias siguientes; no es un AppImage autocontenido.
 
-Requiere Linux, Python 3, PyGObject, GTK 4.10 o posterior y libadwaita. Para usar un mando también necesitas SDL2. No requiere instalar paquetes con `pip`.
-
-### Fedora
-
-```sh
-sudo dnf install python3 python3-gobject gtk4 libadwaita SDL2
-```
-
-### Arch Linux
-
-```sh
-sudo pacman -S python python-gobject gtk4 libadwaita sdl2
-```
-
-Si tu distribución utiliza `sdl2-compat`, puedes usarlo en lugar de `sdl2`.
-
-### Ubuntu 24.04 o posterior / Debian 13 o posterior
-
-```sh
-sudo apt install python3 python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 gir1.2-gdkpixbuf-2.0 libsdl2-2.0-0
-```
-
-En otras distribuciones, instala los paquetes equivalentes. El instalador comprueba
-PyGObject, GTK y libadwaita antes de copiar la aplicación.
+Requiere Linux, Python 3.10 o posterior, PySide6 y SDL2. Instala SDL2 con el
+gestor de paquetes de tu distribución (`SDL2` en Fedora, `sdl2` en Arch o
+`libsdl2-2.0-0` en Debian/Ubuntu). `sdl2-compat` también sirve cuando esté disponible.
 
 ### Instalar desde el paquete descargable
 
-Descomprime `Estante-0.2.1-linux.tar.gz`, entra en la carpeta y ejecuta:
+Descomprime `Estante-0.3.0-linux.tar.gz` y crea el entorno Qt fuera de la carpeta
+extraída para poder borrar el instalador después:
 
 ```sh
-tar -xzf Estante-0.2.1-linux.tar.gz
+tar -xzf Estante-0.3.0-linux.tar.gz
 cd Estante
-sh install.sh
+python3 -m venv "$HOME/.local/share/estante-venv"
+"$HOME/.local/share/estante-venv/bin/pip" install -r requirements-qt.txt
+"$HOME/.local/share/estante-venv/bin/python" install.py --python "$HOME/.local/share/estante-venv/bin/python"
 ```
 
 La instalación predeterminada es para tu usuario, en `~/.local`, sin `sudo`.
-Abre **Estante** desde el menú de aplicaciones o ejecuta `~/.local/bin/estante`.
-Si `~/.local/bin` está en tu `PATH`, también puedes ejecutar `estante`.
-Puedes borrar la carpeta extraída después de instalar.
-
-Para instalar para todos los usuarios, en `/usr/local`:
-
-```sh
-sudo sh install.sh --system
-```
+Abre **Estante** desde el menú o ejecuta `~/.local/bin/estante`. Conserva el entorno
+`estante-venv`: contiene el intérprete y las dependencias de la aplicación.
+Para usar GTK, instala sus dependencias (PyGObject, GTK 4.10+, libadwaita y SDL2) y
+selecciona `--frontend gtk` en el instalador.
 
 ### Actualizar la instalación nativa
 
@@ -247,6 +244,22 @@ sh install.sh
 También puedes ejecutar `python3 estante.py` desde la carpeta del proyecto.
 
 ## Añadir juegos
+
+### Heroic Games Launcher
+
+Abre **Ajustes → Escaneo y scraping → Importar juegos de Heroic**. Se detectan las
+instalaciones nativa y Flatpak, y los juegos instalados de Epic Games, GOG, Amazon
+Games y los juegos locales añadidos a Heroic. Se crea la categoría **Heroic**.
+Repite la importación después de instalar o desinstalar juegos. Los cambios de
+carátulas, fichas y categorías se guardan en Estante sin modificar Heroic.
+
+El lanzamiento usa Heroic con `--no-gui`, conservando sus runners, prefijos y
+argumentos. Los identificadores `HEROIC_APP_NAME` y `HEROIC_APP_RUNNER` permiten
+supervisar el juego aunque Heroic ya estuviera abierto. Se mantienen la espera
+inicial de 25 segundos, el registro de sesiones y el comportamiento elegido en
+«Mientras juegas». Heroic debe estar instalado y haber cargado su biblioteca al
+menos una vez. Las imágenes disponibles en sus cachés se importan sin clave de
+SteamGridDB; si una descarga falla, el juego se importa igualmente.
 
 ### Faugus Launcher
 
@@ -314,6 +327,8 @@ Pulsa **Guardar globales** o **Guardar aspecto**, según la página, para aplica
 
 ## Categorías
 
+Cada categoría puede mostrar un pequeño icono en el selector de la biblioteca. La seleccionada muestra también su nombre junto al icono. En **Ajustes → Categorías**, despliega la categoría y pulsa **Elegir icono…**. **Buscar icono…** permite buscar en Bootstrap Icons e Iconify, modificar la consulta y elegir una miniatura sin clave API. Puedes cambiar de fuente, explorar Bootstrap y recorrer los resultados en páginas de 12 iconos. **Usar texto** restaura el nombre. También puedes personalizar **Todos**; el nombre se conserva como tooltip y etiqueta de accesibilidad.
+
 En **Ajustes → Categorías** puedes crear, renombrar y eliminar categorías, incluso si todavía no tienen juegos.
 
 Para asignarlas, abre **Editar → Categorías…** y marca las que correspondan. Un juego puede pertenecer a varias. Eliminar una categoría no elimina sus juegos.
@@ -339,7 +354,36 @@ En las vistas horizontales, baja para acceder a las acciones del juego y sube pa
 
 El mando se detecta al conectarlo y solo actúa cuando Estante está activo. Al usarlo se oculta el cursor; mover el ratón vuelve a mostrarlo. También puedes navegar por los ajustes y las galerías de imágenes con mando o teclado.
 
+En la versión Qt, **Ajustes → Globales → Teclado** permite seleccionar el teclado
+en pantalla: automático, método del sistema, COSMIC OSK, KDE, teclado de Estante o teclado físico.
+**Probar teclado** utiliza la selección actual aunque todavía no la hayas guardado.
+Al activar un campo con el mando se solicita ese teclado; **Volver** devuelve el
+control a Estante. Su propia aplicación gestiona la navegación del teclado externo.
+**Teclado de Estante (mando)** funciona dentro de la aplicación y no depende de
+KWin, portales o protocolos de teclado del compositor. Ofrece números, mayúsculas,
+acentos, símbolos, selección y edición en la posición del cursor. El botón superior
+del mando aplica el texto al campo; Volver cancela. Los bumpers borran o introducen
+un espacio. Los campos de contraseña permanecen enmascarados y cerrar el teclado
+vacía su buffer y descarga sus controles.
+
+La opción **Usar el teclado de Estante si el del sistema no está disponible** está
+activada por defecto. Se puede desactivar para usar exclusivamente el teclado
+externo. Estante conserva el diagnóstico del fallo en los ajustes y no instala
+paquetes automáticamente.
+COSMIC OSK requiere un compositor compatible; Maliit/Plasma Keyboard se activa a
+través de KWin en Plasma Wayland, no basta instalarlo en otro escritorio.
+La integración usa [el método de entrada de Qt](https://doc.qt.io/qt-6/qinputmethod.html),
+[la interfaz de teclado de KWin](https://github.com/KDE/kwin/blob/master/src/virtualkeyboard_dbus.h)
+y las [acciones de COSMIC OSK](https://github.com/pop-os/cosmic-osk/blob/master/src/lib.rs).
+
 ## Carátulas y fondos
+
+En Qt, **Buscar ficha del juego** consulta Wikidata. Si el proveedor limita las
+peticiones o falla la conexión, ofrece resultados de Steam con su fuente indicada.
+También puedes usar **Buscar ficha en Steam** directamente. Elige el juego antes de
+guardar: la búsqueda no aplica automáticamente el primer resultado ni cambia las
+carátulas o categorías.
+
 
 Desde **Editar** puedes cambiar la carátula vertical, la cuadrada y el banner de forma independiente.
 
@@ -394,7 +438,7 @@ Para generar el instalador nativo, sin incluir datos personales ni credenciales:
 python3 packaging/build-release.py
 ```
 
-El resultado es `dist/Estante-0.2.1-linux.tar.gz`. Generarlo no lo publica en GitHub.
+El resultado es `dist/Estante-0.3.0-linux.tar.gz`. Generarlo no lo publica en GitHub.
 El instalador también admite `--prefix` y `--destdir` para preparar paquetes de distribución.
 
 ### Construir el AppImage
@@ -402,15 +446,15 @@ El instalador también admite `--prefix` y `--destdir` para preparar paquetes de
 La versión se define en `version.py`; ambos constructores la incorporan al nombre
 del archivo generado.
 
-Con Python, GTK, libadwaita, SDL2, `ldd`, `glib-compile-schemas` y el AppImage de
+Con el entorno Qt/PySide6, SDL2, `ldd` y el AppImage de
 **appimage-builder** disponibles en la máquina de construcción:
 
 ```sh
-python3 packaging/build-appimage.py --builder ~/Applications/appimagebuilder.appimage
+.venv-qt/bin/python packaging/build-appimage.py --builder ~/Applications/appimagebuilder.appimage
 ```
 
 El constructor usa el runtime Type 2 y `mksquashfs` incluidos en ese archivo para
-generar `dist/Estante-0.2.1-x86_64.AppImage` sin descargar herramientas adicionales.
+generar `dist/Estante-0.3.0-x86_64.AppImage` sin descargar herramientas adicionales.
 Incluye las dependencias locales y ejecuta `--self-test` antes de comprimir y después
 de extraer el resultado. No necesita Docker ni FUSE para construir.
 
@@ -462,3 +506,7 @@ Los escaneos asignan las categorías **Steam** y **Faugus** y conservan las dem�
 Para quitar un juego, abre **Editar → Organización → Quitar de la biblioteca**. No se borra ni se desinstala. Los importados de Steam y Faugus quedan excluidos de futuros escaneos; puedes recuperarlos desde **Ajustes → Escaneo y scraping → Juegos quitados → Restaurar juegos quitados**, con sus personalizaciones. Los scripts y AppImages locales pueden añadirse de nuevo desde Añadir.
 
 En **Ajustes → Lista → Posición de la lista** puedes situar la rueda a la izquierda, derecha, arriba o abajo. Los datos quedan en el lado opuesto. En los laterales navegas con arriba/abajo; en los bordes superior e inferior, con izquierda/derecha. La dirección hacia los datos enfoca Jugar/Editar y la dirección hacia la rueda vuelve a los logos.
+
+### Decodificación de imágenes
+
+Pillow es opcional al ejecutar desde código fuente: se utiliza para JPEG grandes que necesitan una reducción importante si falla el decoder escalado del sistema. Para construir el AppImage se requiere Pillow en el entorno de construcción y se incluye en el paquete, evitando crear texturas JPEG a resolución original para generar miniaturas. PNG conserva el decoder de GDK y puede seguir necesitando su buffer de origen.

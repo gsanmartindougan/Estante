@@ -1,4 +1,4 @@
-"""A horizontal wheel with one widget per game."""
+"""A horizontal wheel backed by a bounded window of game widgets."""
 from profiling import timed
 import math
 import gi
@@ -7,7 +7,8 @@ from gi.repository import Gtk, Gsk, Graphene, GLib
 
 
 def wheel_position(index, phase, count, width):
-    angle = (index - phase) * 2 * math.pi / max(1, count)
+    offset = (index - phase + count / 2) % count - count / 2 if count else 0
+    angle = max(-math.pi, min(math.pi, offset * 2 * math.pi / max(1, min(count, 7))))
     depth = (math.cos(angle) + 1) / 2
     return math.sin(angle) * max(0, width / 2 - 150), -80 * (1 - depth), .55 + .45 * depth, depth
 
@@ -27,9 +28,10 @@ def list_position(index, phase, count, height, item_height, width=600, focus_sca
                 .45 + .35 * (.5 + .5 * math.cos(angle)) + (focus_scale - .8) * emphasis,
                 depth)
     # A continuous ellipse: the front is centered, the rear recedes to the left.
-    angle = (index - phase) * 2 * math.pi / max(1, count)
+    offset = (index - phase + count / 2) % count - count / 2 if count else 0
+    angle = max(-math.pi, min(math.pi, offset * 2 * math.pi / max(1, min(count, 7))))
     depth = (math.cos(angle) + 1) / 2
-    emphasis = math.exp(-2 * (math.sin(angle / 2) * count / math.pi) ** 2)
+    emphasis = math.exp(-2 * offset ** 2)
     horizontal_radius = min(180, width * .28)
     vertical_radius = max(0, height / 2 - item_height * .8 - 20)
     return (-horizontal_radius * (1 - depth), math.sin(angle) * vertical_radius,
@@ -85,6 +87,14 @@ class CarouselWheel(Gtk.Widget):
         self.depths = []
         self.animation_tick = None
 
+    def stop_animation(self):
+        if self.animation_tick is not None:
+            self.remove_tick_callback(self.animation_tick)
+            self.animation_tick = None
+        self.animation = None
+        self.depths = []
+        self.phase = self.destination = 0.0
+
     def append(self, child):
         child.set_parent(self)
 
@@ -112,14 +122,14 @@ class CarouselWheel(Gtk.Widget):
             if child.get_visible():
                 rows.append(child)
             child = child.get_next_sibling()
-        return rows
+        return sorted(rows, key=lambda child: getattr(child, 'model_index', 0))
 
     def select(self, child):
         rows = self.children()
         if child not in rows:
             return
-        target = rows.index(child)
-        count = len(rows)
+        target = getattr(child, 'model_index', rows.index(child))
+        count = getattr(self, 'model_count', len(rows))
         delta = (target - self.destination + count / 2) % count - count / 2
         if abs(delta) < 0.000001:
             return
@@ -145,13 +155,15 @@ class CarouselWheel(Gtk.Widget):
     def do_size_allocate(self, width, height, baseline):
         rows = self.children()
         self.depths = []
+        count = getattr(self, 'model_count', len(rows))
         for index, child in enumerate(rows):
-            x, y, scale, depth = wheel_position(index, self.phase, len(rows), self.get_width())
+            index = getattr(child, 'model_index', index)
+            x, y, scale, depth = wheel_position(index, self.phase, count, self.get_width())
             _, width, _, _ = child.measure(Gtk.Orientation.HORIZONTAL, -1)
             _, height, _, _ = child.measure(Gtk.Orientation.VERTICAL, width)
             center_x, center_y = self.get_width()/2 + x, self.get_height()/2 + y - min(24, self.get_height() * .04)
             if self.vertical:
-                center_x, center_y, scale, depth = list_coordinates(index, self.phase, len(rows),
+                center_x, center_y, scale, depth = list_coordinates(index, self.phase, count,
                     self.get_width(), self.get_height(), width, height, self.focus_scale, self.list_side)
             transform = Gsk.Transform.new().translate(Graphene.Point().init(
                 center_x - width*scale/2, center_y - height*scale/2)).scale(scale, scale)
@@ -169,3 +181,59 @@ class CarouselWheel(Gtk.Widget):
             self.paint_focus_band(snapshot)
         for _, _, child in sorted(self.depths, key=lambda item: (item[0], item[1])):
             self.snapshot_child(child, snapshot)
+
+
+class VirtualStrip(Gtk.Widget):
+    """Preserve full scroll geometry while allocating only viewport children."""
+    def __init__(self):
+        super().__init__(valign=Gtk.Align.CENTER, overflow=Gtk.Overflow.VISIBLE)
+        self.model_count = 0
+        self.item_width = 116
+        self.item_height = 116
+        self.spacing = 12
+        self.focus_index = 0
+        self.focus_extra = 0
+
+    @property
+    def stride(self):
+        return self.item_width + self.spacing
+
+    def append(self, child):
+        child.set_parent(self)
+
+    def remove(self, child):
+        child.unparent()
+
+    def reorder_child_after(self, child, previous):
+        pass  # Global model indices determine positions, independent of parenting order.
+
+    def set_spacing(self, value):
+        self.spacing = value
+        self.queue_resize()
+
+    def set_homogeneous(self, value):
+        pass
+
+    def do_measure(self, orientation, for_size):
+        size = (max(0, self.model_count * self.stride - self.spacing + getattr(self, 'focus_extra', 0))
+                if orientation == Gtk.Orientation.HORIZONTAL else self.item_height)
+        return size, size, -1, -1
+
+    def position(self, index):
+        return index * self.stride + (self.focus_extra if index > self.focus_index else 0)
+
+    def do_size_allocate(self, width, height, baseline):
+        child = self.get_first_child()
+        while child:
+            extra = self.focus_extra if child.model_index == self.focus_index else 0
+            transform = Gsk.Transform.new().translate(Graphene.Point().init(
+                self.position(child.model_index), (height - self.item_height) / 2))
+            child.allocate(self.item_width + extra, self.item_height, -1, transform)
+            child = child.get_next_sibling()
+
+    def do_snapshot(self, snapshot):
+        child = self.get_first_child()
+        while child:
+            if child.get_visible() and child.get_opacity() > 0:
+                self.snapshot_child(child, snapshot)
+            child = child.get_next_sibling()

@@ -33,3 +33,19 @@ class SteamArtworkTests(unittest.TestCase):
         with patch.object(SteamArtwork, 'request', return_value={'42': {'success': False}}):
             with self.assertRaises(ValueError):
                 SteamArtwork().screenshots(42)
+
+    def test_metadata_reads_localized_date_and_preserves_missing_values(self):
+        data={'name':'Game','short_description':'<p>Una &amp; otra aventura.</p>',
+              'developers':['Studio'],'publishers':['Publisher'],'genres':[{'description':'Acción'}],
+              'platforms':{'windows':True,'linux':True},'release_date':{'date':'19 AGO 2024'}}
+        with patch.object(SteamArtwork,'request',return_value={'42':{'success':True,'data':data}}):
+            metadata=SteamArtwork().metadata(42)
+        self.assertEqual(metadata['release_date'],'2024-08-19')
+        self.assertEqual(metadata['synopsis'],'Una & otra aventura.')
+        self.assertEqual(metadata['developers'],['Studio'])
+        self.assertEqual(metadata['platforms'],['Microsoft Windows','Linux'])
+        self.assertEqual(metadata['source'],'https://store.steampowered.com/app/42/')
+        with patch.object(SteamArtwork,'request',return_value={'42':{'success':True,'data':{'name':'Game','release_date':{'date':'Próximamente'}}}}):
+            metadata=SteamArtwork().metadata(42)
+        self.assertNotIn('release_date',metadata)
+        self.assertNotIn('developers',metadata)

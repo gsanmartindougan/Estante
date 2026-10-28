@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build an offline AppImage using the runtime/tools of appimage-builder's AppImage.
 
-Bundles the build machine's Python/GTK stack. Cross-distribution validation is still
+Bundles the build machine's Python/Qt stack (GTK available with --frontend gtk). Cross-distribution validation is still
 required before publishing; no files are uploaded by this script.
 """
 import argparse
@@ -35,19 +35,19 @@ def dependencies(binary):
     return [Path(value) for value in re.findall(r'(?:=>\s*)?(/[^\s]+)\s+\(', result.stdout)]
 
 
-def prepare(appdir):
+def prepare_gtk(appdir):
     if platform.machine() != 'x86_64':
         raise RuntimeError('Este constructor admite x86_64; no genera imágenes ARM.')
     spec = importlib.util.spec_from_file_location('installer', ROOT / 'install.py')
     installer = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(installer)
-    subprocess.run([sys.executable, str(ROOT / 'install.py'), '--prefix', '/usr', '--destdir', str(appdir)], check=True)
+    subprocess.run([sys.executable, str(ROOT / 'install.py'), '--frontend', 'gtk', '--prefix', '/usr', '--destdir', str(appdir)], check=True)
     libraries = appdir / 'usr/lib'
     version = 'python' + sysconfig.get_python_version()
     stdlib = Path(sysconfig.get_path('stdlib'))
     pythonlib = libraries / version
     shutil.copytree(stdlib, pythonlib, ignore=shutil.ignore_patterns('site-packages', 'dist-packages', '__pycache__', 'test', 'tests', 'idlelib', 'tkinter', '_tkinter*', 'ensurepip'), dirs_exist_ok=True)
-    for module in ('gi', 'cairo'):
+    for module in ('gi', 'cairo', 'PIL'):
         found = importlib.util.find_spec(module)
         if not found or not found.origin:
             raise RuntimeError('Falta el módulo de construcción: ' + module)
@@ -60,24 +60,24 @@ def prepare(appdir):
     wanted = ('Adw-1', 'Gtk-4.0', 'Gdk-4.0', 'Gsk-4.0', 'GdkPixbuf-2.0', 'Graphene-1.0',
               'GLib-2.0', 'GObject-2.0', 'Gio-2.0', 'Pango-1.0', 'PangoCairo-1.0',
               'GModule-2.0', 'HarfBuzz-0.0', 'cairo-1.0', 'freetype2-2.0', 'fontconfig-2.0',
-              'GIRepository-2.0', 'GdkX11-4.0', 'GdkWayland-4.0')
+              'GIRepository-2.0', 'GdkX11-4.0', 'GdkWayland-4.0', 'Rsvg-2.0')
     for name in wanted:
         source = next((directory / (name + '.typelib') for directory in typelib_sources
                        if (directory / (name + '.typelib')).is_file()), None)
         if source:
             copy(source, typelibs / source.name)
-        elif name in wanted[:13]:
+        elif name in wanted[:13] or name == 'Rsvg-2.0':
             raise RuntimeError('Falta el typelib: ' + name)
     libdirs = [Path('/usr/lib'), Path('/usr/lib/x86_64-linux-gnu')]
     seeds = []
     for name in ('gtk-4', 'adwaita-1', 'girepository-1.0', 'SDL2-2.0', 'SDL3', 'gdk_pixbuf-2.0',
-                 'gio-2.0', 'graphene-1.0', 'pangocairo-1.0', 'gmodule-2.0', 'nss_dns', 'nss_files'):
+                 'gio-2.0', 'graphene-1.0', 'pangocairo-1.0', 'gmodule-2.0', 'nss_dns', 'nss_files', 'rsvg-2'):
         soname = ctypes.util.find_library(name)
         if soname:
             source = next((directory / soname for directory in libdirs if (directory / soname).exists()), None)
             if source:
                 seeds.append(source)
-        elif name in ('gtk-4', 'adwaita-1', 'SDL2-2.0'):
+        elif name in ('gtk-4', 'adwaita-1', 'SDL2-2.0', 'rsvg-2'):
             raise RuntimeError('Falta la biblioteca: ' + name)
     for directory in libdirs:
         for relative in ('gio/modules', 'gdk-pixbuf-2.0', 'gtk-4.0', 'glycin-loaders'):
@@ -151,6 +151,7 @@ def prepare(appdir):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--frontend', choices=('qt','gtk'), default='qt')
     parser.add_argument('--builder', type=Path, default=Path.home() / 'Applications/appimagebuilder.appimage')
     parser.add_argument('--output', type=Path, default=ROOT / 'dist' / f'Estante-{VERSION}-x86_64.AppImage')
     parser.add_argument('--appdir-only', action='store_true')
@@ -160,7 +161,11 @@ def main():
     appdir = output.parent / 'Estante.AppDir'
     if appdir.exists():
         raise RuntimeError(str(appdir) + ' ya existe. Muévelo o elimínalo antes de reconstruir.')
-    prepare(appdir)
+    if args.frontend == 'qt':
+        from qt_bundle import prepare
+        prepare(appdir)
+    else:
+        prepare_gtk(appdir)
     with tempfile.TemporaryDirectory(prefix='estante-cache-check-') as cache:
         subprocess.run([str(appdir / 'AppRun'), '--self-test'], check=True,
                        env={**os.environ, 'XDG_CACHE_HOME': cache})

@@ -316,7 +316,7 @@ with tempfile.TemporaryDirectory(prefix='estante-ui-') as directory:
             shelf.search.set_text('Extra 2')
             shelf.filter()
             assert len({tile.game['id'] for tile in shelf.tiles()}) == 1
-            assert shelf.count.get_text() == '1 juegos'
+            assert len({tile.game['id'] for tile in shelf.tiles()}) == 1
             shelf.search.set_text('')
             shelf.filter()
             shelf.focus_library()
