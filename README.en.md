@@ -43,11 +43,7 @@ A cover grid with the selected game's information and activity in the right-hand
 
 [![Grid preview](docs/showcase/01-grid.jpg)](docs/showcase/01-grid.mp4)
 
-
-
-https://github.com/user-attachments/assets/1452cea0-f780-4cf2-8724-fa05d698ae96
-
-
+[▶ Watch Grid](docs/showcase/01-grid.mp4)
 
 ### Carousel
 
@@ -55,11 +51,7 @@ A horizontal wheel with depth and continuous circular navigation. The selected g
 
 [![Carousel preview](docs/showcase/02-carousel.jpg)](docs/showcase/02-carousel.mp4)
 
-
-
-https://github.com/user-attachments/assets/536e6467-37de-43da-9778-ce48b1e35c49
-
-
+[▶ Watch Carousel](docs/showcase/02-carousel.mp4)
 
 ### Sense
 
@@ -67,11 +59,7 @@ A compact cover row over the game's background. Selection stays anchored to the 
 
 [![Sense preview](docs/showcase/03-sense.jpg)](docs/showcase/03-sense.mp4)
 
-
-
-https://github.com/user-attachments/assets/c22ce216-490f-4b45-9002-323645f1a5e9
-
-
+[▶ Watch Sense](docs/showcase/03-sense.mp4)
 
 ### List
 
@@ -79,11 +67,7 @@ A logo wheel highlights the selected game alongside its cover, synopsis and deta
 
 [![List preview](docs/showcase/04-list.jpg)](docs/showcase/04-list.mp4)
 
-
-
-https://github.com/user-attachments/assets/86625a5a-9dbc-48a3-97f4-26322c3edf0e
-
-
+[▶ Watch List](docs/showcase/04-list.mp4)
 
 ### Settings
 
@@ -91,11 +75,7 @@ Global settings cover language, controller type, startup behavior, integrations 
 
 [![Settings preview](docs/showcase/05-settings.jpg)](docs/showcase/05-settings.mp4)
 
-
-
-https://github.com/user-attachments/assets/91400d8d-6cf0-4577-b941-40f701f25090
-
-
+[▶ Watch Settings](docs/showcase/05-settings.mp4)
 
 ## Install the AppImage
 
