@@ -2,7 +2,7 @@ from contextlib import ExitStack
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, patch
-from estante import Shelf
+from gtk_app.estante import Shelf
 
 
 class CategoryRenderingTests(TestCase):
@@ -30,9 +30,9 @@ class CategoryRenderingTests(TestCase):
             host.search.get_text.return_value = ''
             with ExitStack() as stack:
                 for name in ('Box', 'Button', 'EventControllerFocus', 'GestureClick', 'FlowBoxChild'):
-                    stack.enter_context(patch('estante.Gtk.' + name, side_effect=lambda *a, **kw: Mock()))
-                stack.enter_context(patch('estante.GameTile', side_effect=lambda *a, **kw: Mock()))
-                stack.enter_context(patch('estante.release_images'))
+                    stack.enter_context(patch('gtk_app.estante.Gtk.' + name, side_effect=lambda *a, **kw: Mock()))
+                stack.enter_context(patch('gtk_app.estante.GameTile', side_effect=lambda *a, **kw: Mock()))
+                stack.enter_context(patch('gtk_app.estante.release_images'))
                 Shelf.rebuild_library(host, games)
             host.flow.append.assert_called_once()
             self.assertEqual(host.flow.append.call_args.args[0].game['id'], 'shown')

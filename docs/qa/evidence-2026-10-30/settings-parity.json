@@ -1,0 +1,12 @@
+[
+  {
+    "case": "missing-global-image",
+    "message": "Ajustes guardados",
+    "persisted": true
+  },
+  {
+    "case": "invalid-ring-color",
+    "message": "Ajustes guardados",
+    "persisted": true
+  }
+]

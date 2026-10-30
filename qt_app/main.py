@@ -10,13 +10,13 @@ from threading import Thread
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from native_memory import configure_native_allocator
+from core.native_memory import configure_native_allocator
 configure_native_allocator()
-from game_session import playing_behavior
+from core.game_session import playing_behavior
 from qt_app.session import run_session
-from appearance import background_effects_for
-from library import Library
-from i18n import set_language, tr
+from core.appearance import background_effects_for
+from core.library import Library
+from core.i18n import set_language, tr
 from qt_app.catalog import Catalog
 from qt_app.editing import draft_for, save_draft
 from PySide6.QtCore import QObject, Property, Signal, Slot, QTimer, QUrl, QEvent, QLockFile, Qt
@@ -167,7 +167,7 @@ class LibraryController(QObject):
         self.changed.emit(); self.selectionChanged.emit(); self.saverChanged.emit()
 
     def checkIdle(self):
-        from screensaver_config import time_seconds
+        from core.screensaver_config import time_seconds
         now=time.monotonic()
         if self._saver_active:
             if now-self._last_slide >= time_seconds(self.settings,'slide'):
@@ -227,7 +227,7 @@ class LibraryController(QObject):
 
     @Property(str, notify=appearanceChanged)
     def controllerHints(self):
-        from controls import controller_hint, controller_buttons
+        from core.controls import controller_hint, controller_buttons
         buttons = controller_buttons(self.settings)
         menu = {"sony": "Options", "nintendo": "+"}.get(self.settings.get("controller_type"), "Menu")
         hint = controller_hint(self.settings)
@@ -238,12 +238,12 @@ class LibraryController(QObject):
 
     @Property('QVariantMap', notify=appearanceChanged)
     def controllerButtons(self):
-        from controls import controller_buttons
+        from core.controls import controller_buttons
         return controller_buttons(self.settings)
 
     @Property(str, notify=appearanceChanged)
     def editorSaveHint(self):
-        from controls import controller_save_hint
+        from core.controls import controller_save_hint
         return controller_save_hint(self.settings)
 
     @Property(str, notify=appearanceChanged)
@@ -260,7 +260,7 @@ class LibraryController(QObject):
 
     @Property('QVariantMap', notify=appearanceChanged)
     def appearance(self):
-        from appearance import minimal_for, cover_format_for, ring_for
+        from core.appearance import minimal_for, cover_format_for, ring_for
         mode=self.view_mode
         effects=background_effects_for(self.settings,mode)
         return dict(dim=effects['dim']/100, blur=effects['blur']/40, fillMode=self.settings.get('background_fill','blur'),
@@ -639,7 +639,7 @@ def main():
         timer = QTimer()
         gamepad = None
         if not args.smoke:
-            from controls import Gamepad
+            from core.controls import Gamepad
             def dispatch(action, *_):
                 controller.gamepadUsed(action)
                 if controller.screensaverActive:

@@ -9,9 +9,9 @@ from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-import game_supervisor as supervisor
-from estante import Shelf
-from library import Library
+import core.game_supervisor as supervisor
+from gtk_app.estante import Shelf
+from core.library import Library
 
 
 class SupervisorTests(TestCase):
@@ -127,6 +127,6 @@ class SupervisorTests(TestCase):
                     supervisor.prepare({'id':'one'}, process, temporary, 'date', 1, {}, reopen=explicit)
                 spec = json.loads((folder/'session.json').read_text())
                 if explicit is None:
-                    self.assertTrue(spec['reopen'][-1].endswith('estante.py'))
+                    self.assertTrue(spec['reopen'][-1].endswith('gtk_app/estante.py'))
                 else:
                     self.assertEqual(spec['reopen'], explicit)

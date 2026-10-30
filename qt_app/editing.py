@@ -1,6 +1,6 @@
 """Compatible, field-scoped edits shared by the Qt editor and its tests."""
 from datetime import datetime
-from library import Library
+from core.library import Library
 
 TEXT_FIELDS = ('title', 'description', 'synopsis', 'release_date')
 LIST_FIELDS = ('developers', 'publishers', 'genres', 'platforms')

@@ -3,7 +3,7 @@ from unittest import TestCase
 from unittest.mock import Mock
 import weakref
 
-from background_jobs import BackgroundJobs
+from core.background_jobs import BackgroundJobs
 
 
 class BackgroundJobsTests(TestCase):

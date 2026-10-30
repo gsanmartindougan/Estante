@@ -11,7 +11,7 @@ from PySide6.QtQml import QQmlApplicationEngine
 from qt_app.main import LibraryController
 from qt_app.launcher_status import LauncherStatus
 from qt_app.settings_schema import groups, merge_values
-from i18n import set_language
+from core.i18n import set_language
 app = QApplication([])
 set_language('es')
 

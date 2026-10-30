@@ -1,5 +1,5 @@
 """A horizontal wheel backed by a bounded window of game widgets."""
-from profiling import timed
+from core.profiling import timed
 import math
 import gi
 gi.require_version('Gtk', '4.0')

@@ -1,3 +1,20 @@
+# Próxima actualización de mantenimiento — sin publicar
+
+- Reorganización del código en `core/`, `integrations/`, `qt_app/`, `gtk_app/`,
+  `packaging/` y `requirements/`, conservando los scripts públicos de entrada.
+- Corrección de imágenes vacías al recibir dimensiones mínimas durante el layout.
+- Eliminación de consultas de imágenes del editor cuando está cerrado.
+- Explorador local integrado con miniaturas, vista previa, rutas, accesos a carpetas
+  y controles de mando; el usuario ha confirmado su funcionamiento con mando real.
+- Pruebas de estrés de 100 y 500 juegos tras las correcciones de imágenes,
+  con cero decodificaciones fallidas y cero avisos Qt en esas ejecuciones.
+
+Pendiente antes de publicar: completar el selector del fondo global y validar
+fondos y colores al guardar. Véase [revisión de paridad](docs/qa/paridad-gtk-qt-2026-10-30.md).
+Esta sección no corresponde a una release publicada. La versión sigue en 0.3.0.
+
+---
+
 # Estante 0.3.0 — Qt en Linux
 
 La interfaz principal de Estante migra de GTK 4 a **Qt Quick / PySide6**. Linux sigue
@@ -27,7 +44,7 @@ siendo la plataforma principal y GTK permanece disponible con `run-gtk.sh`.
 - **Estante-0.3.0-x86_64.AppImage**: Python, Qt y SDL incluidos; no requiere instalar
   PySide6. Hazlo ejecutable o intégralo con Gear Lever.
 - **Estante-0.3.0-linux.tar.gz**: código e instalador. Consulta el README para crear
-  un entorno Python persistente con `requirements-qt.txt`.
+  un entorno Python persistente con `requirements/qt.txt`.
 - **SHA256SUMS**: sumas de comprobación de los dos paquetes.
 
 La biblioteca y los ajustes existentes se conservan. No ejecutes GTK y Qt a la vez

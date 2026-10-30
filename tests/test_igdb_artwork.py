@@ -1,10 +1,10 @@
 import json
 from io import BytesIO
 import unittest
-from i18n import set_language, get_language
+from core.i18n import set_language, get_language
 from unittest.mock import patch
 from urllib.error import HTTPError
-from igdb_artwork import IGDBArtwork
+from integrations.igdb_artwork import IGDBArtwork
 
 
 def response(value):
@@ -19,7 +19,7 @@ class IGDBArtworkTests(unittest.TestCase):
 
     def test_authentication_is_cached_and_credentials_stay_out_of_url(self):
         client = IGDBArtwork('client', 'secret')
-        with patch('igdb_artwork.urlopen', side_effect=[
+        with patch('integrations.igdb_artwork.urlopen', side_effect=[
                 response({'access_token': 'token', 'expires_in': 3600}),
                 response([{'id': 1, 'name': 'Bloodborne', 'platforms': [{'name': 'PS4'}]}]),
                 response([])]) as request:
@@ -32,13 +32,13 @@ class IGDBArtworkTests(unittest.TestCase):
         self.assertEqual(request.call_args_list[1].args[0].get_header('Authorization'), 'Bearer token')
 
     def test_missing_credentials_do_not_make_requests(self):
-        with patch('igdb_artwork.urlopen') as request:
+        with patch('integrations.igdb_artwork.urlopen') as request:
             with self.assertRaisesRegex(ValueError, 'Ajustes'):
                 IGDBArtwork('', '').search('Bloodborne')
             request.assert_not_called()
 
     def test_authentication_error_does_not_expose_secret(self):
-        with patch('igdb_artwork.urlopen', side_effect=HTTPError('url', 400, 'bad', {}, None)):
+        with patch('integrations.igdb_artwork.urlopen', side_effect=HTTPError('url', 400, 'bad', {}, None)):
             with self.assertRaises(ValueError) as error:
                 IGDBArtwork('client', 'private-secret').search('Game')
         self.assertNotIn('private-secret', str(error.exception))
@@ -46,7 +46,7 @@ class IGDBArtworkTests(unittest.TestCase):
     def test_expired_token_is_refreshed_once(self):
         client = IGDBArtwork('id', 'secret')
         client.token, client.expires = 'old', float('inf')
-        with patch('igdb_artwork.urlopen', side_effect=[HTTPError('url', 401, '', {}, None),
+        with patch('integrations.igdb_artwork.urlopen', side_effect=[HTTPError('url', 401, '', {}, None),
                 response({'access_token': 'new', 'expires_in': 3600}), response([])]):
             self.assertEqual(client.search('Game'), [])
         self.assertEqual(client.token, 'new')

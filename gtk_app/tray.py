@@ -3,7 +3,7 @@ import os
 import sys
 from pathlib import Path
 from gi.repository import Gio, GLib
-from i18n import tr
+from core.i18n import tr
 
 APP_ID = 'io.github.estante.Launcher'
 PATH = '/StatusNotifierItem'
@@ -119,7 +119,7 @@ class TrayIcon:
 
     def property(self, connection, sender, path, interface, key):
         icon_dirs = [Path(os.environ.get('ESTANTE_APPDIR', '/nonexistent')),
-                     Path(__file__).resolve().parent / 'packaging',
+                     Path(__file__).resolve().parents[1] / 'packaging',
                      Path(os.environ.get('XDG_DATA_HOME', str(Path.home() / '.local/share'))) / 'icons/hicolor/scalable/apps']
         directory = next((str(path) for path in icon_dirs if (path / (APP_ID + '.svg')).is_file()), '')
         values = {'Category': 'ApplicationStatus', 'Id': 'estante', 'Title': 'Estante',

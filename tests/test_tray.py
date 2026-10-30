@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import Mock, patch
 from gi.repository import Gio, GLib
-from tray import TrayIcon, XML, PROPERTIES, icon_pixmap
+from gtk_app.tray import TrayIcon, XML, PROPERTIES, icon_pixmap
 from tempfile import TemporaryDirectory
 from pathlib import Path
 
@@ -21,7 +21,7 @@ class TrayTests(TestCase):
         connection, done = Mock(), Mock()
         connection.register_object.side_effect = [1, 2]
         icon = TrayIcon(Mock())
-        with patch('tray.Gio.bus_get_sync', return_value=connection), patch('tray.Gio.bus_own_name_on_connection', return_value=10):
+        with patch('gtk_app.tray.Gio.bus_get_sync', return_value=connection), patch('gtk_app.tray.Gio.bus_own_name_on_connection', return_value=10):
             icon.show(done)
         done.assert_not_called()
         icon.acquired(connection, icon.name)
@@ -34,7 +34,7 @@ class TrayTests(TestCase):
         connection.call.call_args.args[-1](connection, object())
         done.assert_called_once_with(True)
         self.assertTrue(icon.ready)
-        with patch('tray.Gio.bus_unown_name') as unown:
+        with patch('gtk_app.tray.Gio.bus_unown_name') as unown:
             icon.hide()
         unown.assert_called_once_with(10)
         self.assertEqual(connection.unregister_object.call_count, 2)

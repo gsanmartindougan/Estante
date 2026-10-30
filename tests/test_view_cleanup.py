@@ -2,8 +2,8 @@ from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from estante import Shelf
-from carousel import CarouselWheel
+from gtk_app.estante import Shelf
+from gtk_app.carousel import CarouselWheel
 
 
 class ViewCleanupTests(TestCase):
@@ -14,10 +14,10 @@ class ViewCleanupTests(TestCase):
         host = SimpleNamespace(focus_revision=4, focused_game='old', focused_banner='old.png',
                                background_tickets=[ticket], list_cover=cover,
                                carousel_flow=Mock(), list_flow=Mock(), view_cleanup_timer=11)
-        with patch('estante.images') as cache, patch('estante.release_images') as release, \
-             patch('estante.GLib.source_remove') as remove, \
-             patch('estante.GLib.timeout_add', return_value=12) as timer, \
-             patch('estante.reclaim_unused_memory') as reclaim:
+        with patch('gtk_app.estante.images') as cache, patch('gtk_app.estante.release_images') as release, \
+             patch('gtk_app.estante.GLib.source_remove') as remove, \
+             patch('gtk_app.estante.GLib.timeout_add', return_value=12) as timer, \
+             patch('gtk_app.estante.reclaim_unused_memory') as reclaim:
             Shelf.release_view_artwork(host)
             self.assertTrue(ticket.cancelled)
             self.assertEqual(host.background_tickets, [])

@@ -4,7 +4,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import patch
-from library import Library
+from core.library import Library
 
 
 class ManualScanTests(TestCase):

@@ -33,7 +33,7 @@ Dialog {
     }
     modal: true
     title: page==="artwork" ? (metadataSearch ? qsTr("Buscar ficha del juego") : [qsTr("Elegir carátula"),qsTr("Elegir carátula 1:1"),qsTr("Elegir logo"),qsTr("Elegir banner"),qsTr("Elegir segundo fondo")][artworkIndex]) : page==="categories" ? qsTr("Categorías") : page==="execution" ? qsTr("Ejecución") : page==="activity" ? qsTr("Actividad") : page==="manual" ? qsTr("Editar ficha del juego") : qsTr("Editar · ")+controller.game.title
-    width: Math.min(parent.width,Math.max(640,parent.width/2))
+    width: Math.min(parent.width,page==="artwork" && artworkLoader.item && artworkLoader.item.browsing ? 1280 : Math.max(640,parent.width/2))
     height: parent.height
     x: parent.width-width
     y: 0
@@ -53,7 +53,7 @@ Dialog {
             visible: editor.page!=="overview"
             anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 16 }
             text: "←"; Accessible.name: qsTr("Volver")
-            onClicked: editor.overview()
+            onClicked: { if (editor.page==="artwork" && artworkLoader.item && artworkLoader.item.browsing) artworkLoader.item.browsing=false; else editor.overview() }
         }
         EditorButton {
             anchors { right: parent.right; verticalCenter: parent.verticalCenter; rightMargin: 20 }
@@ -63,6 +63,7 @@ Dialog {
     }
     closePolicy: Popup.CloseOnEscape
     function navigate(action, keyboard, focused) {
+        if (page==="artwork" && artworkLoader.item && artworkLoader.item.browsing) { artworkLoader.item.navigate(action,keyboard,focused); return }
         if (action === "back") { if (page!=="overview") { overview() } else controller.cancelEdit(); return }
         if (action === "save") { save(); return }
         if (page==="artwork" && artworkLoader.item && artworkLoader.item.navigate(action,keyboard,focused)) return
@@ -157,8 +158,8 @@ Dialog {
                     RowLayout {
                         Layout.fillWidth: true
                         Label { text: qsTr("Configura la división en los ajustes de cada apariencia."); Layout.fillWidth: true; wrapMode: Text.WordWrap; color: theme.muted }
-                        EditorButton { text: qsTr("Intercambiar fondos"); visible: Boolean(editor.controller.editorImages.banner) && Boolean(editor.controller.editorImages.secondary); enabled: !editor.controller.manager.busy; onClicked: editor.controller.manager.swapBackgrounds() }
-                        EditorButton { text: qsTr("Quitar segundo fondo"); enabled: !editor.controller.manager.busy && Boolean(editor.controller.editorImages.secondary); onClicked: editor.controller.manager.clearImage("banner_secondary") }
+                        EditorButton { text: qsTr("Intercambiar fondos"); visible: editor.visible && editor.page==="overview" && Boolean(editor.controller.editorImages.banner) && Boolean(editor.controller.editorImages.secondary); enabled: !editor.controller.manager.busy; onClicked: editor.controller.manager.swapBackgrounds() }
+                        EditorButton { text: qsTr("Quitar segundo fondo"); enabled: editor.visible && editor.page==="overview" && !editor.controller.manager.busy && Boolean(editor.controller.editorImages.secondary); onClicked: editor.controller.manager.clearImage("banner_secondary") }
                     }
                 }
                 EditorSection {

@@ -3,38 +3,38 @@ from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, patch
-from game_session import game_processes, wait_for_game
-from estante import Shelf
+from core.game_session import game_processes, wait_for_game
+from gtk_app.estante import Shelf
 
 
 class GameSessionTests(TestCase):
     def test_hidden_surface_is_released_only_when_hidden_and_realized(self):
         for visible, realized, expected in ((False, True, 1), (True, True, 0), (False, False, 0)):
             host = SimpleNamespace(get_visible=lambda: visible, get_realized=lambda: realized)
-            with patch('estante.Gtk.Widget.unrealize') as unrealize:
+            with patch('gtk_app.estante.Gtk.Widget.unrealize') as unrealize:
                 Shelf.release_hidden_surface(host)
             self.assertEqual(unrealize.call_count, expected)
 
     def test_steam_waits_for_game_after_launcher_exits(self):
         process = Mock(pid=100)
         process.poll.return_value = 0
-        with patch('game_session.game_processes', side_effect=[[], [200], [200], []]), \
-             patch('game_session.time.sleep'):
+        with patch('core.game_session.game_processes', side_effect=[[], [200], [200], []]), \
+             patch('core.game_session.time.sleep'):
             self.assertEqual(wait_for_game({'kind': 'steam', 'steam_appid': '10'}, process), 0)
         process.wait.assert_not_called()
 
     def test_child_outliving_script_keeps_session_open(self):
         process = Mock(pid=100)
         process.wait.return_value = 0
-        with patch('game_session.game_processes', side_effect=[[200], []]), patch('game_session.time.sleep') as sleep:
+        with patch('core.game_session.game_processes', side_effect=[[200], []]), patch('core.game_session.time.sleep') as sleep:
             self.assertEqual(wait_for_game({'kind': 'local'}, process), 0)
         sleep.assert_called_once()
 
     def test_undetected_steam_game_has_bounded_startup_wait(self):
         process = Mock(pid=100)
         process.poll.return_value = 0
-        with patch('game_session.game_processes', return_value=[]), \
-             patch('game_session.time.monotonic', side_effect=[0, 91]), patch('game_session.time.sleep'):
+        with patch('core.game_session.game_processes', return_value=[]), \
+             patch('core.game_session.time.monotonic', side_effect=[0, 91]), patch('core.game_session.time.sleep'):
             with self.assertRaises(RuntimeError):
                 wait_for_game({'kind': 'steam', 'steam_appid': '10'}, process)
 
@@ -65,8 +65,8 @@ class GameSessionTests(TestCase):
         process = Mock(pid=100)
         process.poll.return_value = 0
         started = Mock()
-        with patch('game_session.game_processes', side_effect=[[], [200], [200], []]), \
-             patch('game_session.time.sleep'):
+        with patch('core.game_session.game_processes', side_effect=[[], [200], [200], []]), \
+             patch('core.game_session.time.sleep'):
             wait_for_game({'kind': 'steam', 'steam_appid': '10'}, process, on_started=started)
         started.assert_called_once()
 
@@ -99,7 +99,7 @@ class GameSessionTests(TestCase):
                                             root, ready_only=True), [2])
 
     def test_playing_behavior_preserves_legacy_setting(self):
-        from game_session import playing_behavior
+        from core.game_session import playing_behavior
         self.assertEqual(playing_behavior({}), 'none')
         self.assertEqual(playing_behavior({'hide_while_playing': True}), 'hide')
         for mode in ('none', 'hide', 'screensaver', 'tray'):
@@ -147,14 +147,14 @@ class GameSessionTests(TestCase):
             host = Mock(settings={'playing_behavior': mode}, processes={}, running_sessions=set(), pending_launches={}, selected_game='game')
             host.library.root = Path('/tmp/library')
             host.library.games.return_value = [game]
-            with patch('estante.launch', return_value=process), patch('estante.Adw.Toast'):
+            with patch('gtk_app.estante.launch', return_value=process), patch('gtk_app.estante.Adw.Toast'):
                 Shelf.play(host, game)
             worker, finished, failed = host.background.call_args.args
-            with patch('estante.wait_for_game', return_value=0) as wait:
+            with patch('gtk_app.estante.wait_for_game', return_value=0) as wait:
                 self.assertEqual(worker(), 0)
                 self.assertEqual(wait.call_args.args, (game, process))
                 self.assertTrue(callable(wait.call_args.kwargs['on_started']))
-                with patch('estante.GLib.idle_add') as idle:
+                with patch('gtk_app.estante.GLib.idle_add') as idle:
                     wait.call_args.kwargs['on_started']()
                 self.assertEqual(idle.call_args_list[0].args, (host.wait_to_hide_for_game, 'game', process, mode))
             finished(0)
@@ -190,12 +190,12 @@ class GameSessionTests(TestCase):
 
     def test_real_faugus_style_setsid_child_fires_start_and_waits_for_exit(self):
         import sys
-        from library import launch
+        from core.library import launch
         with TemporaryDirectory() as root:
             script = Path(root) / 'fake_faugus.py'
             script.write_text('import subprocess, sys; child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(.35)"], start_new_session=True); child.wait()')
             game = {'kind': 'faugus', 'path': '/games/Example.AppImage'}
-            with patch('library.launch_command', return_value=([sys.executable, str(script)], None)):
+            with patch('core.library.launch_command', return_value=([sys.executable, str(script)], None)):
                 process = launch(game, root)
             started = Mock()
             try:

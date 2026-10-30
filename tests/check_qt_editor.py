@@ -9,7 +9,7 @@ from PySide6.QtCore import QObject, QTimer, QUrl, QMetaObject
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 from qt_app.main import LibraryController
-from library import Library
+from core.library import Library
 
 app = QGuiApplication([])
 app.setDesktopFileName("io.github.estante.Test")

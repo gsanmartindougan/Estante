@@ -3,7 +3,7 @@ from collections import OrderedDict
 from pathlib import Path
 from threading import RLock, Condition, Thread, get_native_id
 from types import SimpleNamespace
-from profiling import timed, count
+from core.profiling import timed, count
 import os
 import hashlib
 import tempfile
@@ -512,7 +512,7 @@ images = ImageCache(disk_dir=Path(os.environ.get('XDG_CACHE_HOME', Path.home() /
 
 def consume_cache_reset():
     """Clear only generated image cache files when explicitly requested locally."""
-    request = Path(__file__).with_name('.reset-image-cache')
+    request = Path(__file__).resolve().parents[1] / '.reset-image-cache'
     if not request.is_file():
         return False
     try:

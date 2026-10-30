@@ -1,17 +1,17 @@
 """Asynchronous Qt adapter for the existing import/artwork/settings backends."""
-from background_jobs import BackgroundJobs
+from core.background_jobs import BackgroundJobs
 from pathlib import Path
 from urllib.error import URLError
 import json
 from threading import Event
-from PySide6.QtCore import QObject, Property, Signal, Slot, QUrl, QSize
+from PySide6.QtCore import QObject, Property, Signal, Slot, QUrl, QSize, QStandardPaths
 from PySide6.QtGui import QImageReader
-from library import Library, SteamGridDB
-from i18n import set_language, tr
-from metadata import GameMetadata, MetadataRateLimitError, CategoryIcons, IconifyIcons
-from steam_artwork import SteamArtwork
-from igdb_artwork import IGDBArtwork
-from scraping import scrape_game, apply_scrape_results
+from core.library import Library, SteamGridDB
+from core.i18n import set_language, tr
+from integrations.metadata import GameMetadata, MetadataRateLimitError, CategoryIcons, IconifyIcons
+from integrations.steam_artwork import SteamArtwork
+from integrations.igdb_artwork import IGDBArtwork
+from integrations.scraping import scrape_game, apply_scrape_results
 from qt_app.operations import current_game, update_game, save_local, save_settings, ARTWORK
 
 
@@ -45,6 +45,41 @@ class Manager(QObject):
         self._revision = 0
         self.delivered.connect(self.finish)
         self.progressEvent.connect(self.progress)
+
+    @Property('QVariantList', constant=True)
+    def imagePlaces(self):
+        places = []
+        for label, key, kind in [('Inicio', 'home', QStandardPaths.HomeLocation),
+                                 ('Imágenes', 'pictures', QStandardPaths.PicturesLocation),
+                                 ('Descargas', 'downloads', QStandardPaths.DownloadLocation)]:
+            path = QStandardPaths.writableLocation(kind)
+            if path and Path(path).is_dir():
+                places.append(dict(name=tr(label), key=key, url=QUrl.fromLocalFile(path).toString()))
+        return places
+
+    @Slot(str, result='QVariantMap')
+    def localImageInfo(self, url):
+        path = Path(QUrl(url).toLocalFile())
+        try:
+            stat = path.stat()
+            reader = QImageReader(str(path))
+            size = reader.size()
+            valid = path.is_file() and reader.canRead() and size.isValid()
+            return dict(valid=valid, width=size.width(), height=size.height(),
+                        bytes=stat.st_size, name=path.name,
+                        error='' if valid else tr('No se puede leer esta imagen.'))
+        except OSError:
+            return dict(valid=False, error=tr('El archivo ya no está disponible.'))
+
+    @Slot(str, result=str)
+    def imageFolderError(self, url):
+        import os
+        path = QUrl(url).toLocalFile()
+        if not Path(path).is_dir():
+            return tr('La carpeta ya no está disponible.')
+        if not os.access(path, os.R_OK | os.X_OK):
+            return tr('No tienes permiso para abrir esta carpeta.')
+        return ''
 
     @Slot(object)
     def callback(self, callback):
@@ -384,8 +419,8 @@ class Manager(QObject):
     @Slot()
     def checkUpdates(self):
         def work():
-            from updates import latest_release, update_available
-            from version import __version__
+            from integrations.updates import latest_release, update_available
+            from core.version import __version__
             release=latest_release()
             self._release=release
             return f'Versión instalada: {__version__}. Última: {release["version"]}.' if release else 'Ya tienes la última versión.'
@@ -422,7 +457,7 @@ class Manager(QObject):
     @Slot()
     def updateAppImage(self):
         def work():
-            from updates import install_appimage, appimage_path
+            from integrations.updates import install_appimage, appimage_path
             release=getattr(self,'_release',None)
             if not release: raise ValueError('Comprueba primero las actualizaciones.')
             target=appimage_path()

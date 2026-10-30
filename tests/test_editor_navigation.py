@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, patch
-from estante import Shelf, Graphene
+from gtk_app.estante import Shelf, Graphene
 
 
 class EditorNavigationTests(TestCase):
@@ -13,12 +13,12 @@ class EditorNavigationTests(TestCase):
             control.compute_bounds.return_value = (True, Graphene.Rect().init(x-50, y-15, 100, 30))
             controls.append(control)
         host = SimpleNamespace(sidebar=object())
-        with patch('estante.SettingsView.controls', return_value=iter(controls)):
+        with patch('gtk_app.estante.SettingsView.controls', return_value=iter(controls)):
             Shelf.navigate_panel_direction(host, 'down', controls[0])
         controls[3].grab_focus.assert_called_once()
         controls[1].grab_focus.assert_not_called()
         for control in controls:
             control.reset_mock()
-        with patch('estante.SettingsView.controls', return_value=iter(controls)):
+        with patch('gtk_app.estante.SettingsView.controls', return_value=iter(controls)):
             Shelf.navigate_panel_direction(host, 'right', controls[0])
         controls[1].grab_focus.assert_called_once()

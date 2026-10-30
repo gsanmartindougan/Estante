@@ -3,7 +3,7 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from library import Library
+from core.library import Library
 from qt_app.session import run_session
 
 
@@ -94,7 +94,7 @@ class QtSessionTests(TestCase):
             events=[]
             process=Mock(pid=100);process.poll.return_value=0
             game={'id':'test','title':'Test','kind':'steam','steam_appid':'10'}
-            with patch('qt_app.session.launch',return_value=process), patch('game_session.game_processes',side_effect=[[200],[]]), patch('game_session.time.sleep'), patch('qt_app.session.time.monotonic',return_value=100), patch('qt_app.session.game_supervisor.prepare') as prepare:
+            with patch('qt_app.session.launch',return_value=process), patch('core.game_session.game_processes',side_effect=[[200],[]]), patch('core.game_session.time.sleep'), patch('qt_app.session.time.monotonic',return_value=100), patch('qt_app.session.game_supervisor.prepare') as prepare:
                 run_session(game,root,{},['qt'],True,events.append)
             prepare.assert_not_called()
             self.assertEqual(events,[('finished',0)])

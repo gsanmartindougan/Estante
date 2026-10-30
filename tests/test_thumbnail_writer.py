@@ -2,7 +2,7 @@ from pathlib import Path
 from threading import Event
 from unittest import TestCase
 from unittest.mock import Mock, patch
-from image_cache import ImageCache, GdkPixbuf
+from gtk_app.image_cache import ImageCache, GdkPixbuf
 
 
 class ThumbnailWriterTests(TestCase):
@@ -16,7 +16,7 @@ class ThumbnailWriterTests(TestCase):
         try:
             with patch.object(cache, '_save_thumbnail', side_effect=save), \
                  patch.object(cache, 'load', return_value='texture'), \
-                 patch('image_cache.GLib.idle_add', side_effect=lambda callback: callback()):
+                 patch('gtk_app.image_cache.GLib.idle_add', side_effect=lambda callback: callback()):
                 cache._queue_thumbnail(pixbuf, Path('/unused.png'))
                 self.assertTrue(entered.wait(2))
                 cache.request('/next', 32, 32, lambda texture, error: delivered.set())

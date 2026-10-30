@@ -1,0 +1,82 @@
+[
+  {
+    "kind": "cover",
+    "original": [
+      600,
+      900
+    ],
+    "requested": [
+      240,
+      360
+    ],
+    "returned": [
+      240,
+      360
+    ],
+    "is_null": false
+  },
+  {
+    "kind": "cover",
+    "original": [
+      600,
+      900
+    ],
+    "requested": [
+      0,
+      1
+    ],
+    "returned": [
+      1,
+      1
+    ],
+    "is_null": false
+  },
+  {
+    "kind": "cover",
+    "original": [
+      600,
+      900
+    ],
+    "requested": [
+      1,
+      1
+    ],
+    "returned": [
+      1,
+      1
+    ],
+    "is_null": false
+  },
+  {
+    "kind": "logo",
+    "original": [
+      800,
+      200
+    ],
+    "requested": [
+      360,
+      80
+    ],
+    "returned": [
+      320,
+      80
+    ],
+    "is_null": false
+  },
+  {
+    "kind": "logo",
+    "original": [
+      800,
+      200
+    ],
+    "requested": [
+      1,
+      42
+    ],
+    "returned": [
+      1,
+      1
+    ],
+    "is_null": false
+  }
+]

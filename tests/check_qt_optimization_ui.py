@@ -11,7 +11,7 @@ from PySide6.QtGui import QImage
 from PySide6.QtQuick import QQuickImageProvider
 from PySide6.QtQml import QQmlApplicationEngine
 from qt_app.main import LibraryController
-from library import Library
+from core.library import Library
 app=QApplication([]);app.setDesktopFileName('io.github.estante.Test')
 def pump(seconds=.25):
     until=time.monotonic()+seconds

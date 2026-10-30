@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, patch
-from estante import App, Shelf
+from gtk_app.estante import App, Shelf
 
 
 class StartupTests(TestCase):
@@ -15,7 +15,7 @@ class StartupTests(TestCase):
         ready(None)
         failed('offline')
         host.toast.add_toast.assert_not_called()
-        with patch('estante.Adw.Toast') as toast:
+        with patch('gtk_app.estante.Adw.Toast') as toast:
             ready({'version': '0.2.2'})
             toast.assert_called_once()
             host.toast.add_toast.assert_called_once()
@@ -24,7 +24,7 @@ class StartupTests(TestCase):
         for fullscreen in (False, True):
             window = Mock(settings={'start_fullscreen': fullscreen})
             app = SimpleNamespace(window=None)
-            with patch('estante.Shelf', return_value=window):
+            with patch('gtk_app.estante.Shelf', return_value=window):
                 App.do_activate(app)
                 App.do_activate(app)
             self.assertEqual(window.fullscreen.call_count, int(fullscreen))

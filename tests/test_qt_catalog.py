@@ -47,7 +47,7 @@ class QtCatalogTests(TestCase):
         self.assertEqual(catalog.selected_id, 'steam:1')
 
     def test_indexes_and_letters_refresh_after_reload_and_filter(self):
-        from controls import alphabet_target
+        from core.controls import alphabet_target
         catalog=self.catalog()
         for index in range(3):
             catalog.select(index)

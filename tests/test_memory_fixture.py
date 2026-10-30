@@ -42,3 +42,14 @@ class MemoryFixtureTests(TestCase):
         with self.assertRaises(ValueError):
             populate_test_games(library, 0)
         library.save.assert_not_called()
+
+    def test_read_only_stress_fixture_can_reuse_artwork_storage(self):
+        with TemporaryDirectory() as directory:
+            root=Path(directory);original=root/'source.png';original.write_bytes(b'fixture')
+            library=SimpleNamespace(root=root,games=lambda:[dict(id='one',title='Source',kind='custom',cover=str(original))],save=Mock())
+            games=populate_test_games(library,3,link_artwork=True)
+            for game in games:
+                path=Path(game['cover'])
+                self.assertNotEqual(path,original)
+                self.assertEqual(path.stat().st_ino,original.stat().st_ino)
+            self.assertEqual(original.read_bytes(),b'fixture')

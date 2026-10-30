@@ -9,4 +9,4 @@ done
 if [ "$INSTALL_FRONTEND" = qt ] && [ -x "$INSTALL_SOURCE/.venv-qt/bin/python" ]; then
     INSTALL_PYTHON="$INSTALL_SOURCE/.venv-qt/bin/python"
 fi
-exec "$INSTALL_PYTHON" "$INSTALL_SOURCE/install.py" --python "$INSTALL_PYTHON" "$@"
+exec "$INSTALL_PYTHON" "$INSTALL_SOURCE/packaging/install.py" --python "$INSTALL_PYTHON" "$@"

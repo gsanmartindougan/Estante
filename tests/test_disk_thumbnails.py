@@ -4,7 +4,7 @@ import zlib
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import Mock, patch
-from image_cache import ImageCache, GdkPixbuf
+from gtk_app.image_cache import ImageCache, GdkPixbuf
 
 
 def png_header(width, height):
@@ -30,8 +30,8 @@ class DiskThumbnailTests(TestCase):
             # Exercise cache lookup/invalidation without requiring a GUI codec service.
             target.parent.mkdir(exist_ok=True)
             target.write_bytes(png_header(pixbuf.get_width(), pixbuf.get_height()))
-        with patch('image_cache.GdkPixbuf.Pixbuf.get_file_info', return_value=(object(), 4096, 2048)), \
-             patch('image_cache.GdkPixbuf.Pixbuf.new_from_file_at_scale', side_effect=decode), \
+        with patch('gtk_app.image_cache.GdkPixbuf.Pixbuf.get_file_info', return_value=(object(), 4096, 2048)), \
+             patch('gtk_app.image_cache.GdkPixbuf.Pixbuf.new_from_file_at_scale', side_effect=decode), \
              patch.object(ImageCache, '_queue_thumbnail', side_effect=save):
             ImageCache(disk_dir=self.disk).load(self.source, 256, 256)
             self.assertEqual(decoded_paths[-1], self.source)
@@ -67,8 +67,8 @@ class DiskThumbnailTests(TestCase):
             target.parent.mkdir(exist_ok=True)
             target.write_bytes(png_header(pixbuf.get_width(), pixbuf.get_height()))
         cache = ImageCache(disk_dir=self.disk)
-        with patch('image_cache.GdkPixbuf.Pixbuf.get_file_info', return_value=(object(), 7680, 4320)), \
-             patch('image_cache.GdkPixbuf.Pixbuf.new_from_file_at_scale', side_effect=decode), \
+        with patch('gtk_app.image_cache.GdkPixbuf.Pixbuf.get_file_info', return_value=(object(), 7680, 4320)), \
+             patch('gtk_app.image_cache.GdkPixbuf.Pixbuf.new_from_file_at_scale', side_effect=decode), \
              patch.object(cache, '_queue_thumbnail', side_effect=save):
             texture = cache.load(self.source, 1920, 1080)
             self.assertEqual((texture.get_width(), texture.get_height()), (1920, 1080))
@@ -85,8 +85,8 @@ class DiskThumbnailTests(TestCase):
             target.write_bytes(png_header(pixbuf.get_width(), pixbuf.get_height()))
         def decode(path, width, height, preserve):
             return GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, width, height)
-        with patch('image_cache.GdkPixbuf.Pixbuf.get_file_info', return_value=(object(), 7680, 4320)) as info, \
-             patch('image_cache.GdkPixbuf.Pixbuf.new_from_file_at_scale', side_effect=decode), \
+        with patch('gtk_app.image_cache.GdkPixbuf.Pixbuf.get_file_info', return_value=(object(), 7680, 4320)) as info, \
+             patch('gtk_app.image_cache.GdkPixbuf.Pixbuf.new_from_file_at_scale', side_effect=decode), \
              patch.object(cache, '_queue_thumbnail', side_effect=save):
             cache.load(self.source, 1920, 1080)
             info.reset_mock()
@@ -96,7 +96,7 @@ class DiskThumbnailTests(TestCase):
             self.assertEqual((texture.get_width(), texture.get_height()), (1920, 1080))
 
     def test_thumbnail_header_rejects_corruption_and_invalid_dimensions(self):
-        from image_cache import thumbnail_dimensions
+        from gtk_app.image_cache import thumbnail_dimensions
         path = self.root / 'cached.png'
         for data in (b'broken', png_header(0, 100), png_header(10000, 100), png_header(1920, 1080)[:-1] + b'!'):
             path.write_bytes(data)
@@ -107,7 +107,7 @@ class DiskThumbnailTests(TestCase):
 
     def test_opaque_png_is_cached_as_jpeg_and_reused_without_decoding_original(self):
         from PIL import Image
-        from image_cache import decode_pixbuf
+        from gtk_app.image_cache import decode_pixbuf
         paths = []
         def decode(path, width, height):
             paths.append(Path(path))
@@ -121,8 +121,8 @@ class DiskThumbnailTests(TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             Image.new('RGB', (image.get_width(), image.get_height()), '#cc6633').save(target, 'JPEG', quality=95)
         cache = ImageCache(disk_dir=self.disk)
-        with patch('image_cache.GdkPixbuf.Pixbuf.get_file_info', return_value=(object(), 4096, 2048)) as info, \
-             patch('image_cache.decode_pixbuf', side_effect=decode), patch.object(cache, '_save_thumbnail', side_effect=save):
+        with patch('gtk_app.image_cache.GdkPixbuf.Pixbuf.get_file_info', return_value=(object(), 4096, 2048)) as info, \
+             patch('gtk_app.image_cache.decode_pixbuf', side_effect=decode), patch.object(cache, '_save_thumbnail', side_effect=save):
             cache.load(self.source, 128, 128)
             self.assertTrue(cache.wait_for_writes(2))
             self.assertEqual(len(list(self.disk.glob('*.jpg'))), 1)

@@ -1,5 +1,5 @@
 """GitHub release checks and atomic AppImage updates."""
-from i18n import tr
+from core.i18n import tr
 import hashlib
 import json
 import os
@@ -11,7 +11,7 @@ from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
-from version import __version__
+from core.version import __version__
 
 REPOSITORY = 'gsanmartindougan/Estante'
 RELEASES_URL = 'https://github.com/' + REPOSITORY + '/releases'

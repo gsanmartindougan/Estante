@@ -6,7 +6,7 @@ from unittest import TestCase
 from unittest.mock import patch, Mock
 from urllib.error import HTTPError
 from urllib.parse import parse_qs, urlparse
-from metadata import GameMetadata
+from integrations.metadata import GameMetadata
 
 
 class MetadataRateLimitTests(TestCase):
@@ -17,9 +17,9 @@ class MetadataRateLimitTests(TestCase):
         self.waiting = Mock()
         self.client = GameMetadata(self.temp.name, on_wait=self.waiting)
         for name, replacement in (
-                ('metadata.time.monotonic', lambda: self.now),
-                ('metadata.time.time', lambda: 1000.),
-                ('metadata.time.sleep', self.sleep)):
+                ('integrations.metadata.time.monotonic', lambda: self.now),
+                ('integrations.metadata.time.time', lambda: 1000.),
+                ('integrations.metadata.time.sleep', self.sleep)):
             context = patch(name, side_effect=replacement)
             context.start()
             self.addCleanup(context.stop)
@@ -39,7 +39,7 @@ class MetadataRateLimitTests(TestCase):
 
     def test_429_honors_retry_after_then_succeeds(self):
         error = HTTPError('https://www.wikidata.org/w/api.php', 429, 'rate limit', {'Retry-After': '17'}, io.BytesIO())
-        with patch('metadata.urlopen', side_effect=[error, self.response({'search': []})]) as request:
+        with patch('integrations.metadata.urlopen', side_effect=[error, self.response({'search': []})]) as request:
             self.assertEqual(self.client.api(action='wbsearchentities'), {'search': []})
         self.assertEqual(request.call_count, 2)
         self.assertEqual(self.waits, [17])
@@ -49,14 +49,14 @@ class MetadataRateLimitTests(TestCase):
 
     def test_all_clients_share_spacing(self):
         second = GameMetadata(self.temp.name)
-        with patch('metadata.urlopen', side_effect=[self.response({}), self.response({})]):
+        with patch('integrations.metadata.urlopen', side_effect=[self.response({}), self.response({})]):
             self.client.api(action='test')
             second.api(action='test')
         self.assertAlmostEqual(self.waits[0], 1.1)
 
     def test_repeated_429_has_bounded_exponential_retries(self):
         errors = [HTTPError('https://www.wikidata.org', 429, 'limit', {}, io.BytesIO()) for _ in range(4)]
-        with patch('metadata.urlopen', side_effect=errors) as request:
+        with patch('integrations.metadata.urlopen', side_effect=errors) as request:
             with self.assertRaises(ValueError):
                 self.client.api(action='test')
         self.assertEqual(request.call_count, 4)
@@ -65,7 +65,7 @@ class MetadataRateLimitTests(TestCase):
 
     def test_json_maxlag_and_http_503_retry(self):
         unavailable = HTTPError('https://www.wikidata.org', 503, 'busy', {'Retry-After': '12'}, io.BytesIO())
-        with patch('metadata.urlopen', side_effect=[
+        with patch('integrations.metadata.urlopen', side_effect=[
                 self.response({'error': {'code': 'maxlag'}}, {'Retry-After': '9'}),
                 unavailable, self.response({'ok': True})]):
             self.assertEqual(self.client.api(action='test'), {'ok': True})
@@ -73,7 +73,7 @@ class MetadataRateLimitTests(TestCase):
 
     def test_other_http_errors_are_not_retried(self):
         error = HTTPError('https://www.wikidata.org', 403, 'forbidden', {}, io.BytesIO())
-        with patch('metadata.urlopen', side_effect=error) as request:
+        with patch('integrations.metadata.urlopen', side_effect=error) as request:
             with self.assertRaises(HTTPError):
                 self.client.api(action='test')
         self.assertEqual(request.call_count, 1)

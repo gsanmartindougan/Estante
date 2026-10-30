@@ -5,10 +5,10 @@ from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from estante import Shelf
-from image_cache import ImageCache, GdkPixbuf, reclaim_unused_memory
-from library import Library
-from screensaver import Screensaver, Slideshow, SaverPicture, background_paths, slideshow_paths, saver_size, saver_bounds
+from gtk_app.estante import Shelf
+from gtk_app.image_cache import ImageCache, GdkPixbuf, reclaim_unused_memory
+from core.library import Library
+from gtk_app.screensaver import Screensaver, Slideshow, SaverPicture, background_paths, slideshow_paths, saver_size, saver_bounds
 
 
 class ScreensaverTests(TestCase):
@@ -37,7 +37,7 @@ class ScreensaverTests(TestCase):
         saver.slides = Mock()
         saver.slide_host = SimpleNamespace(settings={})
         saver.release_images = Mock()
-        with patch('screensaver.images') as cache:
+        with patch('gtk_app.screensaver.images') as cache:
             saver.suspend_for_game('game')
             self.assertTrue(shelf.library_suspended)
             self.assertEqual(shelf.library_games, [])
@@ -84,20 +84,20 @@ class ScreensaverTests(TestCase):
         shelf.drawer.get_reveal_child.return_value = False
         shelf.pages.get_visible_child_name.return_value = 'library'
         saver.shelf = shelf
-        with patch('screensaver.time.monotonic', return_value=59):
+        with patch('gtk_app.screensaver.time.monotonic', return_value=59):
             saver.check()
         saver.start.assert_not_called()
-        with patch('screensaver.time.monotonic', return_value=61):
+        with patch('gtk_app.screensaver.time.monotonic', return_value=61):
             saver.check()
         saver.start.assert_called_once()
         saver.start.reset_mock()
         shelf.running_sessions = {'game'}
-        with patch('screensaver.time.monotonic', return_value=100):
+        with patch('gtk_app.screensaver.time.monotonic', return_value=100):
             saver.check()
         self.assertEqual(saver.last_activity, 100)
         shelf.running_sessions.clear()
         shelf.pages.get_visible_child_name.return_value = 'settings'
-        with patch('screensaver.time.monotonic', return_value=200):
+        with patch('gtk_app.screensaver.time.monotonic', return_value=200):
             saver.check()
         saver.start.assert_called_once()
 
@@ -136,7 +136,7 @@ class ScreensaverTests(TestCase):
                 started.set()
                 proceed.wait(2)
                 return pixbuf
-            with patch('image_cache.decode_pixbuf', side_effect=decode), patch('image_cache.GdkPixbuf.Pixbuf.get_file_info', return_value=(object(), 8, 8)):
+            with patch('gtk_app.image_cache.decode_pixbuf', side_effect=decode), patch('gtk_app.image_cache.GdkPixbuf.Pixbuf.get_file_info', return_value=(object(), 8, 8)):
                 worker = Thread(target=cache.load, args=(path, 8, 8))
                 worker.start()
                 try:
@@ -173,7 +173,7 @@ class ScreensaverTests(TestCase):
             saver.slide_host = SimpleNamespace(settings={})
             saver.release_images = Mock()
             callbacks = []
-            with patch('screensaver.images') as images, patch('screensaver.GLib.timeout_add',
+            with patch('gtk_app.screensaver.images') as images, patch('gtk_app.screensaver.GLib.timeout_add',
                     side_effect=lambda delay, callback: callbacks.append(callback)):
                 self.assertTrue(saver.start({'screensaver_dim': 50}))
                 self.assertTrue(saver.active)
@@ -220,7 +220,7 @@ class ScreensaverTests(TestCase):
         saver.view = Mock()
         saver.cache = Mock()
         callbacks = []
-        with patch('screensaver.GLib.timeout_add', side_effect=lambda delay, fn: callbacks.append(fn) or 1):
+        with patch('gtk_app.screensaver.GLib.timeout_add', side_effect=lambda delay, fn: callbacks.append(fn) or 1):
             for i in range(3):
                 saver.advance()
                 args = saver.cache.request.call_args.args
@@ -292,7 +292,7 @@ class ScreensaverTests(TestCase):
         saver.shelf.get_visible.return_value = True
         saver.shelf.drawer.get_reveal_child.return_value = False
         saver.shelf.pages.get_visible_child_name.return_value = 'library'
-        with patch('screensaver.time.monotonic', return_value=61):
+        with patch('gtk_app.screensaver.time.monotonic', return_value=61):
             saver.check()
         saver.start.assert_called_once()
 
@@ -356,7 +356,7 @@ class ScreensaverTests(TestCase):
             saver.shelf.error.assert_called_once()
 
     def test_application_background_works_without_any_library_games(self):
-        from backgrounds import BUNDLED_BACKGROUNDS
+        from gtk_app.backgrounds import BUNDLED_BACKGROUNDS
         self.assertTrue(BUNDLED_BACKGROUNDS)
         path = BUNDLED_BACKGROUNDS[-1]
         self.assertEqual(slideshow_paths([], {'screensaver_source': 'application',
@@ -373,7 +373,7 @@ class ScreensaverTests(TestCase):
         slides.view = Mock()
         slides.advance = Mock()
         slides.revision = 0
-        with patch('screensaver.GLib.timeout_add_seconds') as timer:
+        with patch('gtk_app.screensaver.GLib.timeout_add_seconds') as timer:
             slides.start(['/one', '/two'])
         timer.assert_called_once_with(1, slides.advance)
         self.assertLess(slides.transition_ms + 100, 1000)
@@ -385,7 +385,7 @@ class ScreensaverTests(TestCase):
         slides.view = Mock()
         slides.advance = Mock()
         slides.revision = 0
-        with patch('screensaver.GLib.timeout_add_seconds') as timer:
+        with patch('gtk_app.screensaver.GLib.timeout_add_seconds') as timer:
             slides.start(['/one'])
         timer.assert_not_called()
         slides.advance.assert_called_once()
@@ -424,8 +424,8 @@ class SaverExitCleanupTests(TestCase):
             saver.selection = 'selected'
             saver.focus = None
             saver.scroll = (0, 0)
-            with patch('screensaver.images'), patch('screensaver.GLib.timeout_add') as timer, \
-                 patch('screensaver.reclaim_unused_memory') as reclaim:
+            with patch('gtk_app.screensaver.images'), patch('gtk_app.screensaver.GLib.timeout_add') as timer, \
+                 patch('gtk_app.screensaver.reclaim_unused_memory') as reclaim:
                 saver.stop()
                 cleanup = next(call.args[1] for call in timer.call_args_list if call.args[0] == 750)
                 reclaim.assert_not_called()

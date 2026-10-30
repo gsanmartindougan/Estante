@@ -11,8 +11,8 @@ from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtDBus import QDBusPendingCall,QDBusMessage
 from qt_app.system_keyboard import SystemKeyboard
 from qt_app.main import LibraryController
-from library import Library
-from i18n import set_language
+from core.library import Library
+from core.i18n import set_language
 app=QApplication([]);app.setDesktopFileName('io.github.estante.Test');set_language('es')
 def pump(seconds=.12):
     until=time.monotonic()+seconds

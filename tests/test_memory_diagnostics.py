@@ -2,7 +2,7 @@ import json
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import patch
-from estante import Shelf
+from gtk_app.estante import Shelf
 
 
 class MemoryDiagnosticsTests(TestCase):
@@ -10,11 +10,11 @@ class MemoryDiagnosticsTests(TestCase):
         for enabled in ('0', '1'):
             host = SimpleNamespace(memory_diagnostics=True, memory_report_count=0, focus_revision=1,
                 get_renderer=lambda: SimpleNamespace(__gtype__=SimpleNamespace(name='TestRenderer')))
-            with patch('estante.GLib.timeout_add') as timer, \
+            with patch('gtk_app.estante.GLib.timeout_add') as timer, \
                  patch.dict('os.environ', {'ESTANTE_MEMORY_DIAGNOSTICS': enabled}), \
-                 patch('estante.memory_usage', side_effect=[{'Rss': 244}, {'Rss': 220}]), \
-                 patch('estante.reclaim_unused_memory', return_value={'collected': 2, 'native_trim': True}) as trim, \
-                 patch('estante.os.open', side_effect=OSError('test does not write logs')), patch('builtins.print') as output:
+                 patch('gtk_app.estante.memory_usage', side_effect=[{'Rss': 244}, {'Rss': 220}]), \
+                 patch('gtk_app.estante.reclaim_unused_memory', return_value={'collected': 2, 'native_trim': True}) as trim, \
+                 patch('gtk_app.estante.os.open', side_effect=OSError('test does not write logs')), patch('builtins.print') as output:
                 Shelf.schedule_memory_report(host)
                 self.assertFalse(timer.call_args.args[1]())
                 values = json.loads(output.call_args.args[0].removeprefix('Estante memoria: '))
@@ -26,7 +26,7 @@ class MemoryDiagnosticsTests(TestCase):
 
     def test_stale_selection_does_not_collect_or_log(self):
         host = SimpleNamespace(memory_diagnostics=True, memory_report_count=0, focus_revision=1)
-        with patch('estante.GLib.timeout_add') as timer, patch('estante.memory_usage') as measure:
+        with patch('gtk_app.estante.GLib.timeout_add') as timer, patch('gtk_app.estante.memory_usage') as measure:
             Shelf.schedule_memory_report(host)
             host.focus_revision = 2
             self.assertFalse(timer.call_args.args[1]())

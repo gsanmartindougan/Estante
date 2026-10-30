@@ -2,7 +2,7 @@ from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock
 import weakref
-from estante import Shelf, Gtk
+from gtk_app.estante import Shelf, Gtk
 
 
 class PointerModeTests(TestCase):

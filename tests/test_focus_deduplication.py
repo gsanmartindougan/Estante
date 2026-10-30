@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, patch
-from estante import Shelf
+from gtk_app.estante import Shelf
 
 
 class FocusDeduplicationTests(TestCase):
@@ -15,6 +15,6 @@ class FocusDeduplicationTests(TestCase):
             tile = SimpleNamespace(game=game, button=Mock())
             if emits:
                 tile.button.grab_focus.side_effect = lambda: host.focus_game(game)
-            with patch('estante.GLib.idle_add'):
+            with patch('gtk_app.estante.GLib.idle_add'):
                 Shelf.select_tile(host, tile)
             host.focus_game.assert_called_once_with(game)

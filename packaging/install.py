@@ -8,18 +8,20 @@ import shutil
 import subprocess
 import sys
 
-MODULES = ('native_memory.py', 'background_jobs.py', 'game_supervisor.py', 'tray.py', 'screensaver_config.py', 'screensaver.py', 'game_session.py', 'profiling.py', 'image_cache.py', 'estante.py', 'appearance.py', 'carousel.py', 'controls.py', 'library.py',
-           'metadata.py', 'settings_view.py', 'steam_artwork.py', 'igdb_artwork.py', 'version.py', 'updates.py', 'i18n.py', 'backgrounds.py', 'scraping.py', 'steam_import.py', 'heroic_import.py')
-QT_FILES = tuple('qt_app/' + path.name for path in sorted((Path(__file__).resolve().parent / 'qt_app').iterdir()) if path.suffix in ('.py', '.qml', '.js'))
-MODULES += ('tools/memory_fixture.py', 'estante_qt.py', 'requirements-qt.txt', *QT_FILES)
+SOURCE = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(SOURCE))
+CODE_PACKAGES = ('core', 'integrations', 'gtk_app', 'qt_app')
+MODULES = tuple(str(path.relative_to(SOURCE)) for package in CODE_PACKAGES
+                for path in sorted((SOURCE/package).iterdir())
+                if path.suffix in ('.py', '.qml', '.js'))
+MODULES += ('tools/memory_fixture.py', 'requirements/qt.txt')
 APP_ID = 'io.github.estante.Launcher'
-SOURCE = Path(__file__).resolve().parent
 DOCUMENTS = ('README.md', 'README.en.md')
 ASSETS = ('packaging/io.github.estante.Launcher.svg',) + tuple(str(path.relative_to(SOURCE)) for path in sorted((SOURCE / 'assets/backgrounds').glob('*')) if path.is_file())
 
 
 def main():
-    from version import __version__
+    from core.version import __version__
     parser = argparse.ArgumentParser(description='Instala Estante para tu usuario o para todo el sistema.')
     parser.add_argument('--frontend', choices=('gtk','qt'), default='qt')
     parser.add_argument('--python', default=None, help='Intérprete Python del lanzador instalado')
@@ -79,7 +81,7 @@ def main():
             (app / name).parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(SOURCE / name, app / name)
             (app / name).chmod(0o644)
-        command = shlex.quote(str(prefix / 'share/estante' / ('estante_qt.py' if args.frontend == 'qt' else 'estante.py')))
+        command = shlex.quote(str(prefix / 'share/estante' / ('qt_app/__main__.py' if args.frontend == 'qt' else 'gtk_app/estante.py')))
         interpreter = shlex.quote(args.python) if args.python else '/usr/bin/env python3'
         launcher.write_text('#!/bin/sh\nexec ' + interpreter + ' ' + command + ' "$@"\n')
         launcher.chmod(0o755)

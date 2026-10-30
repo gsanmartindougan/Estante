@@ -8,7 +8,7 @@ import traceback
 from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from estante import App, Gdk, GdkPixbuf, GLib, Gtk
+from gtk_app.estante import App, Gdk, GdkPixbuf, GLib, Gtk
 
 
 def descendants(widget):
@@ -165,9 +165,9 @@ with tempfile.TemporaryDirectory(prefix='estante-ui-') as directory:
                 next(w for w in descendants(shelf.sidebar)
                      if isinstance(w, Gtk.Button) and w.get_label() == label).emit('clicked')
             with patch.object(shelf, 'background', immediate), \
-                 patch('estante.SteamGridDB.search', return_value=[{'id': 42, 'name': 'Fixture'}]), \
-                 patch('estante.SteamGridDB.heroes', return_value=[{'url': 'fixture'}]) as heroes, \
-                 patch('estante.SteamGridDB.download', return_value=selected_banner):
+                 patch('gtk_app.estante.SteamGridDB.search', return_value=[{'id': 42, 'name': 'Fixture'}]), \
+                 patch('gtk_app.estante.SteamGridDB.heroes', return_value=[{'url': 'fixture'}]) as heroes, \
+                 patch('gtk_app.estante.SteamGridDB.download', return_value=selected_banner):
                 shelf.artwork(games[1], banner=True)
                 click('Buscar en SteamGridDB')
                 click('Fixture')
@@ -179,9 +179,9 @@ with tempfile.TemporaryDirectory(prefix='estante-ui-') as directory:
             assert saved['banner'] == selected_banner
             assert saved['cover'] == games[1]['cover'], 'Banner picker changed cover'
             with patch.object(shelf, 'background', immediate), \
-                 patch('estante.SteamGridDB.search', return_value=[{'id': 42, 'name': 'Square fixture'}]), \
-                 patch('estante.SteamGridDB.grids', return_value=[{'url': 'fixture'}]) as grids, \
-                 patch('estante.SteamGridDB.download', return_value=selected_banner):
+                 patch('gtk_app.estante.SteamGridDB.search', return_value=[{'id': 42, 'name': 'Square fixture'}]), \
+                 patch('gtk_app.estante.SteamGridDB.grids', return_value=[{'url': 'fixture'}]) as grids, \
+                 patch('gtk_app.estante.SteamGridDB.download', return_value=selected_banner):
                 shelf.artwork(saved, square=True)
                 click('Buscar en SteamGridDB')
                 click('Square fixture')
@@ -198,9 +198,9 @@ with tempfile.TemporaryDirectory(prefix='estante-ui-') as directory:
             pixbuf.savev(igdb_image, 'png', [], [])
             previous_id = saved.get('steamgriddb_id')
             with patch.object(shelf, 'background', immediate), \
-                 patch('estante.IGDBArtwork.search', return_value=[{'id': 999, 'name': 'IGDB fixture'}]), \
-                 patch('estante.IGDBArtwork.images', return_value=[{'url': 'fixture', 'width': 1920, 'height': 1080}]) as images, \
-                 patch('estante.SteamGridDB.download', return_value=igdb_image):
+                 patch('gtk_app.estante.IGDBArtwork.search', return_value=[{'id': 999, 'name': 'IGDB fixture'}]), \
+                 patch('gtk_app.estante.IGDBArtwork.images', return_value=[{'url': 'fixture', 'width': 1920, 'height': 1080}]) as images, \
+                 patch('gtk_app.estante.SteamGridDB.download', return_value=igdb_image):
                 shelf.artwork(saved, banner=True)
                 click('Buscar fondos 16:9 en IGDB')
                 click('IGDB fixture')
@@ -218,8 +218,8 @@ with tempfile.TemporaryDirectory(prefix='estante-ui-') as directory:
                        'platforms': ['Linux'], 'description': 'A test game',
                        'release_date': '2020-01-02', 'source': 'https://www.wikidata.org/wiki/Q1', 'entity_id': 'Q1'}
             with patch.object(shelf, 'background', immediate), \
-                 patch('estante.GameMetadata.search', return_value=[{'id': 'Q1', 'name': 'Fixture game', 'description': 'Test'}]), \
-                 patch('estante.GameMetadata.fetch', return_value=fixture):
+                 patch('gtk_app.estante.GameMetadata.search', return_value=[{'id': 'Q1', 'name': 'Fixture game', 'description': 'Test'}]), \
+                 patch('gtk_app.estante.GameMetadata.fetch', return_value=fixture):
                 shelf.metadata_search(saved)
                 click('Buscar en Wikidata')
                 click('Fixture game')
@@ -581,7 +581,7 @@ with tempfile.TemporaryDirectory(prefix='estante-ui-') as directory:
             def immediate(work, done, on_error=None):
                 done(work())
             with patch.object(shelf, 'background', immediate), \
-                 patch('estante.GameMetadata.search', return_value=[{
+                 patch('gtk_app.estante.GameMetadata.search', return_value=[{
                      'id': 'Q1', 'name': long_title, 'description': 'DescripciónSinEspacios' * 80}]):
                 shelf.metadata_search(games[0])
                 next(w for w in descendants(shelf.sidebar) if isinstance(w, Gtk.Button)
@@ -610,9 +610,9 @@ with tempfile.TemporaryDirectory(prefix='estante-ui-') as directory:
             def immediate(work, done, on_error=None):
                 done(work())
             with patch.object(shelf, 'background', immediate), \
-                 patch('estante.SteamGridDB.search', return_value=[{'id': 42, 'name': 'Gallery fixture'}]), \
-                 patch('estante.SteamGridDB.heroes', return_value=[{'url': 'fixture'}] * 4), \
-                 patch('estante.SteamGridDB.download', return_value=games[0]['banner']):
+                 patch('gtk_app.estante.SteamGridDB.search', return_value=[{'id': 42, 'name': 'Gallery fixture'}]), \
+                 patch('gtk_app.estante.SteamGridDB.heroes', return_value=[{'url': 'fixture'}] * 4), \
+                 patch('gtk_app.estante.SteamGridDB.download', return_value=games[0]['banner']):
                 shelf.artwork(games[0], banner=True)
                 for title in ('Buscar en SteamGridDB', 'Gallery fixture'):
                     next(w for w in descendants(shelf.sidebar)
@@ -656,12 +656,12 @@ with tempfile.TemporaryDirectory(prefix='estante-ui-') as directory:
                 identities = list(dict.fromkeys(tile.game['id'] for tile in tiles))
                 first = next(tile for tile in tiles if tile.game['id'] == identities[0])
                 shelf.select_tile(first)
-                from controls import alphabet_target
+                from core.controls import alphabet_target
                 titles = [next(tile.game['title'] for tile in tiles if tile.game['id'] == identity) for identity in identities]
                 destination = alphabet_target(titles, 0)
                 shelf.navigate('page_next', True)
                 assert shelf.selected_game == identities[destination], mode
-                from controls import alphabet_window
+                from core.controls import alphabet_window
                 assert tuple(label.get_text() for label in shelf.alphabet_labels) == alphabet_window(titles, titles[destination])
                 shelf.navigate('page_previous', True)
                 assert shelf.selected_game == identities[alphabet_target(titles, destination, False)], mode

@@ -3,7 +3,7 @@ import threading
 import subprocess
 import time
 from PySide6.QtCore import QObject, Property, Signal, Slot
-from i18n import tr
+from core.i18n import tr
 from qt_app.launcher_processes import running_clients, launch_hidden, CLIENT_NAMES
 
 

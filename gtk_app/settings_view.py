@@ -1,21 +1,21 @@
 """Dedicated in-window settings, split into global and per-view pages."""
 from pathlib import Path
-from library import SteamGridDB
-from controls import controller_save_hint
-from metadata import GameMetadata, CategoryIcons, IconifyIcons
-from scraping import scrape_game, apply_scrape_results
-from image_cache import images, validate_image
-from i18n import tr
+from core.library import SteamGridDB
+from core.controls import controller_save_hint
+from integrations.metadata import GameMetadata, CategoryIcons, IconifyIcons
+from integrations.scraping import scrape_game, apply_scrape_results
+from gtk_app.image_cache import images, validate_image
+from core.i18n import tr
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Adw, Gdk, Gtk, GLib, Gio, GObject
-from appearance import background_effects_for, minimal_for, list_side_for, VIEW_NAMES, ring_for, with_ring, cover_radius_for, hero_position_for, cover_format_for
-from version import __version__
-from screensaver_config import time_choice
-from game_session import playing_behavior
-from backgrounds import BUNDLED_BACKGROUNDS, resolve_background, background_split_for
-from updates import latest_release, appimage_path, update_available, install_appimage, RELEASES_URL
+from core.appearance import background_effects_for, minimal_for, list_side_for, VIEW_NAMES, ring_for, with_ring, cover_radius_for, hero_position_for, cover_format_for
+from core.version import __version__
+from core.screensaver_config import time_choice
+from core.game_session import playing_behavior
+from gtk_app.backgrounds import BUNDLED_BACKGROUNDS, resolve_background, background_split_for
+from integrations.updates import latest_release, appimage_path, update_available, install_appimage, RELEASES_URL
 
 
 def spatial_target(points, current, action):

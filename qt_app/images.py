@@ -7,6 +7,13 @@ from PySide6.QtGui import QImage, QImageReader
 from PySide6.QtQuick import QQuickImageProvider
 
 
+def scaled_decode_size(original, bounds):
+    # Aspect-ratio scaling can round a narrow dimension down to zero during
+    # the first layout pass. Readers and QImage.scaled require both positive.
+    scaled = original.scaled(bounds, Qt.KeepAspectRatio)
+    return QSize(max(1, scaled.width()), max(1, scaled.height()))
+
+
 def trim_logo(image):
     """Remove transparent canvas padding without touching any visible pixels."""
     if not image.hasAlphaChannel(): return image
@@ -44,7 +51,7 @@ class ArtworkProvider(QQuickImageProvider):
             if not original.isValid(): return QImage()
             target=QSize(min(2560,requestedSize.width() if requestedSize.width()>0 else 1920),min(1440,requestedSize.height() if requestedSize.height()>0 else 1080))
             if dominant: target=QSize(64,64)
-            scaled=original.scaled(QSize(2560,1440) if logo else target,Qt.KeepAspectRatio)
+            scaled=scaled_decode_size(original, QSize(2560,1440) if logo else target)
             if scaled.width()>original.width() or scaled.height()>original.height(): scaled=original
             variant=f'logo:{target.width()}x{target.height()}:v1' if logo else f'{dominant}:v3'
             key=hashlib.sha256(f'{path.resolve()}:{stat.st_mtime_ns}:{stat.st_size}:{scaled.width()}x{scaled.height()}:{variant}'.encode()).hexdigest()
@@ -63,7 +70,7 @@ class ArtworkProvider(QQuickImageProvider):
             if image.size()!=scaled: image=image.scaled(scaled,Qt.KeepAspectRatio,Qt.SmoothTransformation)
             if logo:
                 image=trim_logo(image)
-                image=image.scaled(image.size().scaled(target,Qt.KeepAspectRatio),Qt.KeepAspectRatio,Qt.SmoothTransformation)
+                image=image.scaled(scaled_decode_size(image.size(),target),Qt.KeepAspectRatio,Qt.SmoothTransformation)
             if dominant:
                 buckets={}
                 for y in range(image.height()):

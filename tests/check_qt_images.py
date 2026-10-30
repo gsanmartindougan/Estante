@@ -40,3 +40,26 @@ with tempfile.TemporaryDirectory() as folder:
         assert path.read_bytes()==before
     assert provider.requestImage('/missing/image',QSize(),QSize(100,100)).isNull()
 print('QT_IMAGES_OK: resized JPEG, transparent PNG, unchanged originals, invalidation and disk reuse')
+
+# First-layout requests can have zero or single-pixel dimensions. Test actual
+# decoding, the second logo resize, and subsequent disk-cache reads.
+with tempfile.TemporaryDirectory() as folder:
+    root=Path(folder);provider=ArtworkProvider(root/'cache')
+    for extension in ('png','jpg','webp'):
+        for kind,width,height,requests in (
+                ('cover',600,900,[(0,1),(1,1),(1,0),(2,1),(240,360)]),
+                ('wide',900,200,[(1,1),(0,1),(1,0),(1,1440)]),
+                ('logo',800,200,[(1,42),(1,1),(0,1),(360,80)])):
+            source=QImage(width,height,QImage.Format_RGB32);source.fill(QColor('coral'))
+            path=root/f'{kind}.{extension}';assert source.save(str(path))
+            before=path.read_bytes()
+            identity=('@logo/' if kind=='logo' else '')+quote(str(path),safe='')
+            for w,h in requests:
+                for _ in range(2):
+                    size=QSize();decoded=provider.requestImage(identity,size,QSize(w,h))
+                    assert not decoded.isNull(),(extension,kind,w,h)
+                    assert decoded.width()>=1 and decoded.height()>=1
+                    assert size==decoded.size()
+                    assert decoded.width()<=width and decoded.height()<=height
+            assert path.read_bytes()==before
+print('QT_IMAGE_EDGE_REGRESSION_OK: PNG/JPEG/WebP, tiny/zero dimensions, portrait/wide/logo, cache hits, originals preserved')

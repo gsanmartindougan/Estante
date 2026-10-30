@@ -1,6 +1,6 @@
 from unittest import TestCase
 from unittest.mock import patch
-from estante import blur_radius
+from gtk_app.estante import blur_radius
 
 
 class BlurDiagnosticsTests(TestCase):

@@ -3,7 +3,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from PySide6.QtCore import QCoreApplication, QTimer
 from qt_app.main import LibraryController
-from library import Library
+from core.library import Library
 app=QCoreApplication([])
 with tempfile.TemporaryDirectory() as root:
     root=Path(root)

@@ -2,7 +2,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import Mock
-from scraping import scrape_game, apply_scrape_patch, ARTWORK_FIELDS
+from integrations.scraping import scrape_game, apply_scrape_patch, ARTWORK_FIELDS
 
 
 class ScrapingTests(TestCase):

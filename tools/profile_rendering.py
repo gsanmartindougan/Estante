@@ -68,10 +68,10 @@ def main():
         os.environ['XDG_CACHE_HOME'] = str(args.cache_dir or temporary / 'cache')
         os.environ['ESTANTE_DISABLE_BLUR'] = '1' if args.no_blur else '0'
         sys.path.insert(0, str(ROOT))
-        from estante import App, Gdk, GLib, Gtk
-        from appearance import list_navigation
-        from profiling import reset, report, counters
-        from image_cache import images
+        from gtk_app.estante import App, Gdk, GLib, Gtk
+        from core.appearance import list_navigation
+        from core.profiling import reset, report, counters
+        from gtk_app.image_cache import images
         if not Gtk.init_check() or Gdk.Display.get_default() is None:
             print('Run this command from a terminal in your graphical desktop.', file=sys.stderr)
             return 2

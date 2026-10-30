@@ -2,7 +2,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 import json
-from library import Library
+from core.library import Library
 from qt_app.operations import save_local, update_game, save_settings
 from qt_app.settings_schema import merge_values
 

@@ -15,7 +15,7 @@ La interfaz GTK 4 anterior sigue disponible como alternativa.
 
 ```sh
 python3 -m venv .venv-qt
-.venv-qt/bin/pip install -r requirements-qt.txt
+.venv-qt/bin/pip install -r requirements/qt.txt
 ./run.sh
 ```
 
@@ -27,6 +27,8 @@ aceptan `--frontend gtk` para la alternativa anterior.
 Consulta [la guía Qt](qt_app/README.md) y [la validación de la migración](docs/migracion-qt-2026-10-24.md).
 Los vídeos de esta página muestran la interfaz Qt de 0.3.0. GTK queda disponible
 como alternativa con `./run-gtk.sh`.
+
+Consulta la [estructura del proyecto](docs/estructura-del-proyecto.md) para localizar código, recursos y herramientas.
 
 ## Desarrollo con IA y revisión humana
 
@@ -194,8 +196,8 @@ extraída para poder borrar el instalador después:
 tar -xzf Estante-0.3.0-linux.tar.gz
 cd Estante
 python3 -m venv "$HOME/.local/share/estante-venv"
-"$HOME/.local/share/estante-venv/bin/pip" install -r requirements-qt.txt
-"$HOME/.local/share/estante-venv/bin/python" install.py --python "$HOME/.local/share/estante-venv/bin/python"
+"$HOME/.local/share/estante-venv/bin/pip" install -r requirements/qt.txt
+"$HOME/.local/share/estante-venv/bin/python" packaging/install.py --python "$HOME/.local/share/estante-venv/bin/python"
 ```
 
 La instalación predeterminada es para tu usuario, en `~/.local`, sin `sudo`.
@@ -241,7 +243,7 @@ cd Estante
 sh install.sh
 ```
 
-También puedes ejecutar `python3 estante.py` desde la carpeta del proyecto.
+También puedes ejecutar `python3 gtk_app/estante.py` desde la carpeta del proyecto.
 
 ## Añadir juegos
 
@@ -443,7 +445,7 @@ El instalador también admite `--prefix` y `--destdir` para preparar paquetes de
 
 ### Construir el AppImage
 
-La versión se define en `version.py`; ambos constructores la incorporan al nombre
+La versión se define en `core/version.py`; ambos constructores la incorporan al nombre
 del archivo generado.
 
 Con el entorno Qt/PySide6, SDL2, `ldd` y el AppImage de

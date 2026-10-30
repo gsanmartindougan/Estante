@@ -19,7 +19,7 @@
   o equivalente Flatpak. No se invoca Wine ni se construyen comandos de shell.
 - Supervisión: entorno `HEROIC_APP_NAME` + `HEROIC_APP_RUNNER`, no la duración del
   proceso de la GUI ni su foco. El mismo criterio sirve al supervisor de restauración.
-- El instalador incluye `heroic_import.py` y los nuevos componentes Qt.
+- El instalador incluye `integrations/heroic_import.py` y los nuevos componentes Qt.
 
 Formatos contrastados con el código oficial de Heroic, revisión
 `509a34feea8541b73c928e289f2cf262d432db4a`:

@@ -3,8 +3,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from metadata import GameMetadata
-from i18n import get_language, set_language
+from integrations.metadata import GameMetadata
+from core.i18n import get_language, set_language
 
 
 class MetadataTests(unittest.TestCase):

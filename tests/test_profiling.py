@@ -1,6 +1,6 @@
 from unittest import TestCase
 from unittest.mock import patch
-import profiling
+import core.profiling as profiling
 
 
 class ProfilingTests(TestCase):

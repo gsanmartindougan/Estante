@@ -2,8 +2,8 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock
 
-from estante import Shelf, Gdk
-from settings_view import SettingsView
+from gtk_app.estante import Shelf, Gdk
+from gtk_app.settings_view import SettingsView
 
 
 class SettingsSaveTests(unittest.TestCase):

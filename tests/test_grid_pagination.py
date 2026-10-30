@@ -1,8 +1,8 @@
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, patch
-from appearance import grid_page
-from estante import Shelf
+from core.appearance import grid_page
+from gtk_app.estante import Shelf
 
 
 class GridPaginationTests(TestCase):
@@ -28,7 +28,7 @@ class GridPaginationTests(TestCase):
         host = SimpleNamespace(view_mode='grid', library_games=games, selected_game='0',
                 matches_game=lambda game: True, reload=Mock(), focus_library=Mock(),
                 library_scroll=Mock(), reload_revision=1)
-        with patch('estante.GLib.timeout_add'):
+        with patch('gtk_app.estante.GLib.timeout_add'):
             self.assertFalse(Shelf.change_grid_page(host, -1))
             self.assertTrue(Shelf.change_grid_page(host, 1))
             self.assertEqual(host.selected_game, '12')

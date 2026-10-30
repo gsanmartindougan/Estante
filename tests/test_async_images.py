@@ -2,8 +2,8 @@ from threading import Event, get_ident
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, patch
-from image_cache import ImageCache
-from estante import Shelf
+from gtk_app.image_cache import ImageCache
+from gtk_app.estante import Shelf
 
 
 class AsyncImageTests(TestCase):
@@ -25,7 +25,7 @@ class AsyncImageTests(TestCase):
                 completed.set()
         callback = Mock()
         try:
-            with patch.object(cache, 'load', side_effect=load), patch('image_cache.GLib.idle_add', side_effect=dispatch):
+            with patch.object(cache, 'load', side_effect=load), patch('gtk_app.image_cache.GLib.idle_add', side_effect=dispatch):
                 cache.request('/first', 10, 10, callback)
                 self.assertTrue(started.wait(2))
                 cache.request('/neighbour', 10, 10, callback, priority=1)
@@ -57,7 +57,7 @@ class AsyncImageTests(TestCase):
     def test_picture_request_does_not_decode_on_ui_and_uses_hidpi(self):
         picture = Mock()
         host = SimpleNamespace(get_scale_factor=lambda: 2, view_mode='list')
-        with patch('estante.images.request') as request, patch('estante.images.load') as decode:
+        with patch('gtk_app.estante.images.request') as request, patch('gtk_app.estante.images.load') as decode:
             Shelf.request_picture(host, picture, '/logo', 300, 100, priority=0)
             decode.assert_not_called()
             args = request.call_args.args
@@ -72,7 +72,7 @@ class AsyncImageTests(TestCase):
                 for priority in (0, 1):
                     host = SimpleNamespace(get_scale_factor=lambda: density, view_mode='list',
                                            settings={'list_focus_zoom': zoom})
-                    with patch('estante.images.request') as request:
+                    with patch('gtk_app.estante.images.request') as request:
                         Shelf.request_picture(host, Mock(), '/logo', 300, 100, priority, kind='logo')
                     factor = density * (zoom / 100 if priority == 0 else 1)
                     self.assertEqual(request.call_args.args[:3], ('/logo', 300 * factor, 100 * factor))
@@ -84,7 +84,7 @@ class AsyncImageTests(TestCase):
                 with self.subTest(density=density, size=(width, height)):
                     picture = Mock()
                     host = SimpleNamespace(get_scale_factor=lambda: density, view_mode='grid')
-                    with patch('estante.images.request') as request:
+                    with patch('gtk_app.estante.images.request') as request:
                         Shelf.request_picture(host, picture, '/cover', width, height)
                     self.assertEqual(request.call_args.args[:3],
                                      ('/cover', width * density, height * density))
@@ -92,13 +92,13 @@ class AsyncImageTests(TestCase):
     def test_list_selected_cover_is_loaded_at_display_resolution(self):
         for density in (1, 2):
             host = SimpleNamespace(get_scale_factor=lambda: density, view_mode='list')
-            with patch('estante.images.request') as request:
+            with patch('gtk_app.estante.images.request') as request:
                 Shelf.request_picture(host, Mock(), '/cover', 180, 270, priority=0)
             self.assertEqual(request.call_args.args[:3], ('/cover', 180 * density, 270 * density))
 
     def test_other_layouts_load_neighbours_at_actual_hidpi_resolution(self):
         for mode in ('carousel', 'ps5'):
-            with self.subTest(mode=mode), patch('estante.images.request') as request:
+            with self.subTest(mode=mode), patch('gtk_app.estante.images.request') as request:
                 host = SimpleNamespace(get_scale_factor=lambda: 2, view_mode=mode)
                 Shelf.request_picture(host, Mock(), '/cover', 100, 150, priority=1)
                 self.assertEqual(request.call_args.args[:3], ('/cover', 200, 300))
@@ -107,7 +107,7 @@ class AsyncImageTests(TestCase):
         for mode, settings, expected in (
                 ('carousel', {'carousel_zoom': 175}, (350, 525)),
                 ('ps5', {'ps5_focus_size': 320}, (640, 960))):
-            with self.subTest(mode=mode), patch('estante.images.request') as request:
+            with self.subTest(mode=mode), patch('gtk_app.estante.images.request') as request:
                 host = SimpleNamespace(get_scale_factor=lambda: 2, view_mode=mode, settings=settings)
                 Shelf.request_picture(host, Mock(), '/cover', 104 if mode=='ps5' else 100,
                                       156 if mode=='ps5' else 150, priority=0)
@@ -122,7 +122,7 @@ class AsyncImageTests(TestCase):
             finished.set()
         done = Mock()
         with patch.object(cache, 'load', side_effect=ValueError('invalid image')), \
-             patch('image_cache.GLib.idle_add', side_effect=dispatch):
+             patch('gtk_app.image_cache.GLib.idle_add', side_effect=dispatch):
             cache.request('/bad', 10, 10, done)
             self.assertTrue(finished.wait(2))
             callbacks[0]()
@@ -138,7 +138,7 @@ class AsyncImageTests(TestCase):
             finished.set()
         done = Mock()
         with patch.object(cache, 'load', return_value='texture'), \
-             patch('image_cache.GLib.idle_add', side_effect=dispatch):
+             patch('gtk_app.image_cache.GLib.idle_add', side_effect=dispatch):
             ticket = cache.request('/old', 10, 10, done)
             self.assertTrue(finished.wait(2))
             ticket.cancelled = True

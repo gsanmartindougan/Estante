@@ -2,9 +2,9 @@ import os
 import unittest
 from unittest.mock import patch
 
-from i18n import ENGLISH, get_language, set_language, system_language, tr
-from library import Library
-from updates import update_available
+from core.i18n import ENGLISH, get_language, set_language, system_language, tr
+from core.library import Library
+from integrations.updates import update_available
 
 
 class LanguageTests(unittest.TestCase):

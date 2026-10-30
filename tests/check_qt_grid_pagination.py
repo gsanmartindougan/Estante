@@ -9,8 +9,8 @@ from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QImage
 from PySide6.QtQml import QQmlApplicationEngine
 from qt_app.main import LibraryController
-from library import Library
-from i18n import set_language
+from core.library import Library
+from core.i18n import set_language
 app=QApplication([]);app.setDesktopFileName('io.github.estante.Test');set_language('es')
 def pump(seconds=.15):
     end=time.monotonic()+seconds
@@ -44,7 +44,7 @@ with tempfile.TemporaryDirectory() as folder:
     check(0,10,10);assert strip.property('pageCount')==10
     strip.forceActiveFocus();c.inputAction.emit('page_next');check(1,10,10);assert c.selected==10
     c.inputAction.emit('page_previous');check(0,10,10);assert c.selected==0
-    from controls import StickChord
+    from core.controls import StickChord
     chord=StickChord()
     def sticks(pressed):
         for action in chord.update(pressed): c.inputAction.emit(action)

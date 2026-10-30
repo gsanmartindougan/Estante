@@ -1,8 +1,8 @@
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock
-from estante import Shelf
-from carousel import wheel_position, list_position, VirtualStrip
+from gtk_app.estante import Shelf
+from gtk_app.carousel import wheel_position, list_position, VirtualStrip
 from gi.repository import Gtk
 
 

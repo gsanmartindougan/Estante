@@ -2,7 +2,7 @@ from unittest.mock import patch
 import ctypes as C
 import unittest
 
-from controls import controller_buttons, controller_hint, controller_save_hint, Gamepad, BumperChord, Repeater, neighbor, alphabet_target, alphabet_window
+from core.controls import controller_buttons, controller_hint, controller_save_hint, Gamepad, BumperChord, Repeater, neighbor, alphabet_target, alphabet_window
 
 
 class NavigationTests(unittest.TestCase):
@@ -94,7 +94,7 @@ class NavigationTests(unittest.TestCase):
         pad.poll()
         self.assertTrue(pad.controller)
         self.assertFalse(pad.input_ready)
-        with patch('controls.time.monotonic', return_value=100000):
+        with patch('core.controls.time.monotonic', return_value=100000):
             pad.poll()
         self.assertEqual(actions, [], 'Attachment must not emit repeating input or reset idle')
         sdl.SDL_JoystickSetVirtualButton(stick, 14, 0)
@@ -157,7 +157,7 @@ if __name__ == '__main__':
 
 class AppearanceShortcutTests(unittest.TestCase):
     def test_both_stick_buttons_open_settings_once_per_press(self):
-        from controls import appearance_chord
+        from core.controls import appearance_chord
         repeat = Repeater()
         self.assertEqual(appearance_chord({'left_stick'}), set())
         self.assertEqual(appearance_chord({'right_stick'}), set())
@@ -170,7 +170,7 @@ class AppearanceShortcutTests(unittest.TestCase):
 
 class StickPageTests(unittest.TestCase):
     def test_single_sticks_change_pages_on_release(self):
-        from controls import StickChord
+        from core.controls import StickChord
         chord = StickChord()
         self.assertEqual(chord.update({'left_stick'}), [])
         self.assertEqual(chord.update(set()), ['grid_page_previous'])
@@ -178,7 +178,7 @@ class StickPageTests(unittest.TestCase):
         self.assertEqual(chord.update(set()), ['grid_page_next'])
 
     def test_chord_never_changes_pages_and_fires_once(self):
-        from controls import StickChord
+        from core.controls import StickChord
         chord = StickChord()
         self.assertEqual(chord.update({'left_stick'}), [])
         self.assertEqual(chord.update({'left_stick', 'right_stick'}), ['appearance_settings'])

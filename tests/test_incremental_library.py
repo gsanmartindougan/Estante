@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, patch
-from estante import Shelf, Gtk
+from gtk_app.estante import Shelf, Gtk
 
 
 class IncrementalLibraryTests(TestCase):

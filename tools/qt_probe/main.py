@@ -9,10 +9,10 @@ import time
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from native_memory import configure_native_allocator
+from core.native_memory import configure_native_allocator
 configure_native_allocator()
-from appearance import background_effects_for, list_cover_size, cover_format_for
-from library import Library
+from core.appearance import background_effects_for, list_cover_size, cover_format_for
+from core.library import Library
 from tools.memory_fixture import populate_test_games
 from PySide6.QtCore import QObject, Property, Signal, Slot, QTimer, QUrl
 from PySide6.QtGui import QGuiApplication
@@ -159,7 +159,7 @@ def main():
         QTimer.singleShot(4000, start)
         gamepad = None
         if not args.auto:
-            from controls import Gamepad
+            from core.controls import Gamepad
             def dispatch(action, *_):
                 if action in ('left', 'right'):
                     probe.move(1 if action == 'right' else -1)

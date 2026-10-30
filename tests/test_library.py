@@ -4,10 +4,10 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
-from i18n import set_language, get_language
+from core.i18n import set_language, get_language
 from unittest.mock import patch, MagicMock
 
-from library import Library, SteamGridDB, launch, launch_command
+from core.library import Library, SteamGridDB, launch, launch_command
 
 
 class LibraryTests(unittest.TestCase):
@@ -62,7 +62,7 @@ class LibraryTests(unittest.TestCase):
         from io import BytesIO
         stream = BytesIO(content)
         response.read.side_effect = stream.read
-        with patch('library.urlopen', return_value=response):
+        with patch('core.library.urlopen', return_value=response):
             target = client.download('https://cdn.steamgriddb.com/large.png')
         self.assertEqual(Path(target).read_bytes(), content)
         self.assertGreater(response.read.call_count, 1)
@@ -127,7 +127,7 @@ class LibraryTests(unittest.TestCase):
 
     def test_native_handoff_uses_faugus_game_identifier(self):
         self.faugus()
-        with patch('library.shutil.which', return_value='/usr/bin/faugus-launcher'):
+        with patch('core.library.shutil.which', return_value='/usr/bin/faugus-launcher'):
             self.assertEqual(launch_command(self.library.games()[0]),
                              (['/usr/bin/faugus-launcher', '--game', 'test-id'], None))
 
@@ -212,7 +212,7 @@ class LibraryTests(unittest.TestCase):
 
     def test_flatpak_handoff(self):
         self.faugus('flatpak')
-        with patch('library.shutil.which', return_value='/usr/bin/flatpak'):
+        with patch('core.library.shutil.which', return_value='/usr/bin/flatpak'):
             cmd, cwd = launch_command(self.library.games()[0])
         self.assertEqual(cmd, ['flatpak', 'run', 'io.github.Faugus.faugus-launcher', '--game', 'test-id'])
 
@@ -275,7 +275,7 @@ class LibraryTests(unittest.TestCase):
         cached = Path(client.import_artwork(source))
         source.unlink()
         self.assertEqual(cached.read_bytes(), b'local image')
-        with patch('library.urlopen', return_value=BytesIO(b'url image')) as request:
+        with patch('core.library.urlopen', return_value=BytesIO(b'url image')) as request:
             downloaded = client.download('https://example.com/image.png', custom=True)
             self.assertEqual(Path(downloaded).read_bytes(), b'url image')
             self.assertIsNone(request.call_args.args[0].get_header('Authorization'))
@@ -298,13 +298,13 @@ class LibraryTests(unittest.TestCase):
         client = SteamGridDB('private-key', self.root)
         response = MagicMock()
         response.__enter__.return_value.headers = {'Content-Length': '1234567'}
-        with patch('library.urlopen', return_value=response) as request:
+        with patch('core.library.urlopen', return_value=response) as request:
             self.assertEqual(client.artwork_size('https://cdn.steamgriddb.com/original.png'), 1234567)
             sent = request.call_args.args[0]
             self.assertEqual(sent.get_method(), 'HEAD')
             self.assertIsNone(sent.get_header('Authorization'))
             response.__enter__.return_value.read.assert_not_called()
-        with patch('library.urlopen', side_effect=OSError('No HEAD')):
+        with patch('core.library.urlopen', side_effect=OSError('No HEAD')):
             self.assertIsNone(client.artwork_size('https://cdn.steamgriddb.com/original.png'))
         with self.assertRaises(ValueError):
             client.artwork_size('https://untrusted.example/image.png')
@@ -314,7 +314,7 @@ class LibraryTests(unittest.TestCase):
         client = SteamGridDB('', self.root)
         url = 'https://cdn.steamgriddb.com/original.png'
         (self.root / (hashlib.sha256(url.encode()).hexdigest() + '.img')).write_bytes(b'original')
-        with patch('library.urlopen') as request:
+        with patch('core.library.urlopen') as request:
             self.assertEqual(client.artwork_size(url), 8)
             request.assert_not_called()
 
@@ -328,7 +328,7 @@ class LibraryTests(unittest.TestCase):
                      'ESTANTE_HOST_XDG_DATA_DIRS': '/host/share', 'PATH': '/bundle/bin:/host/bin',
                      'ESTANTE_HOST_PATH': '/host/bin', 'GLYCIN_DATA_DIR': '/bundle/glycin',
                      'ESTANTE_HOST_GLYCIN_DATA_DIR': '', 'ESTANTE_HOST_GDK_PIXBUF_MODULE_FILE': ''}
-        with patch.dict(os.environ, variables), patch('library.subprocess.Popen') as popen:
+        with patch.dict(os.environ, variables), patch('core.library.subprocess.Popen') as popen:
             launch(game, self.library.root)
             env = popen.call_args.kwargs['env']
             self.assertNotIn('PYTHONHOME', env)
@@ -346,7 +346,7 @@ class LibraryTests(unittest.TestCase):
                      'XDG_DATA_DIRS': '/host/share', 'QT_PLUGIN_PATH': '/bundle/plugins',
                      'ESTANTE_HOST_QT_PLUGIN_PATH': '', 'PYTHONPATH': '/bundle/python',
                      'ESTANTE_HOST_PYTHONPATH': '/host/python'}
-        with patch.dict(os.environ, variables, clear=True), patch('library.subprocess.Popen') as popen:
+        with patch.dict(os.environ, variables, clear=True), patch('core.library.subprocess.Popen') as popen:
             launch(game, self.library.root)
             env = popen.call_args.kwargs['env']
             self.assertEqual(env['PATH'], '/host/bin')
@@ -416,8 +416,8 @@ class LibraryTests(unittest.TestCase):
             api.assert_not_called()
 
     def test_launch_assigns_unique_inherited_session_tokens_including_flatpak(self):
-        with patch('library.launch_command', return_value=(['flatpak', 'run', 'example.Game'], None)), \
-             patch('library.subprocess.Popen') as popen:
+        with patch('core.library.launch_command', return_value=(['flatpak', 'run', 'example.Game'], None)), \
+             patch('core.library.subprocess.Popen') as popen:
             first = launch({'kind': 'faugus'}, self.library.root)
             first_token = first.estante_session_token
             args = popen.call_args

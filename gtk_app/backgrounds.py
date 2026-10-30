@@ -9,7 +9,7 @@ from gi.repository import Gdk, Graphene, Gsk
 SPLIT_MODES = ('single', 'horizontal', 'vertical', 'diagonal')
 
 
-BUNDLED_BACKGROUNDS = tuple(sorted((Path(__file__).resolve().parent / 'assets/backgrounds').glob('*')))
+BUNDLED_BACKGROUNDS = tuple(sorted((Path(__file__).resolve().parents[1] / 'assets/backgrounds').glob('*')))
 DEFAULT_BACKGROUND = 'bundled:6.png'
 # Preserve selections saved before the bundled files were numbered.
 _BACKGROUND_ALIASES = {'wallhaven-0q5jmr_2560x1440.png': '1.png', 'wallhaven-wqr35p_2560x1440.png': '2.png', 'wallhaven-493jw8_2560x1440.png': '3.png', 'wallhaven-mdglyk_2560x1440.png': '4.png', 'wallhaven-1po36w_2560x1440.png': '5.png', 'wallhaven-dgx11m_2560x1440.png': '6.png', 'pexels-francesco-ungaro-13216333.jpg': '6.png', '7.jpg': '6.png'}

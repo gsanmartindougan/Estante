@@ -1,5 +1,5 @@
 """IGDB artwork and screenshots using Twitch client credentials."""
-from i18n import tr
+from core.i18n import tr
 import json
 import re
 import time

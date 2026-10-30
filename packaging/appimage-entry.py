@@ -44,8 +44,8 @@ if sys.argv[1:] == ['--self-test']:
     gi.require_version('Adw', '1')
     gi.require_version('Gsk', '4.0')
     from gi.repository import Gtk, Adw, Gdk, Gio, Gsk, Graphene, GdkPixbuf, Pango
-    from estante import App, BlurredBackdrop
-    from i18n import set_language, get_language, tr
+    from gtk_app.estante import App, BlurredBackdrop
+    from core.i18n import set_language, get_language, tr
     original_language = get_language()
     for language, label in (('es', 'Ajustes'), ('en', 'Settings')):
         set_language(language)
@@ -74,11 +74,11 @@ if sys.argv[1:] == ['--self-test']:
         # The file path intentionally does not exist: reuse the decoded pixels.
         color = BlurredBackdrop.dominant_color('/unused/hero.img', texture)
         assert color.red > .9 and color.green > .5 and color.blue > .3
-    from backgrounds import BUNDLED_BACKGROUNDS, DEFAULT_BACKGROUND, resolve_background
-    from image_cache import ImageCache
-    from steam_import import read_vdf, is_faugus_steam
-    from scraping import scrape_game
-    from appearance import list_side_for
+    from gtk_app.backgrounds import BUNDLED_BACKGROUNDS, DEFAULT_BACKGROUND, resolve_background
+    from gtk_app.image_cache import ImageCache
+    from integrations.steam_import import read_vdf, is_faugus_steam
+    from integrations.scraping import scrape_game
+    from core.appearance import list_side_for
     assert len(BUNDLED_BACKGROUNDS) == 6, 'Faltan fondos incluidos'
     assert Path(resolve_background(DEFAULT_BACKGROUND)).is_relative_to(root), 'Fondo externo al AppImage'
     for background in BUNDLED_BACKGROUNDS:
@@ -101,7 +101,7 @@ if sys.argv[1:] == ['--self-test']:
         assert decoder.wait_for_writes(15), 'La última miniatura no terminó'
     assert is_faugus_steam({'runner': 'Steam'})
     assert list_side_for({}) == 'left'
-    from backgrounds import paint_hero_pair
+    from gtk_app.backgrounds import paint_hero_pair
     import cairo
     first = Gdk.MemoryTexture.new(1, 1, Gdk.MemoryFormat.R8G8B8A8, GLib.Bytes.new(bytes((255, 0, 0, 255))), 4)
     second = Gdk.MemoryTexture.new(1, 1, Gdk.MemoryFormat.R8G8B8A8, GLib.Bytes.new(bytes((0, 0, 255, 255))), 4)
@@ -115,7 +115,7 @@ if sys.argv[1:] == ['--self-test']:
         assert tuple(pixels[10 * surface.get_stride() + 10 * 4:10 * surface.get_stride() + 10 * 4 + 4]) == (0, 0, 255, 255)
         assert tuple(pixels[70 * surface.get_stride() + 110 * 4:70 * surface.get_stride() + 110 * 4 + 4]) == (255, 0, 0, 255)
     # Exercise the SVG-to-PNG path used by Bootstrap Icons and Iconify.
-    from metadata import CategoryIcons
+    from integrations.metadata import CategoryIcons
     with tempfile.TemporaryDirectory(prefix='estante-svg-check-') as directory:
         target = Path(directory) / 'icon.png'
         CategoryIcons.render_svg(b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill="currentColor" d="M4 4h8v8H4z"/></svg>', target)
@@ -132,8 +132,8 @@ if sys.argv[1:] == ['--self-test']:
         assert paths and all(str(root) in path for path in paths), name + ' externo al AppImage'
     print('AppImage: Python, GTK, libadwaita, SDL2, fondos PNG/JPEG, iconos SVG, color y certificados OK.')
 elif sys.argv[1:] == ['--version']:
-    from version import __version__
+    from core.version import __version__
     print('Estante ' + __version__)
 else:
-    from estante import App
+    from gtk_app.estante import App
     raise SystemExit(App().run(sys.argv))

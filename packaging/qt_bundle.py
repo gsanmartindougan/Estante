@@ -13,7 +13,7 @@ ROOT=Path(__file__).resolve().parents[1]
 
 
 def prepare(appdir):
-    subprocess.run([sys.executable,str(ROOT/'install.py'),'--frontend','qt','--prefix','/usr','--destdir',str(appdir)],check=True)
+    subprocess.run([sys.executable,str(ROOT/'packaging/install.py'),'--frontend','qt','--prefix','/usr','--destdir',str(appdir)],check=True)
     libraries=appdir/'usr/lib'; libraries.mkdir(parents=True,exist_ok=True)
     version='python'+sysconfig.get_python_version()
     pythonlib=libraries/version
@@ -74,7 +74,7 @@ export QT_PLUGIN_PATH="$PYTHONPATH/PySide6/Qt/plugins"
 export QML_IMPORT_PATH="$PYTHONPATH/PySide6/Qt/qml"
 export QT_QPA_PLATFORM_PLUGIN_PATH="$QT_PLUGIN_PATH/platforms"
 export SSL_CERT_FILE="$ESTANTE_APPDIR/etc/ssl/cert.pem"
-exec "$ESTANTE_APPDIR/usr/lib/ld-linux-x86-64.so.2" --library-path "$ESTANTE_APPDIR/usr/lib" "$ESTANTE_APPDIR/usr/bin/python3" "$ESTANTE_APPDIR/usr/share/estante/estante_qt.py" "$@"
+exec "$ESTANTE_APPDIR/usr/lib/ld-linux-x86-64.so.2" --library-path "$ESTANTE_APPDIR/usr/lib" "$ESTANTE_APPDIR/usr/bin/python3" "$ESTANTE_APPDIR/usr/share/estante/qt_app/__main__.py" "$@"
 '''.replace('PYVERSION',version)
     (appdir/'AppRun').write_text(script);(appdir/'AppRun').chmod(0o755)
     return appdir

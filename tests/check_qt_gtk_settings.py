@@ -7,8 +7,8 @@ from PySide6.QtWidgets import QApplication
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 from qt_app.main import LibraryController
-from library import Library
-from i18n import set_language
+from core.library import Library
+from core.i18n import set_language
 app=QApplication([]);app.setDesktopFileName('io.github.estante.Test');set_language('es')
 def pump(seconds=.12):
     deadline=time.monotonic()+seconds

@@ -1,8 +1,13 @@
 """Installed/source entry point for the Qt frontend."""
+
 import sys
+from pathlib import Path
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 
 if sys.argv[1:] == ['--version']:
-    from version import __version__
+    from core.version import __version__
     print('Estante ' + __version__)
 elif sys.argv[1:] == ['--self-test']:
     import ssl

@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import Mock, patch
 import zlib
 
-from estante import BlurredBackdrop, TopAlignedPicture, Gdk, GLib
+from gtk_app.estante import BlurredBackdrop, TopAlignedPicture, Gdk, GLib
 
 
 def solid_texture(red, green, blue, alpha=255):
@@ -18,7 +18,7 @@ def solid_texture(red, green, blue, alpha=255):
 class BackgroundTests(unittest.TestCase):
     def test_color_reuses_texture_without_reading_image_again(self):
         texture = solid_texture(255, 176, 119)
-        with patch('estante.Gdk.Texture.new_from_filename', side_effect=AssertionError('No second decode')):
+        with patch('gtk_app.estante.Gdk.Texture.new_from_filename', side_effect=AssertionError('No second decode')):
             color = BlurredBackdrop.dominant_color('/nonexistent/hero.png', texture)
         self.assertAlmostEqual(color.red, 1, places=2)
         self.assertAlmostEqual(color.green, 176 / 255, places=2)
@@ -48,7 +48,7 @@ class BackgroundEffectSnapshotTests(unittest.TestCase):
         for radius in (0, 18):
             snapshot = Mock()
             host = SimpleNamespace(blur=radius, snapshot_background=Mock())
-            with patch('estante.blur_radius', side_effect=lambda value: value):
+            with patch('gtk_app.estante.blur_radius', side_effect=lambda value: value):
                 TopAlignedPicture.do_snapshot(host, snapshot)
             host.snapshot_background.assert_called_once_with(snapshot)
             self.assertEqual(snapshot.push_blur.call_count, int(radius > 0))

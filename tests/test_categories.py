@@ -1,9 +1,9 @@
 import unittest
-from i18n import set_language, get_language
+from core.i18n import set_language, get_language
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from estante import Shelf
+from gtk_app.estante import Shelf
 
 
 class CategoryTests(unittest.TestCase):

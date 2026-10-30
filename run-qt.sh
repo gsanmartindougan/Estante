@@ -10,7 +10,7 @@ elif python3 -c 'import PySide6' 2>/dev/null; then
 elif [ -x /tmp/estante-qt-venv/bin/python ]; then
     QT_PYTHON=/tmp/estante-qt-venv/bin/python
 else
-    echo 'Instala el entorno Qt: python3 -m venv .venv-qt && .venv-qt/bin/pip install -r requirements-qt.txt' >&2
+    echo 'Instala el entorno Qt: python3 -m venv .venv-qt && .venv-qt/bin/pip install -r requirements/qt.txt' >&2
     exit 1
 fi
-exec "$QT_PYTHON" estante_qt.py "$@"
+exec "$QT_PYTHON" qt_app/__main__.py "$@"

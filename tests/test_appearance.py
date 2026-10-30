@@ -1,6 +1,6 @@
 import json
 import unittest
-from appearance import cover_format_for, cover_size_for, minimal_for
+from core.appearance import cover_format_for, cover_size_for, minimal_for
 
 
 class CoverFormatTests(unittest.TestCase):
@@ -17,7 +17,7 @@ class CoverFormatTests(unittest.TestCase):
         settings['cover_formats']['carousel'] = 'square'
         self.assertEqual(cover_size_for(settings, 'carousel'), (192, 192))
 
-from appearance import ring_for, with_ring, VIEW_NAMES, cover_radius_for, hero_position_for
+from core.appearance import ring_for, with_ring, VIEW_NAMES, cover_radius_for, hero_position_for
 
 
 class AppearanceTests(unittest.TestCase):
@@ -71,7 +71,7 @@ class ListAppearanceTests(unittest.TestCase):
 
 class ListDetailCoverTests(unittest.TestCase):
     def test_size_preserves_aspect_ratio_and_is_independent_of_logos(self):
-        from appearance import list_cover_size
+        from core.appearance import list_cover_size
         self.assertEqual(list_cover_size({'list_cover_zoom': 150, 'list_zoom': 50}), (270, 405))
         self.assertEqual(list_cover_size({'list_cover_zoom': 150, 'cover_formats': {'list': 'square'}}), (330, 330))
         self.assertEqual(list_cover_size({'list_cover_zoom': 1000}), (315, 472))

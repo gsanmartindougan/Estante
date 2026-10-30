@@ -4,8 +4,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import patch
-from library import Library, launch_command
-from steam_import import read_vdf, discover_steam, is_faugus_steam
+from core.library import Library, launch_command
+from integrations.steam_import import read_vdf, discover_steam, is_faugus_steam
 
 
 def vdf(values):
@@ -118,11 +118,11 @@ class SteamImportTests(TestCase):
         self.assertEqual(Library(home=self.home).games(), [])
 
     def test_launch_uses_correct_steam_client_and_validates_id(self):
-        with patch('library.shutil.which', return_value='/usr/bin/steam'):
+        with patch('core.library.shutil.which', return_value='/usr/bin/steam'):
             command, cwd = launch_command({'kind': 'steam', 'steam_appid': '42', 'install': 'native'})
         self.assertEqual(command, ['/usr/bin/steam', '-silent', '-applaunch', '42'])
         self.assertIsNone(cwd)
-        with patch('library.shutil.which', return_value='/usr/bin/flatpak'):
+        with patch('core.library.shutil.which', return_value='/usr/bin/flatpak'):
             command, _ = launch_command({'kind': 'steam', 'steam_appid': '42', 'install': 'flatpak'})
         self.assertEqual(command, ['flatpak', 'run', 'com.valvesoftware.Steam', '-silent', '-applaunch', '42'])
         with self.assertRaises(ValueError):

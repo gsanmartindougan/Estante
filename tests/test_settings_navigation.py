@@ -1,5 +1,5 @@
 import unittest
-from settings_view import spatial_target
+from gtk_app.settings_view import spatial_target
 
 
 class SettingsNavigationTests(unittest.TestCase):
@@ -25,7 +25,7 @@ class SettingsNavigationTests(unittest.TestCase):
 
     def test_trailing_switch_uses_labelled_row_for_directional_navigation(self):
         from unittest.mock import Mock, patch
-        from settings_view import navigation_bounds
+        from gtk_app.settings_view import navigation_bounds
         class Row:
             compute_bounds = Mock(return_value=(True, 'row-bounds'))
         class Switch:
@@ -33,7 +33,7 @@ class SettingsNavigationTests(unittest.TestCase):
                 return row
         row = Row()
         switch = Switch()
-        with patch('settings_view.Gtk.Switch', Switch), patch('settings_view.Gtk.Box', Row):
+        with patch('gtk_app.settings_view.Gtk.Switch', Switch), patch('gtk_app.settings_view.Gtk.Box', Row):
             self.assertEqual(navigation_bounds(switch, 'page'), (True, 'row-bounds'))
         # The switch shares its row's centre with the full-width section header.
         points = [(300, 65), (300, 110), (300, 150), (300, 240)]

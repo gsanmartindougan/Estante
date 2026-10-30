@@ -2,10 +2,11 @@
 from copy import deepcopy
 from pathlib import Path
 import shutil
+import os
 import tempfile
 
 
-def populate_test_games(library, count):
+def populate_test_games(library, count, *, link_artwork=False):
     originals = library.games()
     if count < 1 or not originals:
         raise ValueError('The test needs a positive count and at least one source game.')
@@ -20,7 +21,13 @@ def populate_test_games(library, count):
             source = Path(game.get(field) or '')
             if source.is_file():
                 target = artwork / f'{index:04d}-{field}{source.suffix}'
-                shutil.copyfile(source, target)
+                if link_artwork:
+                    try:
+                        os.link(source, target)
+                    except OSError:
+                        shutil.copyfile(source, target)
+                else:
+                    shutil.copyfile(source, target)
                 game[field] = str(target)
         games.append(game)
     library.state = {'games': games, 'overrides': {}, 'faugus': [], 'steam': [],

@@ -1,6 +1,6 @@
 """Optional Steam Store screenshots for game backgrounds; no account required."""
-from i18n import tr
-from i18n import get_language
+from core.i18n import tr
+from core.i18n import get_language
 import json
 import re
 from html import unescape

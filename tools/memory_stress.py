@@ -27,16 +27,16 @@ settings=json.loads((source/'settings.json').read_text());settings.update(check_
 for path in source.iterdir():
  if path.is_dir():(data/path.name).symlink_to(path.resolve(),target_is_directory=True)
 if args.games:
- from library import Library
+ from core.library import Library
  from tools.memory_fixture import populate_test_games
  populate_test_games(Library(data_dir=data),args.games)
 os.environ['ESTANTE_DATA_DIR']=str(data)
 os.environ['ESTANTE_MEMORY_DIAGNOSTICS']='0'
 # Separate cache permits cold/warm observations without deleting the user's cache.
 os.environ['XDG_CACHE_HOME']=str(args.cache_dir.resolve() if args.cache_dir else root/'cache')
-from estante import App, Shelf, Gtk, GLib
+from gtk_app.estante import App, Shelf, Gtk, GLib
 if args.skip_idle_reclaim: Shelf.schedule_artwork_reclaim=lambda self: None
-from image_cache import images,memory_usage,reclaim_unused_memory
+from gtk_app.image_cache import images,memory_usage,reclaim_unused_memory
 app=App();app.set_application_id('io.github.estante.MemoryDebugP'+str(os.getpid()))
 refs=[];state={'steps':0,'failed':False};output=Path(args.output);output.write_text('')
 def children(widget):

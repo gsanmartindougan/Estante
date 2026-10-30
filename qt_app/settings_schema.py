@@ -2,7 +2,7 @@
 from copy import deepcopy
 from pathlib import Path
 import math
-from i18n import tr
+from core.i18n import tr
 
 
 def specs(settings):

@@ -31,7 +31,7 @@ class Catalog:
         return self.visible[index] if index >= 0 else None
 
     def _reindex(self):
-        from controls import title_initial
+        from core.controls import title_initial
         self._indices={}
         self._initials=[]
         self._first_by_letter={}

@@ -13,7 +13,7 @@ available through `./run-gtk.sh`.
 
 ```sh
 python3 -m venv .venv-qt
-.venv-qt/bin/pip install -r requirements-qt.txt
+.venv-qt/bin/pip install -r requirements/qt.txt
 ./run.sh
 ```
 
@@ -22,6 +22,8 @@ against the same data simultaneously. Installation and AppImage builds default t
 Qt; `--frontend gtk` selects the previous frontend. See the [Qt guide](qt_app/README.md)
 and [migration evidence](docs/migracion-qt-2026-10-24.md) (Spanish).
 The videos on this page show the Qt frontend in 0.3.0.
+
+See the [project layout](docs/estructura-del-proyecto.md) for code, assets and tooling.
 
 ## AI-assisted development and human review
 
@@ -108,8 +110,8 @@ Extract `Estante-0.3.0-linux.tar.gz`, enter `Estante`, and use a persistent Qt e
 
 ```sh
 python3 -m venv "$HOME/.local/share/estante-venv"
-"$HOME/.local/share/estante-venv/bin/pip" install -r requirements-qt.txt
-"$HOME/.local/share/estante-venv/bin/python" install.py --python "$HOME/.local/share/estante-venv/bin/python"
+"$HOME/.local/share/estante-venv/bin/pip" install -r requirements/qt.txt
+"$HOME/.local/share/estante-venv/bin/python" packaging/install.py --python "$HOME/.local/share/estante-venv/bin/python"
 ```
 
 This installs into `~/.local` without administrator privileges. Launch Estante from
@@ -190,7 +192,7 @@ python3 packaging/build-release.py
 python3 packaging/build-appimage.py --builder ~/Applications/appimagebuilder.appimage
 ```
 
-Builds go into `dist/`; nothing is uploaded automatically. The version is defined in `version.py`. To run from source, use `sh run.sh`. Graphical checks require a desktop session: `python3 tests/check_ui.py`.
+Builds go into `dist/`; nothing is uploaded automatically. The version is defined in `core/version.py`. To run from source, use `sh run.sh`. Graphical checks require a desktop session: `python3 tests/check_ui.py`.
 
 The AppImage is built from the build machine's libraries. Graphical compatibility on other distributions still needs validation; an ARM build is not currently provided.
 

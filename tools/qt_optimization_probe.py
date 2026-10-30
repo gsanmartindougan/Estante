@@ -7,15 +7,17 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QImage
 from qt_app.main import LibraryController
-from library import Library
+from core.library import Library
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output',required=True)
+parser.add_argument('--counts',type=int,nargs='+',default=[100,1000])
 args=parser.parse_args()
+if any(count<1 for count in args.counts):parser.error('counts must be positive')
 app=QApplication([]);app.setDesktopFileName('io.github.estante.Test')
 results=[]
 with tempfile.TemporaryDirectory() as folder:
  root=Path(folder);image=QImage(120,180,QImage.Format_RGB32);image.fill(0xff556677);image.save(str(root/'cover.png'))
- for count in (100,1000):
+ for count in args.counts:
   games=[{'id':str(i),'title':chr(65+i%26)+f' Game {i:04d}','kind':'custom','cover':str(root/'cover.png'),
           'square_cover':str(root/'cover.png'),'logo':str(root/'cover.png'),'banner':str(root/'cover.png'),
           'metadata':{'description':'Example description. '*12,'genres':['Action','Adventure'],'developers':['Studio']}}

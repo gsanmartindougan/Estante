@@ -26,7 +26,7 @@ Reproducción: dos llamadas simultáneas para una imagen de 128×128 RGBA produj
 
 **Prueba de aceptación:** dos consumidores concurrentes reciben el recurso compartido; el contador coincide con las entradas y termina en cero al vaciarse.
 
-Código: [image_cache.py:231](/home/gabriel/personal/estante/image_cache.py:231).
+Código: [gtk_app/image_cache.py:231](/home/gabriel/personal/estante/image_cache.py:231).
 
 ### 2. Limitar y cancelar los trabajos de galerías y paneles
 
@@ -38,7 +38,7 @@ Código: [image_cache.py:231](/home/gabriel/personal/estante/image_cache.py:231)
 
 **Prueba:** abrir/cerrar varias galerías con red lenta; número de workers y cola acotados, sin actualizaciones tardías ni crecimiento acumulado.
 
-Código: [estante.py:1728](/home/gabriel/personal/estante/estante.py:1728), [estante.py:3259](/home/gabriel/personal/estante/estante.py:3259).
+Código: [gtk_app/estante.py:1728](/home/gabriel/personal/estante/estante.py:1728), [gtk_app/estante.py:3259](/home/gabriel/personal/estante/estante.py:3259).
 
 ### 3. Sacar decodificaciones y validaciones del hilo de GTK
 
@@ -50,7 +50,7 @@ Todavía hay `images.load` síncronos en ajustes y callbacks ejecutados por GTK:
 
 **Prueba:** caché fría y archivos grandes; apertura y navegación sin pausas de decodificación en el hilo principal.
 
-Código: [settings_view.py:947](/home/gabriel/personal/estante/settings_view.py:947), [settings_view.py:967](/home/gabriel/personal/estante/settings_view.py:967), [estante.py:3279](/home/gabriel/personal/estante/estante.py:3279).
+Código: [gtk_app/settings_view.py:947](/home/gabriel/personal/estante/settings_view.py:947), [gtk_app/settings_view.py:967](/home/gabriel/personal/estante/settings_view.py:967), [gtk_app/estante.py:3279](/home/gabriel/personal/estante/estante.py:3279).
 
 ### 4. Evitar la decodificación completa del original en AppImage
 
@@ -62,7 +62,7 @@ Con `ESTANTE_APPDIR`, el decoder abre primero el archivo como `Gdk.Texture`, obt
 
 **Prueba:** original de gran resolución y miniatura pequeña; comparar el pico de RSS de fuente y AppImage, en caché fría y caliente.
 
-Código: [image_cache.py:70](/home/gabriel/personal/estante/image_cache.py:70).
+Código: [gtk_app/image_cache.py:70](/home/gabriel/personal/estante/image_cache.py:70).
 
 ### 5. Hacer incremental la actualización de la biblioteca
 
@@ -74,7 +74,7 @@ Código: [image_cache.py:70](/home/gabriel/personal/estante/image_cache.py:70).
 
 **Prueba:** editar la sinopsis o completar una imagen no reconstruye el resto de tarjetas ni repite cargas innecesarias.
 
-Código: [estante.py:1789](/home/gabriel/personal/estante/estante.py:1789), [estante.py:1820](/home/gabriel/personal/estante/estante.py:1820), [estante.py:1977](/home/gabriel/personal/estante/estante.py:1977).
+Código: [gtk_app/estante.py:1789](/home/gabriel/personal/estante/estante.py:1789), [gtk_app/estante.py:1820](/home/gabriel/personal/estante/estante.py:1820), [gtk_app/estante.py:1977](/home/gabriel/personal/estante/estante.py:1977).
 
 ### 6. Liberar los paneles cerrados, además de sus imágenes
 
@@ -86,7 +86,7 @@ Código: [estante.py:1789](/home/gabriel/personal/estante/estante.py:1789), [est
 
 **Prueba:** abrir y cerrar un editor/galería sin abrir otro después; no quedan vivos sus widgets ni callbacks exclusivos.
 
-Código: [estante.py:2434](/home/gabriel/personal/estante/estante.py:2434).
+Código: [gtk_app/estante.py:2434](/home/gabriel/personal/estante/estante.py:2434).
 
 ## Prioridad media
 
@@ -100,7 +100,7 @@ La cuadrícula está paginada y la ventana de imágenes está limitada. Sin emba
 
 **Prueba:** comparar 100, 1.000 y 5.000 juegos; el número de widgets vivos debe depender de lo visible, no del total.
 
-Código: [estante.py:1820](/home/gabriel/personal/estante/estante.py:1820), [carousel.py:153](/home/gabriel/personal/estante/carousel.py:153), [carousel.py:175](/home/gabriel/personal/estante/carousel.py:175).
+Código: [gtk_app/estante.py:1820](/home/gabriel/personal/estante/estante.py:1820), [gtk_app/carousel.py:153](/home/gabriel/personal/estante/carousel.py:153), [gtk_app/carousel.py:175](/home/gabriel/personal/estante/carousel.py:175).
 
 **Categorías ocultas:** actualmente se filtran antes de crear las tarjetas. No he encontrado que se creen tarjetas para todas las categorías. Sí se conserva el índice completo de metadatos en `library_games`; eso es distinto de cargar todas sus imágenes.
 
@@ -114,7 +114,7 @@ El callback `resize_panel` está registrado en el reloj de fotogramas y devuelve
 
 **Prueba:** ventana inmóvil con panel cerrado, sin callback por fotograma para esta tarea.
 
-Código: [estante.py:853](/home/gabriel/personal/estante/estante.py:853).
+Código: [gtk_app/estante.py:853](/home/gabriel/personal/estante/estante.py:853).
 
 ### 9. Reducir el coste de los fondos y de la cápsula de lista
 
@@ -126,7 +126,7 @@ La cápsula de lista no reducida vuelve a tomar snapshots de ambos fondos dentro
 
 **Prueba:** mismo fondo, resolución y navegación; comparar CPU, tiempos de fotograma y memoria gráfica, manteniendo el aspecto.
 
-Código: [estante.py:1987](/home/gabriel/personal/estante/estante.py:1987), [estante.py:302](/home/gabriel/personal/estante/estante.py:302).
+Código: [gtk_app/estante.py:1987](/home/gabriel/personal/estante/estante.py:1987), [gtk_app/estante.py:302](/home/gabriel/personal/estante/estante.py:302).
 
 ### 10. Ajustar resoluciones y variantes a su uso real
 
@@ -138,7 +138,7 @@ Carrusel y Sense solicitan una escala de 2,5 en `request_picture`, además del f
 
 **Prueba:** calidad suficiente al ampliar; variantes y bytes estables tras recorrer y cambiar de apariencia. Comprimir más un PNG en disco no reduce los píxeles de su textura decodificada.
 
-Código: [estante.py:1757](/home/gabriel/personal/estante/estante.py:1757), [image_cache.py:158](/home/gabriel/personal/estante/image_cache.py:158).
+Código: [gtk_app/estante.py:1757](/home/gabriel/personal/estante/estante.py:1757), [gtk_app/image_cache.py:158](/home/gabriel/personal/estante/image_cache.py:158).
 
 ### 11. Aligerar la escritura de miniaturas, también en el salvapantallas
 
@@ -150,7 +150,7 @@ La cola del escritor admite hasta 32 MiB de pixbufs. Cada guardado recorre y ord
 
 **Prueba:** pase de diapositivas y navegación con caché fría; colas acotadas, bytes pendientes y actividad de escritura vuelven a reposo.
 
-Código: [image_cache.py:291](/home/gabriel/personal/estante/image_cache.py:291), [image_cache.py:345](/home/gabriel/personal/estante/image_cache.py:345), [screensaver.py:87](/home/gabriel/personal/estante/screensaver.py:87).
+Código: [gtk_app/image_cache.py:291](/home/gabriel/personal/estante/image_cache.py:291), [gtk_app/image_cache.py:345](/home/gabriel/personal/estante/image_cache.py:345), [gtk_app/screensaver.py:87](/home/gabriel/personal/estante/screensaver.py:87).
 
 ### 12. Guardar el scraping por lotes y evitar búsquedas repetidas
 
@@ -162,7 +162,7 @@ Por cada resultado se llama a `library.games()`, que copia y ordena la bibliotec
 
 **Prueba:** N juegos modificados no producen N reordenaciones y N escrituras completas en el hilo principal.
 
-Código: [settings_view.py:321](/home/gabriel/personal/estante/settings_view.py:321), [library.py:123](/home/gabriel/personal/estante/library.py:123), [library.py:138](/home/gabriel/personal/estante/library.py:138), [library.py:62](/home/gabriel/personal/estante/library.py:62).
+Código: [gtk_app/settings_view.py:321](/home/gabriel/personal/estante/settings_view.py:321), [core/library.py:123](/home/gabriel/personal/estante/library.py:123), [core/library.py:138](/home/gabriel/personal/estante/library.py:138), [core/library.py:62](/home/gabriel/personal/estante/library.py:62).
 
 ### 13. Descargar e importar imágenes sin cargar el archivo entero en RAM
 
@@ -174,7 +174,7 @@ Las descargas de arte usan `response.read()` completo; la importación local usa
 
 **Prueba:** archivo grande sin un buffer del tamaño total por descarga; un fallo no deja un archivo definitivo incompleto.
 
-Código: [library.py:423](/home/gabriel/personal/estante/library.py:423), [library.py:453](/home/gabriel/personal/estante/library.py:453), [updates.py:89](/home/gabriel/personal/estante/updates.py:89).
+Código: [core/library.py:423](/home/gabriel/personal/estante/library.py:423), [core/library.py:453](/home/gabriel/personal/estante/library.py:453), [integrations/updates.py:89](/home/gabriel/personal/estante/updates.py:89).
 
 ## Ajustes secundarios, después de medir
 
@@ -186,7 +186,7 @@ El mando se sondea cada 16 ms, incluso cuando se permite lectura en segundo plan
 
 **Optimización:** frecuencias adaptativas sin perder la capacidad de despertar el salvapantallas; recordar PIDs e identidad de proceso y mantener un escaneo de recuperación para hijos nuevos, wrappers y PID reutilizados. No sustituir la detección por pérdida de foco.
 
-Código: [estante.py:937](/home/gabriel/personal/estante/estante.py:937), [controls.py:166](/home/gabriel/personal/estante/controls.py:166), [game_session.py:14](/home/gabriel/personal/estante/game_session.py:14), [game_session.py:54](/home/gabriel/personal/estante/game_session.py:54).
+Código: [gtk_app/estante.py:937](/home/gabriel/personal/estante/estante.py:937), [core/controls.py:166](/home/gabriel/personal/estante/controls.py:166), [core/game_session.py:14](/home/gabriel/personal/estante/game_session.py:14), [core/game_session.py:54](/home/gabriel/personal/estante/game_session.py:54).
 
 ### 15. Unificar el ciclo de vida de vistas y tareas
 
@@ -198,7 +198,7 @@ Ajustes, sidebar, imágenes, salvapantallas y cambios de apariencia cancelan rec
 
 **Prueba:** 20 ciclos de ajustes, galerías, salvapantallas y cambio de aspecto sin crecimiento sostenido de objetos, jobs o memoria privada tras estabilizarse.
 
-Código: [estante.py:3038](/home/gabriel/personal/estante/estante.py:3038), [screensaver.py:256](/home/gabriel/personal/estante/screensaver.py:256), [screensaver.py:335](/home/gabriel/personal/estante/screensaver.py:335), [image_cache.py:31](/home/gabriel/personal/estante/image_cache.py:31).
+Código: [gtk_app/estante.py:3038](/home/gabriel/personal/estante/estante.py:3038), [gtk_app/screensaver.py:256](/home/gabriel/personal/estante/screensaver.py:256), [gtk_app/screensaver.py:335](/home/gabriel/personal/estante/screensaver.py:335), [gtk_app/image_cache.py:31](/home/gabriel/personal/estante/image_cache.py:31).
 
 ## Medición necesaria antes de atribuir los 300 MB
 

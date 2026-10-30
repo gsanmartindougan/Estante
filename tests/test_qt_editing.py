@@ -2,7 +2,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 from qt_app.editing import draft_for, save_draft
-from library import Library
+from core.library import Library
 
 
 class QtEditingTests(TestCase):

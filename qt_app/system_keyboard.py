@@ -5,7 +5,7 @@ from PySide6.QtCore import QObject, Property, Signal, Slot, QProcess, QTimer
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtDBus import QDBusConnection, QDBusInterface, QDBusPendingCallWatcher, QDBusMessage, QDBus
 from shiboken6 import isValid
-from i18n import tr
+from core.i18n import tr
 from qt_app.keyboard_config import provider, cosmic_connection_supported
 
 

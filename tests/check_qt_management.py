@@ -7,7 +7,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from PySide6.QtCore import QCoreApplication
 from PySide6.QtGui import QImage
 from qt_app.main import LibraryController
-from library import Library
+from core.library import Library
 
 app=QCoreApplication([])
 def wait(manager):
@@ -31,7 +31,7 @@ with tempfile.TemporaryDirectory() as folder:
     with patch('qt_app.management.SteamGridDB.search',side_effect=RuntimeError('offline')):
         manager.searchArtwork('steamgriddb','Other','banner');wait(manager)
     assert manager.results==[] and manager.message=='offline'
-    with patch('updates.latest_release',return_value=None):manager.checkUpdates();wait(manager)
+    with patch('integrations.updates.latest_release',return_value=None):manager.checkUpdates();wait(manager)
     assert manager.message=='Ya tienes la última versión.'
     from qt_app.icons import BootstrapIcons
     row=dict(name='controller',url=BootstrapIcons.ICON_ROOT+'controller.svg',source='https://icons.getbootstrap.com/icons/controller/',author='Bootstrap',license='MIT')

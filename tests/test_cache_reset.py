@@ -2,7 +2,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import patch
-from image_cache import ImageCache, consume_cache_reset
+from gtk_app.image_cache import ImageCache, consume_cache_reset
 
 
 class CacheResetTests(TestCase):
@@ -21,7 +21,7 @@ class CacheResetTests(TestCase):
             unrelated = cache / 'keep.txt'
             unrelated.write_bytes(b'keep')
             images = ImageCache(disk_dir=cache)
-            with patch('image_cache.__file__', str(root / 'image_cache.py')), patch('image_cache.images', images), patch('builtins.print'):
+            with patch('gtk_app.image_cache.__file__', str(root / 'gtk_app/image_cache.py')), patch('gtk_app.image_cache.images', images), patch('builtins.print'):
                 self.assertTrue(consume_cache_reset())
                 self.assertFalse(consume_cache_reset())
             self.assertFalse(request.exists())
@@ -34,6 +34,6 @@ class CacheResetTests(TestCase):
             root = Path(folder)
             cached = root / ('a' * 64 + '.png')
             cached.write_bytes(b'keep')
-            with patch('image_cache.__file__', str(root / 'image_cache.py')):
+            with patch('gtk_app.image_cache.__file__', str(root / 'gtk_app/image_cache.py')):
                 self.assertFalse(consume_cache_reset())
             self.assertTrue(cached.exists())

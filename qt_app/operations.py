@@ -3,7 +3,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
-from library import Library
+from core.library import Library
 
 ARTWORK = ('cover', 'square_cover', 'logo', 'banner', 'banner_secondary')
 

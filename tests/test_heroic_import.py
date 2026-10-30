@@ -4,9 +4,9 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import Mock, patch
-from heroic_import import discover_heroic, launch_url
-from library import Library, launch_command, launch
-from game_session import game_processes, wait_for_game
+from integrations.heroic_import import discover_heroic, launch_url
+from core.library import Library, launch_command, launch
+from core.game_session import game_processes, wait_for_game
 
 
 class HeroicTests(TestCase):
@@ -79,13 +79,13 @@ class HeroicTests(TestCase):
 
     def test_safe_native_and_flatpak_launch_url(self):
         game=dict(kind='heroic',heroic_runner='gog',heroic_app_name='ID & name/á',install='native')
-        with patch('library.shutil.which',return_value='/usr/bin/heroic'):
+        with patch('core.library.shutil.which',return_value='/usr/bin/heroic'):
             command,cwd=launch_command(game)
         self.assertEqual(command[:2],['/usr/bin/heroic','--no-gui'])
         self.assertIn('appName=ID+%26+name%2F%C3%A1',command[-1]);self.assertIsNone(cwd)
-        with patch('library.shutil.which',return_value='flatpak'):
+        with patch('core.library.shutil.which',return_value='flatpak'):
             self.assertEqual(launch_command(dict(game,install='flatpak'))[0][:4],['flatpak','run','com.heroicgameslauncher.hgl','--no-gui'])
-        with patch('library.shutil.which',return_value=None), self.assertRaises(ValueError):launch_command(game)
+        with patch('core.library.shutil.which',return_value=None), self.assertRaises(ValueError):launch_command(game)
         with self.assertRaises(ValueError):launch_url(dict(game,heroic_runner='unknown'))
 
     def test_existing_heroic_session_tracks_game_env_not_launcher_token(self):
@@ -100,13 +100,13 @@ class HeroicTests(TestCase):
     def test_waits_for_heroic_game_even_if_cli_exits(self):
         process=Mock(pid=100);process.poll.return_value=0
         started=Mock()
-        with patch('game_session.game_processes',side_effect=[[],[200],[200],[]]),patch('game_session.time.sleep'):
+        with patch('core.game_session.game_processes',side_effect=[[],[200],[200],[]]),patch('core.game_session.time.sleep'):
             self.assertEqual(wait_for_game({'kind':'heroic'},process,on_started=started),0)
         started.assert_called_once()
 
     def test_flatpak_session_token_is_forwarded(self):
         game=dict(kind='heroic',heroic_runner='gog',heroic_app_name='123',install='flatpak')
-        with patch('library.shutil.which',return_value='flatpak'),patch('library.subprocess.Popen') as popen:
+        with patch('core.library.shutil.which',return_value='flatpak'),patch('core.library.subprocess.Popen') as popen:
             launch(game,self.home)
         self.assertTrue(popen.call_args.args[0][2].startswith('--env=ESTANTE_GAME_SESSION='))
 

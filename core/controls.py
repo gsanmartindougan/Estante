@@ -1,5 +1,5 @@
 """Directional selection and SDL2 gamepad input, without a Python SDL dependency."""
-from i18n import tr
+from core.i18n import tr
 import ctypes as C
 from ctypes.util import find_library
 import time

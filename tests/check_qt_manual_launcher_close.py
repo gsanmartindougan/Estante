@@ -9,7 +9,7 @@ from PySide6.QtCore import QObject,QUrl
 from PySide6.QtWidgets import QApplication
 from PySide6.QtQml import QQmlApplicationEngine
 from qt_app.main import LibraryController
-from i18n import set_language
+from core.i18n import set_language
 app=QApplication([]);app.setDesktopFileName('io.github.estante.Test');set_language('es')
 def pump(seconds=.15):
     end=time.monotonic()+seconds

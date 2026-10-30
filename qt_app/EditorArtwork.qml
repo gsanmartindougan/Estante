@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qt.labs.folderlistmodel
 import "Gamepad.js" as Navigation
 
 ColumnLayout {
@@ -18,6 +17,7 @@ ColumnLayout {
     spacing: 14
     function focusFirst() { query.forceActiveFocus() }
     function navigate(action, keyboard, focused) {
+        if (browsing && browserLoader.item) return browserLoader.item.navigate(action,keyboard,focused)
         if (["confirm","left","right","up","down"].indexOf(action)<0) return false
         if (gallery.activeFocus) {
             if (action === "confirm") { choose(gallery.currentIndex); return true }
@@ -31,6 +31,7 @@ ColumnLayout {
         return false
     }
     function save() {
+        if (browsing && browserLoader.item) { browserLoader.item.useImage(); return }
         if (manager.busy) return
         if (local.visible && location.text.trim()) {
             importing=true; manager.importImage(field,location.text.trim())
@@ -53,50 +54,48 @@ ColumnLayout {
             if (!picker.manager.busy && picker.importing) {
                 picker.importing=false
                 if (picker.manager.message==="Imagen guardada" || picker.manager.message==="Ficha descargada") picker.completed()
-            } else if (!picker.manager.busy && picker.manager.results.length) {
+            } else if (!picker.browsing && !picker.manager.busy && picker.manager.results.length) {
                 gallery.currentIndex=0; gallery.forceActiveFocus()
             }
         }
     }
     GlassField {
         id: query; objectName: "editorArtworkQuery"
+        visible: !picker.browsing
         Layout.fillWidth: true; text: picker.controller.game.title || ""
         placeholderText: qsTr("Nombre del juego…")
         onAccepted: picker.manager.searchArtwork(picker.metadata ? "metadata" : "steamgriddb",text,picker.field)
     }
-    EditorButton { objectName: "editorLocalImages"; visible: !picker.metadata; text: (local.visible ? "▾ " : "▸ ")+qsTr("Desde mi equipo o una URL"); onClicked: local.visible=!local.visible }
+    EditorButton { objectName: "editorLocalImages"; visible: !picker.metadata && !picker.browsing; text: (local.visible ? "▾ " : "▸ ")+qsTr("Desde mi equipo o una URL"); onClicked: local.expanded=!local.expanded }
     ColumnLayout {
-        id: local; visible: false; Layout.fillWidth: true
+        id: local; property bool expanded: false; visible: expanded && !picker.browsing; Layout.fillWidth: true
         EditorButton { objectName: "editorBrowseFiles"; text: qsTr("Desde mi equipo…"); onClicked: picker.browsing=!picker.browsing }
-        ListView {
-            id: files
-            visible: picker.browsing
-            Layout.fillWidth: true; Layout.preferredHeight: 210
-            clip: true; cacheBuffer: 0; reuseItems: true
-            model: FolderListModel { id: folders; folder: "file:///home"; showDotAndDotDot: true; nameFilters: ["*.png","*.jpg","*.jpeg","*.webp"]; showDirsFirst: true }
-            delegate: EditorButton {
-                required property string fileName
-                required property url fileUrl
-                required property bool fileIsDir
-                width: ListView.view.width
-                text: (fileIsDir ? "▸ " : "")+fileName
-                onClicked: { if (fileIsDir) folders.folder=fileUrl; else { location.text=decodeURIComponent(fileUrl.toString().replace("file://","")); picker.browsing=false } }
-            }
-        }
         GlassField { id: location; Layout.fillWidth: true; placeholderText: qsTr("Ruta local o URL directa de la imagen") }
         EditorButton { text: qsTr("Usar imagen"); enabled: !picker.manager.busy && location.text.trim().length>0; onClicked: { picker.importing=true; picker.manager.importImage(picker.field,location.text.trim()) } }
     }
-    Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Qt.alpha(picker.theme.text,.14) }
-    Label { text: picker.metadata ? qsTr("Buscar ficha del juego") : qsTr("Buscar imágenes del juego"); font.bold: true; color: picker.theme.text }
+    Loader {
+        id: browserLoader; active: picker.browsing; visible: active
+        Layout.fillWidth: true; Layout.fillHeight: true
+        sourceComponent: LocalImageBrowser {
+            manager: picker.manager
+            onChosen: path => { picker.importing=true; picker.manager.importImage(picker.field,path) }
+            onDismissed: { picker.browsing=false; Qt.callLater(function() { query.forceActiveFocus() }) }
+        }
+        onLoaded: item.focusFirst()
+    }
+    Rectangle { visible: !picker.browsing; Layout.fillWidth: true; implicitHeight: 1; color: Qt.alpha(picker.theme.text,.14) }
+    Label { visible: !picker.browsing; text: picker.metadata ? qsTr("Buscar ficha del juego") : qsTr("Buscar imágenes del juego"); font.bold: true; color: picker.theme.text }
     RowLayout {
+        visible: !picker.browsing
         Layout.fillWidth: true
         EditorButton { id: search; objectName: "editorSearchArtwork"; Layout.fillWidth: true; text: picker.metadata ? qsTr("Buscar en Wikidata") : qsTr("Buscar en SteamGridDB"); enabled: !picker.manager.busy; onClicked: picker.manager.searchArtwork(picker.metadata ? "metadata" : "steamgriddb",query.text,picker.field) }
         EditorButton { objectName: "editorSearchSteamMetadata"; visible: picker.metadata; Layout.fillWidth: true; text: qsTr("Buscar ficha en Steam"); enabled: !picker.manager.busy; onClicked: picker.manager.searchArtwork("metadata_steam",query.text,picker.field) }
         EditorButton { visible: !picker.metadata && picker.field.indexOf("banner")===0; Layout.fillWidth: true; text: qsTr("Buscar capturas 16:9 en Steam"); enabled: !picker.manager.busy; onClicked: picker.manager.searchArtwork("steam",query.text,picker.field) }
         EditorButton { visible: !picker.metadata && picker.field.indexOf("banner")===0; Layout.fillWidth: true; text: qsTr("Buscar fondos 16:9 en IGDB"); enabled: !picker.manager.busy; onClicked: picker.manager.searchArtwork("igdb",query.text,picker.field) }
     }
-    Label { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: picker.manager.message || qsTr("Busca el juego y selecciona una imagen."); wrapMode: Text.WordWrap; color: picker.theme.muted }
+    Label { visible: !picker.browsing; Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: picker.manager.message || qsTr("Busca el juego y selecciona una imagen."); wrapMode: Text.WordWrap; color: picker.theme.muted }
     GridView {
+        visible: !picker.browsing
         id: gallery; objectName: "editorArtworkGallery"
         property bool gamepadFocusable: true
         property string gamepadKind: "artwork-gallery"
@@ -118,6 +117,7 @@ ColumnLayout {
         }
     }
     RowLayout {
+        visible: !picker.browsing
         Layout.fillWidth: true
         Label { text: picker.controller.editorSaveHint; color: picker.theme.muted; Layout.fillWidth: true }
         EditorButton {

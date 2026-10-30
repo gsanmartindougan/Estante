@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, patch
-from estante import Shelf
+from gtk_app.estante import Shelf
 
 
 class ReloadSelectionTests(TestCase):
@@ -25,7 +25,7 @@ class ReloadSelectionTests(TestCase):
                 self.assertTrue(host.reloading)
                 Shelf.tile_focused(host, Mock(), {'id': 'first'})
             host.rebuild_library.side_effect = rebuild
-            with patch('estante.GLib.timeout_add'):
+            with patch('gtk_app.estante.GLib.timeout_add'):
                 Shelf.reload(host)
             self.assertEqual(host.selected_game, 'selected')
             host.focus_game.assert_not_called()
@@ -38,7 +38,7 @@ class ReloadSelectionTests(TestCase):
 
     def test_grid_restores_scroll_but_does_not_override_new_selection(self):
         host, adjustment = self.host('grid')
-        with patch('estante.GLib.timeout_add') as schedule:
+        with patch('gtk_app.estante.GLib.timeout_add') as schedule:
             Shelf.reload(host)
         restore = schedule.call_args.args[1]
         restore()

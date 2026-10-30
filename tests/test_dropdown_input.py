@@ -1,8 +1,8 @@
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, patch
-from settings_view import dropdown_input, Gtk
-from estante import Shelf, Gdk
+from gtk_app.settings_view import dropdown_input, Gtk
+from gtk_app.estante import Shelf, Gdk
 
 
 class DropdownInputTests(TestCase):
@@ -10,7 +10,7 @@ class DropdownInputTests(TestCase):
         owner = Mock()
         popup = Mock()
         popup.get_visible.return_value = False
-        with patch('settings_view.descendant', return_value=popup):
+        with patch('gtk_app.settings_view.descendant', return_value=popup):
             self.assertTrue(dropdown_input(owner, 'confirm'))
         owner.emit.assert_called_once_with('activate')
         owner.set_selected.assert_not_called()
@@ -23,10 +23,10 @@ class DropdownInputTests(TestCase):
         popup, owner = Mock(), Mock()
         popup.get_visible.return_value = True
         for action, expected in (('down', 2), ('down', 3), ('down', 3), ('up', 2)):
-            with patch('settings_view.descendant', side_effect=[popup, listing]):
+            with patch('gtk_app.settings_view.descendant', side_effect=[popup, listing]):
                 self.assertTrue(dropdown_input(owner, action))
             self.assertEqual(model.get_selected(), expected)
-        with patch('settings_view.descendant', side_effect=[popup, listing]):
+        with patch('gtk_app.settings_view.descendant', side_effect=[popup, listing]):
             self.assertTrue(dropdown_input(owner, 'confirm'))
         listing.emit.assert_called_once_with('activate', 2)
         owner.set_selected.assert_not_called()
@@ -34,7 +34,7 @@ class DropdownInputTests(TestCase):
     def test_back_closes_popup_and_keeps_settings_open(self):
         popup, owner = Mock(), Mock()
         popup.get_visible.return_value = True
-        with patch('settings_view.descendant', return_value=popup):
+        with patch('gtk_app.settings_view.descendant', return_value=popup):
             self.assertTrue(dropdown_input(owner, 'back'))
         popup.popdown.assert_called_once()
         owner.grab_focus.assert_called_once()
@@ -48,6 +48,6 @@ class DropdownInputTests(TestCase):
 
     def test_closed_selector_directions_do_not_change_value(self):
         owner = Mock()
-        with patch('settings_view.descendant', return_value=None):
+        with patch('gtk_app.settings_view.descendant', return_value=None):
             self.assertFalse(dropdown_input(owner, 'right'))
         owner.set_selected.assert_not_called()

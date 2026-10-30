@@ -20,7 +20,7 @@ import runpy
 
 ROOT = Path(__file__).resolve().parents[1]
 APP_ID = 'io.github.estante.Launcher'
-VERSION = runpy.run_path(str(ROOT / 'version.py'))['__version__']
+VERSION = runpy.run_path(str(ROOT / 'core/version.py'))['__version__']
 
 
 def copy(source, target):
@@ -38,10 +38,10 @@ def dependencies(binary):
 def prepare_gtk(appdir):
     if platform.machine() != 'x86_64':
         raise RuntimeError('Este constructor admite x86_64; no genera imágenes ARM.')
-    spec = importlib.util.spec_from_file_location('installer', ROOT / 'install.py')
+    spec = importlib.util.spec_from_file_location('installer', ROOT / 'packaging/install.py')
     installer = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(installer)
-    subprocess.run([sys.executable, str(ROOT / 'install.py'), '--frontend', 'gtk', '--prefix', '/usr', '--destdir', str(appdir)], check=True)
+    subprocess.run([sys.executable, str(ROOT / 'packaging/install.py'), '--frontend', 'gtk', '--prefix', '/usr', '--destdir', str(appdir)], check=True)
     libraries = appdir / 'usr/lib'
     version = 'python' + sysconfig.get_python_version()
     stdlib = Path(sysconfig.get_path('stdlib'))

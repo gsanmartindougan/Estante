@@ -1,5 +1,5 @@
 from unittest import TestCase
-from screensaver_config import time_choice, time_seconds
+from core.screensaver_config import time_choice, time_seconds
 
 
 class ScreensaverConfigTests(TestCase):

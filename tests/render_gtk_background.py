@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from estante import Gtk,Gdk,Graphene,TopAlignedPicture
+from gtk_app.estante import Gtk,Gdk,Graphene,TopAlignedPicture
 Gtk.init()
 width,height=int(sys.argv[3]),int(sys.argv[4])
 picture=TopAlignedPicture()

@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
-"""A small GTK4 game shelf. Run with python3 estante.py."""
-from native_memory import configure_native_allocator
+"""A small GTK4 game shelf. Run with ./run-gtk.sh."""
+
+import sys
+from pathlib import Path
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from core.native_memory import configure_native_allocator
 NATIVE_ALLOCATOR_TUNED = configure_native_allocator()
 
-from i18n import tr
-from i18n import set_language
-from profiling import timed
+from core.i18n import tr
+from core.i18n import set_language
+from core.profiling import timed
 import os
-from pathlib import Path
 import threading
 import weakref
 import time
@@ -20,23 +25,23 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 gi.require_version('Gsk', '4.0')
 from gi.repository import Adw, Gdk, GdkPixbuf, Gio, GLib, GObject, Graphene, Gsk, Gtk, Pango
-from image_cache import images, nearby_indices, reclaim_unused_memory, validate_image, consume_cache_reset, memory_usage
-from screensaver import Screensaver, discard_tile
-from game_session import wait_for_game, playing_behavior
-import game_supervisor
-from background_jobs import BackgroundJobs
-from tray import TrayIcon
-from library import Library, SteamGridDB, launch, read_json
-from controls import controller_buttons, Gamepad, neighbor, alphabet_target, alphabet_window
-from metadata import GameMetadata
-from steam_artwork import SteamArtwork
-from igdb_artwork import IGDBArtwork
-from settings_view import SettingsView, spatial_target, navigation_bounds
-from updates import latest_release
-from version import __version__
-from backgrounds import initial_background_settings, background_assets, background_split_for, paint_hero_pair, paint_split, crop_bounds
-from carousel import CarouselWheel, VirtualStrip, list_anchor
-from appearance import background_effects_for, minimal_for, grid_page, list_side_for, list_navigation, list_cover_size, VIEW_NAMES, ring_for, with_ring, cover_radius_for, hero_position_for, cover_format_for, cover_size_for
+from gtk_app.image_cache import images, nearby_indices, reclaim_unused_memory, validate_image, consume_cache_reset, memory_usage
+from gtk_app.screensaver import Screensaver, discard_tile
+from core.game_session import wait_for_game, playing_behavior
+import core.game_supervisor as game_supervisor
+from core.background_jobs import BackgroundJobs
+from gtk_app.tray import TrayIcon
+from core.library import Library, SteamGridDB, launch, read_json
+from core.controls import controller_buttons, Gamepad, neighbor, alphabet_target, alphabet_window
+from integrations.metadata import GameMetadata
+from integrations.steam_artwork import SteamArtwork
+from integrations.igdb_artwork import IGDBArtwork
+from gtk_app.settings_view import SettingsView, spatial_target, navigation_bounds
+from integrations.updates import latest_release
+from core.version import __version__
+from gtk_app.backgrounds import initial_background_settings, background_assets, background_split_for, paint_hero_pair, paint_split, crop_bounds
+from gtk_app.carousel import CarouselWheel, VirtualStrip, list_anchor
+from core.appearance import background_effects_for, minimal_for, grid_page, list_side_for, list_navigation, list_cover_size, VIEW_NAMES, ring_for, with_ring, cover_radius_for, hero_position_for, cover_format_for, cover_size_for
 
 
 def blur_radius(radius):
@@ -3606,7 +3611,7 @@ class Shelf(Adw.ApplicationWindow):
 if __name__ == '__main__':
     import sys
     if sys.argv[1:] == ['--version']:
-        from version import __version__
+        from core.version import __version__
         print('Estante ' + __version__)
         raise SystemExit(0)
     raise SystemExit(App().run(sys.argv))

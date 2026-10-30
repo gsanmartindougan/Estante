@@ -3,9 +3,9 @@ import time
 import math
 from pathlib import Path
 from gi.repository import GLib, GObject, Gtk, Gdk, Graphene, GdkPixbuf
-from image_cache import ImageCache, images, reclaim_unused_memory, memory_usage
-from i18n import tr
-from screensaver_config import time_seconds
+from gtk_app.image_cache import ImageCache, images, reclaim_unused_memory, memory_usage
+from core.i18n import tr
+from core.screensaver_config import time_seconds
 from types import SimpleNamespace
 
 
@@ -66,7 +66,7 @@ def background_paths(games):
 
 def slideshow_paths(games, settings):
     if settings.get('screensaver_source', 'games') == 'application':
-        from backgrounds import resolve_background, DEFAULT_BACKGROUND
+        from gtk_app.backgrounds import resolve_background, DEFAULT_BACKGROUND
         path = resolve_background(settings.get('screensaver_background', DEFAULT_BACKGROUND))
         return [path] if path and Path(path).is_file() else []
     return background_paths(games)
@@ -203,7 +203,7 @@ class Screensaver:
         if not self.active:
             settings = self.shelf.settings
             if not slideshow_paths(self.shelf.library_games, settings):
-                from backgrounds import DEFAULT_BACKGROUND
+                from gtk_app.backgrounds import DEFAULT_BACKGROUND
                 settings = dict(settings, screensaver_source='application', screensaver_background=DEFAULT_BACKGROUND)
             if not self.start(settings):
                 return

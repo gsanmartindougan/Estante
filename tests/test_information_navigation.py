@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock
-from estante import Shelf
+from gtk_app.estante import Shelf
 
 
 class InformationNavigationTests(TestCase):

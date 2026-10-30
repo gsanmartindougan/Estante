@@ -6,8 +6,8 @@ from unittest.mock import Mock, patch
 from urllib.error import HTTPError
 from urllib.parse import parse_qs, urlsplit
 
-from metadata import CategoryIcons, IconifyIcons
-from settings_view import SettingsView
+from integrations.metadata import CategoryIcons, IconifyIcons
+from gtk_app.settings_view import SettingsView
 
 
 class IconifyLimitTests(TestCase):
@@ -30,8 +30,8 @@ class IconifyLimitTests(TestCase):
         client = IconifyIcons(self.root)
         client.on_wait = Mock()
         with patch.object(IconifyIcons, '_next_request_at', 0), \
-             patch('metadata.time.monotonic', side_effect=lambda: now[0]), \
-             patch('metadata.time.sleep', side_effect=sleep), \
+             patch('integrations.metadata.time.monotonic', side_effect=lambda: now[0]), \
+             patch('integrations.metadata.time.sleep', side_effect=sleep), \
              patch.object(CategoryIcons, 'request', side_effect=[error, 'response']) as request:
             self.assertEqual(client.request('https://api.iconify.design/search'), 'response')
         self.assertEqual(sleeps, [7])
@@ -42,8 +42,8 @@ class IconifyLimitTests(TestCase):
         now, sleeps, sleep = self.clock()
         error = HTTPError('https://api.iconify.design/search', 429, 'Too Many Requests', {'Retry-After': '120'}, None)
         with patch.object(IconifyIcons, '_next_request_at', 0), \
-             patch('metadata.time.monotonic', side_effect=lambda: now[0]), \
-             patch('metadata.time.sleep', side_effect=sleep), \
+             patch('integrations.metadata.time.monotonic', side_effect=lambda: now[0]), \
+             patch('integrations.metadata.time.sleep', side_effect=sleep), \
              patch.object(CategoryIcons, 'request', side_effect=error) as request:
             for _ in range(2):
                 with self.assertRaisesRegex(ValueError, '120'):
@@ -54,8 +54,8 @@ class IconifyLimitTests(TestCase):
     def test_successful_requests_from_different_clients_share_spacing(self):
         now, sleeps, sleep = self.clock()
         with patch.object(IconifyIcons, '_next_request_at', 0), \
-             patch('metadata.time.monotonic', side_effect=lambda: now[0]), \
-             patch('metadata.time.sleep', side_effect=sleep), \
+             patch('integrations.metadata.time.monotonic', side_effect=lambda: now[0]), \
+             patch('integrations.metadata.time.sleep', side_effect=sleep), \
              patch.object(CategoryIcons, 'request', return_value='response'):
             IconifyIcons(self.root).request('https://api.iconify.design/search')
             IconifyIcons(self.root).request('https://api.iconify.design/mdi.json')
@@ -65,8 +65,8 @@ class IconifyLimitTests(TestCase):
         now, sleeps, sleep = self.clock()
         errors = [HTTPError('https://api.iconify.design/search', 429, 'limited', {}, None) for _ in range(3)]
         with patch.object(IconifyIcons, '_next_request_at', 0), \
-             patch('metadata.time.monotonic', side_effect=lambda: now[0]), \
-             patch('metadata.time.sleep', side_effect=sleep), \
+             patch('integrations.metadata.time.monotonic', side_effect=lambda: now[0]), \
+             patch('integrations.metadata.time.sleep', side_effect=sleep), \
              patch.object(CategoryIcons, 'request', side_effect=errors) as request:
             with self.assertRaises(ValueError):
                 IconifyIcons(self.root).request('https://api.iconify.design/search')

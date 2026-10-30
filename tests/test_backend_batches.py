@@ -6,8 +6,8 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import patch
 
-from library import Library, SteamGridDB
-from scraping import apply_scrape_results
+from core.library import Library, SteamGridDB
+from integrations.scraping import apply_scrape_results
 
 
 class BackendBatchTests(TestCase):
@@ -60,7 +60,7 @@ class BackendBatchTests(TestCase):
         client = SteamGridDB('', self.root/'artwork')
         stream = BytesIO(b'first chunk')
         with patch.object(stream, 'read', side_effect=[b'first chunk', OSError('connection lost')]), \
-             patch('library.urlopen', return_value=stream):
+             patch('core.library.urlopen', return_value=stream):
             with self.assertRaises(OSError):
                 client.download('https://cdn.steamgriddb.com/interrupted.png')
         self.assertEqual(list(client.cache.iterdir()), [])
@@ -71,7 +71,7 @@ class BackendBatchTests(TestCase):
         source.write_bytes(b'original image')
         imported = Path(client.import_artwork(source))
         self.assertEqual(imported.stem, hashlib.sha256(source.read_bytes()).hexdigest())
-        with patch('library.os.replace', side_effect=OSError('disk error')):
+        with patch('core.library.os.replace', side_effect=OSError('disk error')):
             with self.assertRaises(OSError):
                 client.import_artwork(source)
         self.assertEqual(imported.read_bytes(), b'original image')

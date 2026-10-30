@@ -142,8 +142,8 @@ def main():
         from PySide6.QtQml import QQmlApplicationEngine
     except ImportError:
         parser.error('Use the Qt Python environment: .venv-qt/bin/python tools/showcase.py')
-    from library import Library
-    from i18n import set_language, tr
+    from core.library import Library
+    from core.i18n import set_language, tr
     from qt_app.main import LibraryController
     from qt_app.images import ArtworkProvider
     from qt_app.theme import apply_system_palette

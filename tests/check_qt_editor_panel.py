@@ -10,8 +10,8 @@ from PySide6.QtGui import QImage
 from PySide6.QtWidgets import QApplication
 from PySide6.QtQml import QQmlApplicationEngine
 from qt_app.main import LibraryController
-from library import Library
-from i18n import set_language
+from core.library import Library
+from core.i18n import set_language
 app=QApplication([]);app.setDesktopFileName('io.github.estante.Test');set_language('es')
 def pump(seconds=.15):
     deadline=time.monotonic()+seconds
@@ -52,6 +52,7 @@ with tempfile.TemporaryDirectory() as folder:
     find('editVerticalCover').forceActiveFocus();controller.inputAction.emit('confirm');pump();same_panel('artwork')
     find('editorLocalImages').forceActiveFocus();controller.inputAction.emit('confirm');pump()
     find('editorBrowseFiles').forceActiveFocus();controller.inputAction.emit('confirm');pump();same_panel('artwork')
+    find('localImageBrowser').dismissed.emit();pump()
     find('editorLocalImages').forceActiveFocus();controller.inputAction.emit('confirm');pump()
     with patch('qt_app.management.SteamGridDB.search',return_value=[{'id':1,'name':'Example'}]), patch('qt_app.management.SteamGridDB.grids',return_value=[{'url':QUrl.fromLocalFile(source).toString(),'width':600,'height':900} for _ in range(12)]), patch('qt_app.management.SteamGridDB.download',return_value=source):
         find('editorSearchArtwork').forceActiveFocus();controller.inputAction.emit('confirm');done()
@@ -79,7 +80,7 @@ with tempfile.TemporaryDirectory() as folder:
             image=find('editorBackgroundImage'+str(index))
             assert abs(image.height()-image.width()*9/16)<1
     editor.setProperty('metadataSearch',True);editor.setProperty('page','artwork');pump();same_panel('artwork')
-    from metadata import MetadataRateLimitError
+    from integrations.metadata import MetadataRateLimitError
     with patch('qt_app.management.GameMetadata.search',side_effect=MetadataRateLimitError('limiting')),patch('qt_app.management.SteamArtwork.search',return_value=[{'id':42,'name':'Steam Example'}]),patch('qt_app.management.SteamArtwork.metadata',return_value={'developers':['Steam Studio'],'release_date':'2024-08-19','source':'https://store.steampowered.com/app/42/'}):
         before=Library(data_dir=root).games()[0]
         find('editorSearchArtwork').forceActiveFocus();controller.inputAction.emit('confirm');done()

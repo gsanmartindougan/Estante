@@ -4,9 +4,9 @@ from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from estante import Shelf
-from library import Library
-from image_cache import GLib
+from gtk_app.estante import Shelf
+from core.library import Library
+from gtk_app.image_cache import GLib
 
 
 class CategoryIconTests(TestCase):
@@ -70,7 +70,7 @@ class CategoryIconPresentationTests(TestCase):
 
     def test_selected_category_keeps_name_next_to_icon(self):
         host = self.host()
-        with patch('estante.images.request') as request, patch('estante.images.load') as load:
+        with patch('gtk_app.estante.images.request') as request, patch('gtk_app.estante.images.load') as load:
             Shelf.update_categories(host)
             load.assert_not_called()
             args = request.call_args.args
@@ -85,7 +85,7 @@ class CategoryIconPresentationTests(TestCase):
 
     def test_invalid_image_uses_text_instead_of_breaking_toolbar(self):
         host = self.host()
-        with patch('estante.images.request') as request:
+        with patch('gtk_app.estante.images.request') as request:
             Shelf.update_categories(host)
             request.call_args.args[3](None, GLib.Error('invalid image'))
         host.category_slots[1].set_visible_child_name.assert_called_once_with('text')

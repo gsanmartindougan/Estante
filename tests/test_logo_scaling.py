@@ -3,7 +3,7 @@ from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, patch
-from estante import Shelf, SquarePicture, RoundedPicture, Gtk
+from gtk_app.estante import Shelf, SquarePicture, RoundedPicture, Gtk
 
 
 class LogoScalingTests(TestCase):
@@ -12,8 +12,8 @@ class LogoScalingTests(TestCase):
             path = Path(directory) / 'logo.png'
             path.touch()
             texture = Mock()
-            with patch('estante.images.load', return_value=texture), \
-                 patch('estante.SquarePicture') as picture:
+            with patch('gtk_app.estante.images.load', return_value=texture), \
+                 patch('gtk_app.estante.SquarePicture') as picture:
                 Shelf.logo_image(SimpleNamespace(request_picture=lambda picture, *args, **kwargs: picture), {'logo': str(path)}, 300, 100)
             picture.assert_called_once_with(None, 300, 100, radius=0)
         logical = SimpleNamespace(cover_width=300, cover_height=100)
@@ -35,7 +35,7 @@ class LogoScalingTests(TestCase):
                 self.assertAlmostEqual(result, target)
 
     def test_focus_band_blurs_only_background_layers(self):
-        from estante import Graphene
+        from gtk_app.estante import Graphene
         snapshot = Mock()
         scene = Mock()
         wheel = SimpleNamespace(focus_scale=1.5, get_width=lambda: 700,

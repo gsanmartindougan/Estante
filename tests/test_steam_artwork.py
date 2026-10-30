@@ -1,7 +1,7 @@
 import unittest
-from i18n import set_language, get_language
+from core.i18n import set_language, get_language
 from unittest.mock import patch
-from steam_artwork import SteamArtwork
+from integrations.steam_artwork import SteamArtwork
 
 
 class SteamArtworkTests(unittest.TestCase):

@@ -1,9 +1,9 @@
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock
-from appearance import list_side_for, list_navigation
-from carousel import list_coordinates
-from estante import Shelf
+from core.appearance import list_side_for, list_navigation
+from gtk_app.carousel import list_coordinates
+from gtk_app.estante import Shelf
 
 
 class ListSidesTests(TestCase):

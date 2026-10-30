@@ -4,11 +4,11 @@ import io
 from pathlib import Path
 import tempfile
 import unittest
-from i18n import set_language, get_language
+from core.i18n import set_language, get_language
 from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError
 
-from updates import latest_release, install_appimage, version_tuple, update_available
+from integrations.updates import latest_release, install_appimage, version_tuple, update_available
 
 
 def response(content):
@@ -40,21 +40,21 @@ class UpdatesTests(unittest.TestCase):
     def test_release_detection_and_no_update(self):
         import json
         data = {'tag_name': 'v0.2.0', 'assets': [self.release['asset']]}
-        with patch('updates.urlopen', return_value=response(json.dumps(data).encode())):
+        with patch('integrations.updates.urlopen', return_value=response(json.dumps(data).encode())):
             self.assertEqual(latest_release('0.1.0')['version'], '0.2.0')
-        with patch('updates.urlopen', return_value=response(json.dumps(data).encode())):
+        with patch('integrations.updates.urlopen', return_value=response(json.dumps(data).encode())):
             self.assertIsNone(latest_release('0.2.0'))
         data['prerelease'] = True
-        with patch('updates.urlopen', return_value=response(json.dumps(data).encode())):
+        with patch('integrations.updates.urlopen', return_value=response(json.dumps(data).encode())):
             self.assertIsNone(latest_release('0.1.0'))
 
     def test_missing_public_release_is_explained(self):
-        with patch('updates.urlopen', side_effect=HTTPError('https://api.github.com', 404, 'Not Found', {}, None)):
+        with patch('integrations.updates.urlopen', side_effect=HTTPError('https://api.github.com', 404, 'Not Found', {}, None)):
             with self.assertRaisesRegex(ValueError, 'versión pública'):
                 latest_release()
 
     def test_install_atomically_replaces_appimage_and_preserves_open_file(self):
-        with self.target.open('rb') as running, patch('updates.urlopen', return_value=response(self.content)):
+        with self.target.open('rb') as running, patch('integrations.updates.urlopen', return_value=response(self.content)):
             self.assertEqual(install_appimage(self.release, self.target), '0.2.0')
             self.assertEqual(running.read(), b'previous version')
         self.assertEqual(self.target.read_bytes(), self.content)
@@ -63,12 +63,12 @@ class UpdatesTests(unittest.TestCase):
 
     def test_failed_downloads_keep_original_and_clean_temporary_files(self):
         for content in (b'partial', self.content[:-1] + b'x'):
-            with self.subTest(content=content), patch('updates.urlopen', return_value=response(content)):
+            with self.subTest(content=content), patch('integrations.updates.urlopen', return_value=response(content)):
                 with self.assertRaises(ValueError):
                     install_appimage(self.release, self.target)
                 self.assertEqual(self.target.read_bytes(), b'previous version')
                 self.assertFalse(list(self.target.parent.glob('.estante-update-*')))
-        with patch('updates.urlopen', side_effect=OSError('offline')):
+        with patch('integrations.updates.urlopen', side_effect=OSError('offline')):
             with self.assertRaises(OSError):
                 install_appimage(self.release, self.target)
         self.assertEqual(self.target.read_bytes(), b'previous version')
@@ -86,7 +86,7 @@ class UpdatesTests(unittest.TestCase):
         release = deepcopy(self.release)
         data = b'not an appimage'
         release['asset'].update(size=len(data), digest='sha256:' + hashlib.sha256(data).hexdigest())
-        with patch('updates.urlopen', return_value=response(data)):
+        with patch('integrations.updates.urlopen', return_value=response(data)):
             with self.assertRaisesRegex(ValueError, 'AppImage válido'):
                 install_appimage(release, self.target)
         self.assertEqual(self.target.read_bytes(), b'previous version')

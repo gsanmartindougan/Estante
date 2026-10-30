@@ -2,7 +2,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import patch
-from image_cache import ImageCache, GdkPixbuf
+from gtk_app.image_cache import ImageCache, GdkPixbuf
 
 
 class ImageCacheTests(TestCase):
@@ -11,8 +11,8 @@ class ImageCacheTests(TestCase):
         self.addCleanup(self.directory.cleanup)
         self.path = Path(self.directory.name) / 'image.png'
         self.write(4096, 2048)
-        info = patch('image_cache.GdkPixbuf.Pixbuf.get_file_info', side_effect=lambda _: (object(), *self.dimensions))
-        decode = patch('image_cache.GdkPixbuf.Pixbuf.new_from_file_at_scale', side_effect=lambda path, w, h, preserve: GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, w, h))
+        info = patch('gtk_app.image_cache.GdkPixbuf.Pixbuf.get_file_info', side_effect=lambda _: (object(), *self.dimensions))
+        decode = patch('gtk_app.image_cache.GdkPixbuf.Pixbuf.new_from_file_at_scale', side_effect=lambda path, w, h, preserve: GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, w, h))
         info.start()
         decode.start()
         self.addCleanup(info.stop)
@@ -77,7 +77,7 @@ class ImageCacheTests(TestCase):
         self.assertEqual(cache.bytes, 0)
 
     def test_diagnostics_distinguish_memory_hits_decodes_and_window_evictions(self):
-        import profiling
+        import core.profiling as profiling
         cache = ImageCache()
         profiling.reset()
         try:
@@ -103,7 +103,7 @@ class ImageCacheTests(TestCase):
             texture = original(*args)
             cache.retain_paths([])
             return texture
-        with patch('image_cache.GdkPixbuf.Pixbuf.new_from_file_at_scale', side_effect=navigating_during_decode):
+        with patch('gtk_app.image_cache.GdkPixbuf.Pixbuf.new_from_file_at_scale', side_effect=navigating_during_decode):
             texture = cache.load(self.path, 128, 128, kind='background')
         self.assertIsNotNone(texture)
         self.assertEqual(cache.bytes, 0)
@@ -116,7 +116,7 @@ class ImageCacheTests(TestCase):
             texture = original(*args)
             cache.retain_paths([self.path])
             return texture
-        with patch('image_cache.GdkPixbuf.Pixbuf.new_from_file_at_scale', side_effect=navigating_during_decode):
+        with patch('gtk_app.image_cache.GdkPixbuf.Pixbuf.new_from_file_at_scale', side_effect=navigating_during_decode):
             cache.load(self.path, 128, 128)
         self.assertGreater(cache.bytes, 0)
         self.assertEqual(len(cache.entries), 1)
@@ -140,7 +140,7 @@ class ImageCacheTests(TestCase):
                 results.append(cache.load(self.path, 128, 128))
             except Exception as error:
                 errors.append(error)
-        with patch('image_cache.GdkPixbuf.Pixbuf.new_from_file_at_scale', side_effect=decode) as decoder, \
+        with patch('gtk_app.image_cache.GdkPixbuf.Pixbuf.new_from_file_at_scale', side_effect=decode) as decoder, \
              patch.object(cache.condition, 'wait_for', side_effect=wait):
             first, second = Thread(target=load), Thread(target=load)
             first.start()
@@ -195,8 +195,8 @@ class ImageCacheTests(TestCase):
         texture = cache.load(self.path, 1920, 1080, kind='background')
         self.assertLessEqual(texture.color_sample.get_width(), 64)
         self.assertLessEqual(texture.color_sample.get_height(), 64)
-        from estante import BlurredBackdrop
-        from image_cache import Gdk
-        with patch('estante.Gdk.pixbuf_get_from_texture', wraps=Gdk.pixbuf_get_from_texture) as download:
+        from gtk_app.estante import BlurredBackdrop
+        from gtk_app.image_cache import Gdk
+        with patch('gtk_app.estante.Gdk.pixbuf_get_from_texture', wraps=Gdk.pixbuf_get_from_texture) as download:
             BlurredBackdrop.dominant_color(self.path, texture)
         download.assert_not_called()

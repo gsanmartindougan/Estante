@@ -1,6 +1,6 @@
 from unittest import TestCase
 from unittest.mock import patch
-from steam_artwork import SteamArtwork
+from integrations.steam_artwork import SteamArtwork
 
 
 class SynopsisTests(TestCase):

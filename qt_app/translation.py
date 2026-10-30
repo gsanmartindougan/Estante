@@ -1,6 +1,6 @@
 """Use the existing Spanish/English catalogue from QML as well as Python."""
 from PySide6.QtCore import QTranslator
-from i18n import tr, ENGLISH
+from core.i18n import tr, ENGLISH
 
 ENGLISH.update({
     'Gestionar':'Manage','Gestión de Estante':'Manage Estante','Bandeja':'Tray',

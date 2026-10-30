@@ -6,9 +6,9 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import patch
 
-from metadata import CategoryIcons, IconifyIcons
-from library import Library
-from image_cache import Gdk
+from integrations.metadata import CategoryIcons, IconifyIcons
+from core.library import Library
+from gtk_app.image_cache import Gdk
 from gi.repository import GLib
 
 SVG = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill="currentColor" d="M4 4h8v8H4z"/></svg>'

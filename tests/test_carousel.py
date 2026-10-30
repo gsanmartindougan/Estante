@@ -1,5 +1,5 @@
 import unittest
-from carousel import wheel_position, list_position, list_opacity, list_anchor, CarouselWheel
+from gtk_app.carousel import wheel_position, list_position, list_opacity, list_anchor, CarouselWheel
 from types import SimpleNamespace
 
 

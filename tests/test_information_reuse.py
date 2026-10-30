@@ -2,8 +2,8 @@ from contextlib import ExitStack
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, patch
-from estante import Shelf, LaunchSpinner, LaunchCoverTransition
-from carousel import CarouselWheel
+from gtk_app.estante import Shelf, LaunchSpinner, LaunchCoverTransition
+from gtk_app.carousel import CarouselWheel
 
 
 class InformationReuseTests(TestCase):
@@ -35,7 +35,7 @@ class InformationReuseTests(TestCase):
         host.library.game_stats.return_value = stats
         host.information_widgets = lambda: Shelf.information_widgets(host)
         with ExitStack() as stack:
-            constructors = [stack.enter_context(patch('estante.Gtk.' + name, side_effect=lambda *args, **kwargs: Mock()))
+            constructors = [stack.enter_context(patch('gtk_app.estante.Gtk.' + name, side_effect=lambda *args, **kwargs: Mock()))
                             for name in ('Box', 'Label', 'FlowBox', 'LinkButton', 'Separator')]
             Shelf.update_game_information(host, dict(id='one', kind='faugus', runner='Proton', path='/game.exe',
                 metadata={'description': 'Description', 'developers': ['Studio'],
@@ -96,16 +96,16 @@ class InformationReuseTests(TestCase):
         host = SimpleNamespace(children=lambda: rows, phase=0., destination=0., animation=None,
                                animation_tick=None, add_tick_callback=Mock(return_value=42),
                                layout_tick=Mock(), queue_allocate=Mock())
-        with patch('carousel.GLib.get_monotonic_time', return_value=0):
+        with patch('gtk_app.carousel.GLib.get_monotonic_time', return_value=0):
             CarouselWheel.select(host, rows[0])
             host.add_tick_callback.assert_not_called()
             CarouselWheel.select(host, rows[1])
             CarouselWheel.select(host, rows[2])
             host.add_tick_callback.assert_called_once()
-        with patch('carousel.GLib.get_monotonic_time', return_value=300000):
+        with patch('gtk_app.carousel.GLib.get_monotonic_time', return_value=300000):
             self.assertFalse(CarouselWheel.layout_tick(host))
         self.assertIsNone(host.animation_tick)
         self.assertIsNone(host.animation)
-        with patch('carousel.GLib.get_monotonic_time', return_value=400000):
+        with patch('gtk_app.carousel.GLib.get_monotonic_time', return_value=400000):
             CarouselWheel.select(host, rows[0])
         self.assertEqual(host.add_tick_callback.call_count, 2)

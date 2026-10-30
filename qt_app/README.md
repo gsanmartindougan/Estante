@@ -7,7 +7,7 @@ La biblioteca y los ajustes mantienen el esquema existente, sin conversión.
 
 ```sh
 python3 -m venv .venv-qt
-.venv-qt/bin/pip install -r requirements-qt.txt
+.venv-qt/bin/pip install -r requirements/qt.txt
 ./run.sh
 ./run.sh --games 100
 ./run.sh --windowed

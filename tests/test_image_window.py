@@ -1,8 +1,8 @@
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, patch
-from image_cache import nearby_indices
-from estante import Shelf, Gtk
+from gtk_app.image_cache import nearby_indices
+from gtk_app.estante import Shelf, Gtk
 
 
 class ImageWindowTests(TestCase):
@@ -25,8 +25,8 @@ class ImageWindowTests(TestCase):
         host = SimpleNamespace(tiles=lambda: rows, selected_game='6', view_mode='list', settings={},
                                flow=SimpleNamespace(get_first_child=lambda: rows[0]),
                                logo_image=Mock(), cover=Mock(), request_picture=Mock())
-        with patch('estante.release_images') as release, patch('estante.Gtk.Box'), \
-             patch('estante.images.retain_paths') as retain:
+        with patch('gtk_app.estante.release_images') as release, patch('gtk_app.estante.Gtk.Box'), \
+             patch('gtk_app.estante.images.retain_paths') as retain:
             Shelf.update_image_window(host)
             self.assertEqual(host.logo_image.call_count, 3)
             self.assertEqual(sum(row.image_loaded for row in rows), 3)
@@ -69,7 +69,7 @@ class ImageWindowTests(TestCase):
         host = SimpleNamespace(tiles=lambda: rows, selected_game='0', view_mode='ps5', settings={},
                flow=SimpleNamespace(get_first_child=lambda: rows[0], get_margin_start=lambda: 0),
                library_scroll=SimpleNamespace(get_hadjustment=lambda: adjustment), cover=Mock())
-        with patch('estante.release_images'), patch('estante.Gtk.Box'), patch('estante.images.retain_paths'):
+        with patch('gtk_app.estante.release_images'), patch('gtk_app.estante.Gtk.Box'), patch('gtk_app.estante.images.retain_paths'):
             Shelf.update_image_window(host)
             self.assertTrue(all(row.image_loaded for row in rows[:10]))
             self.assertFalse(rows[10].image_loaded)
@@ -82,7 +82,7 @@ class ImageWindowTests(TestCase):
 
 class VirtualStripImageTests(TestCase):
     def test_new_unallocated_cards_load_by_virtual_viewport_coordinates(self):
-        from carousel import VirtualStrip
+        from gtk_app.carousel import VirtualStrip
         indices = [37, *range(81, 100)]
         rows = [SimpleNamespace(model_index=i, game={'id': str(i), 'square_cover': f'{i}.png'},
                 image_loaded=False, button=Mock(), set_opacity=Mock(),
@@ -97,7 +97,7 @@ class VirtualStripImageTests(TestCase):
         adjustment = SimpleNamespace(get_value=lambda: 10746, get_page_size=lambda: 2560)
         host = SimpleNamespace(tiles=lambda: rows, selected_game='37', view_mode='ps5', settings={},
             flow=flow, library_scroll=SimpleNamespace(get_hadjustment=lambda: adjustment), cover=Mock())
-        with patch('estante.release_images'), patch('estante.Gtk.Box'), patch('estante.images.retain_paths'):
+        with patch('gtk_app.estante.release_images'), patch('gtk_app.estante.Gtk.Box'), patch('gtk_app.estante.images.retain_paths'):
             Shelf.update_image_window(host)
         self.assertFalse(rows[0].image_loaded)
         self.assertGreater(sum(row.image_loaded for row in rows), 10)
@@ -122,7 +122,7 @@ class FocusResolutionTests(TestCase):
             flow=SimpleNamespace(get_first_child=lambda: rows[0], get_margin_start=lambda: 0),
             library_scroll=SimpleNamespace(get_hadjustment=lambda: SimpleNamespace(
                 get_value=lambda: 0, get_page_size=lambda: 1200)), request_picture=Mock())
-        with patch('estante.images.retain_paths'):
+        with patch('gtk_app.estante.images.retain_paths'):
             Shelf.update_image_window(host)
         self.assertEqual(host.request_picture.call_count, 2)
         calls = host.request_picture.call_args_list

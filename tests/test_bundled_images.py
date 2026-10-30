@@ -6,7 +6,7 @@ import zlib
 from pathlib import Path
 from unittest.mock import patch
 
-from image_cache import ImageCache, GLib
+from gtk_app.image_cache import ImageCache, GLib
 
 
 def png(width, height):
@@ -23,7 +23,7 @@ class BundledImagesTests(unittest.TestCase):
             path = Path(directory) / 'logo.png'
             path.write_bytes(png(40, 20))
             with patch.dict(os.environ, {'ESTANTE_APPDIR': directory}), \
-                 patch('image_cache.GdkPixbuf.Pixbuf.new_from_file_at_scale', side_effect=AssertionError('external decoder used')):
+                 patch('gtk_app.image_cache.GdkPixbuf.Pixbuf.new_from_file_at_scale', side_effect=AssertionError('external decoder used')):
                 texture = ImageCache().load(path, 10, 10)
             self.assertEqual((texture.get_width(), texture.get_height()), (10, 5))
 
@@ -32,7 +32,7 @@ class BundledImagesTests(unittest.TestCase):
             path = Path(directory) / 'cover.png'
             path.write_bytes(png(4, 2))
             with patch.dict(os.environ, {'ESTANTE_APPDIR': ''}), \
-                 patch('image_cache.GdkPixbuf.Pixbuf.new_from_file_at_scale', side_effect=GLib.Error('decoder unavailable')):
+                 patch('gtk_app.image_cache.GdkPixbuf.Pixbuf.new_from_file_at_scale', side_effect=GLib.Error('decoder unavailable')):
                 texture = ImageCache().load(path, 100, 100)
             self.assertEqual((texture.get_width(), texture.get_height()), (4, 2))
 
@@ -48,7 +48,7 @@ class BundledImagesTests(unittest.TestCase):
                 sizes.append(image.size)
                 return original_load(image, *args, **kwargs)
             with patch.dict(os.environ, {'ESTANTE_APPDIR': directory}), \
-                 patch('image_cache.Gdk.Texture.new_from_filename', side_effect=AssertionError('full texture')), \
+                 patch('gtk_app.image_cache.Gdk.Texture.new_from_filename', side_effect=AssertionError('full texture')), \
                  patch.object(JpegImagePlugin.JpegImageFile, 'load', load):
                 texture = ImageCache().load(path, 256, 128)
             self.assertEqual((texture.get_width(), texture.get_height()), (256, 128))
@@ -72,7 +72,7 @@ class BundledImagesTests(unittest.TestCase):
             self.assertEqual((texture.get_width(), texture.get_height()), (320, 180))
 
     def test_jpeg_header_dimensions_support_progressive_and_skip_embedded_markers(self):
-        from image_cache import jpeg_dimensions
+        from gtk_app.image_cache import jpeg_dimensions
         from PIL import Image
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'progressive.jpg'
@@ -84,7 +84,7 @@ class BundledImagesTests(unittest.TestCase):
             self.assertEqual(jpeg_dimensions(path), (83, 47))
 
     def test_invalid_jpeg_headers_fail_without_pixel_decoding(self):
-        from image_cache import jpeg_dimensions
+        from gtk_app.image_cache import jpeg_dimensions
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'bad.jpg'
             for data in (b'', b'\xff\xd8', b'\xff\xd8\xff\xe0\x00\x01',

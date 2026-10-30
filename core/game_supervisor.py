@@ -1,15 +1,19 @@
 """Transfer an already-started game to a temporary, GTK-free user service."""
+
+import sys
+from pathlib import Path
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import json
 import os
-from pathlib import Path
 import shutil
 import subprocess
-import sys
 import tempfile
 import time
 import uuid
 
-from game_session import game_processes
+from core.game_session import game_processes
 
 
 def write_state(path, value):
@@ -48,14 +52,15 @@ def prepare(game, process, root, started, started_at, restore, reopen=None):
         raise RuntimeError('Se necesitan systemd-run y Python del sistema para cerrar Estante durante la partida.')
     folder = Path(tempfile.mkdtemp(prefix='estante-session-'))
     try:
-        source = Path(__file__).resolve().parent
+        source = Path(__file__).resolve().parents[1]
         # AppImage's temporary mount disappears when its UI exits.
-        for name in ('game_supervisor.py', 'game_session.py', 'library.py', 'steam_import.py', 'i18n.py'):
+        for name in ('core/__init__.py', 'integrations/__init__.py', 'core/game_supervisor.py', 'core/game_session.py', 'core/library.py', 'integrations/steam_import.py', 'integrations/heroic_import.py', 'core/i18n.py'):
+            (folder/name).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source / name, folder / name)
         environment = host_environment()
         appimage = os.environ.get('APPIMAGE')
         if reopen is None:
-            reopen = [appimage] if appimage else [sys.executable, str(source / 'estante.py')]
+            reopen = [appimage] if appimage else [sys.executable, str(source / 'gtk_app/estante.py')]
         spec = dict(game=game, launcher_pid=process.pid,
                     token=getattr(process, 'estante_session_token', None), root=str(root),
                     started=started, started_at=started_at, restore=restore,
@@ -67,7 +72,7 @@ def prepare(game, process, root, started, started_at, restore, reopen=None):
         command = [executable, '--user', '--collect', '--quiet',
                    '--unit=estante-game-' + uuid.uuid4().hex,
                    '--property=Type=exec', '--property=KillMode=process',
-                   '--', python, str(folder / 'game_supervisor.py'), str(path)]
+                   '--', python, str(folder / 'core/game_supervisor.py'), str(path)]
         result = subprocess.run(command, env=environment, capture_output=True, text=True, timeout=10)
         if result.returncode:
             raise RuntimeError(result.stderr.strip() or 'No se pudo iniciar el supervisor de la partida.')
@@ -107,7 +112,7 @@ def run(path):
             time.sleep(.1)
         while members():
             time.sleep(1)
-        from library import Library
+        from core.library import Library
         library = Library(data_dir=spec['root'])
         try:
             library.record_session(spec['game'], time.monotonic() - spec['started_at'], spec['started'], None)

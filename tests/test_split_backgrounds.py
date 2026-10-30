@@ -1,7 +1,7 @@
 import unittest
 import cairo
 from gi.repository import Gdk, GLib, Gtk
-from backgrounds import background_split_for, crop_bounds, paint_hero_pair
+from gtk_app.backgrounds import background_split_for, crop_bounds, paint_hero_pair
 
 
 def texture(red, green, blue):

@@ -28,7 +28,7 @@ with tempfile.TemporaryDirectory() as folder:
         if not path.exists():
             image=QImage(1600,900,QImage.Format_RGB32);image.fill(0xff203040+i*400);image.save(str(path))
         games.append(dict(id=str(i),title=f'Game {i:03}',kind='custom',cover=str(path),square_cover=str(path),banner=str(path)))
-    from library import Library
+    from core.library import Library
     library=Library(data_dir=root)
     for game in games: library.put(game)
     c=LibraryController(games,{'playing_behavior':'none'},root,allow_launch=False)

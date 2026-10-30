@@ -3,16 +3,16 @@ from unittest import TestCase
 from unittest.mock import Mock, patch
 import weakref
 
-from estante import Shelf
-from settings_view import SettingsView
+from gtk_app.estante import Shelf
+from gtk_app.settings_view import SettingsView
 
 
 class SettingsLifecycleTests(TestCase):
     def test_discard_removes_view_releases_images_and_trims_cache(self):
         view = SimpleNamespace()
         host = SimpleNamespace(preferences_view=view, pages=Mock(), update_image_window=Mock())
-        with patch('estante.release_images') as release, patch('estante.discard_tile') as discard, \
-             patch('estante.GLib.timeout_add') as timer, patch('estante.reclaim_unused_memory') as reclaim:
+        with patch('gtk_app.estante.release_images') as release, patch('gtk_app.estante.discard_tile') as discard, \
+             patch('gtk_app.estante.GLib.timeout_add') as timer, patch('gtk_app.estante.reclaim_unused_memory') as reclaim:
             Shelf.discard_preferences(host)
             discard.assert_called_once_with(view)
             reclaim.assert_not_called()
@@ -25,7 +25,7 @@ class SettingsLifecycleTests(TestCase):
 
     def test_discard_without_settings_is_safe(self):
         host = SimpleNamespace(preferences_view=None, pages=Mock(), update_image_window=Mock())
-        with patch('estante.release_images') as release:
+        with patch('gtk_app.estante.release_images') as release:
             Shelf.discard_preferences(host)
         release.assert_not_called()
         host.pages.remove.assert_not_called()
@@ -48,8 +48,8 @@ class SettingsLifecycleTests(TestCase):
         # Avoid Mock retaining constructor arguments or the view passed to add_named.
         host.pages = SimpleNamespace(add_named=lambda *_: None,
                                      set_visible_child_name=lambda *_: None)
-        with patch('estante.SettingsView', new=lambda *_: View()), \
-             patch('estante.GLib.idle_add') as idle:
+        with patch('gtk_app.estante.SettingsView', new=lambda *_: View()), \
+             patch('gtk_app.estante.GLib.idle_add') as idle:
             Shelf.preferences(host)
             ref = weakref.ref(host.preferences_view)
             host.preferences_view = None
@@ -92,7 +92,7 @@ class LazySettingsTests(TestCase):
 class SettingsSignalLifetimeTests(TestCase):
     def test_discard_breaks_native_signal_cycle_retaining_settings(self):
         from gi.repository import GObject, Gio
-        from screensaver import discard_tile
+        from gtk_app.screensaver import discard_tile
         class Control(GObject.Object):
             __gsignals__ = {'changed': (GObject.SignalFlags.RUN_FIRST, None, ())}
             def get_first_child(self):

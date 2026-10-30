@@ -1,5 +1,5 @@
 import unittest
-from backgrounds import (background_assets, initial_background_settings,
+from gtk_app.backgrounds import (background_assets, initial_background_settings,
                          DEFAULT_BACKGROUND, BUNDLED_BACKGROUNDS, resolve_background)
 
 

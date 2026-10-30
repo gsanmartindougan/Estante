@@ -8,7 +8,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QImage
 from qt_app.main import LibraryController
-from library import Library
+from core.library import Library
 app=QApplication([]);app.setDesktopFileName('io.github.estante.Test')
 with tempfile.TemporaryDirectory() as folder:
     root=Path(folder);image=QImage(16,16,QImage.Format_RGB32);image.fill(0xff447799);image.save(str(root/'cover.png'))

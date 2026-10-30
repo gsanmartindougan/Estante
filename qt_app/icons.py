@@ -2,7 +2,7 @@
 from PySide6.QtCore import QRectF
 from PySide6.QtGui import QImage, QPainter
 from PySide6.QtSvg import QSvgRenderer
-from metadata import CategoryIcons, IconifyIcons
+from integrations.metadata import CategoryIcons, IconifyIcons
 
 
 class QtSvgRenderer:

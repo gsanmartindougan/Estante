@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-29",
+  "python": "3.14.8",
+  "qt": "6.12.0",
+  "pyside": "6.12.0",
+  "kernel": "7.3.0-5-cachyos",
+  "machine": "x86_64",
+  "cpu": "AMD Ryzen 7 9700X 8-Core Processor",
+  "platform": "offscreen",
+  "renderer": "GraphicsApi.Software",
+  "base_commit": "689645b770f62e4fc23938e0b75c5a863c814f47",
+  "working_tree_modified": true
+}

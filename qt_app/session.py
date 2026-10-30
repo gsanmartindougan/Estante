@@ -4,9 +4,9 @@ from pathlib import Path
 from threading import Event
 import time
 
-from library import Library, launch
-from game_session import wait_for_game
-import game_supervisor
+from core.library import Library, launch
+from core.game_session import wait_for_game
+import core.game_supervisor as game_supervisor
 
 
 STARTUP_DISPLAY_SECONDS = 25

@@ -9,7 +9,7 @@ from PySide6.QtGui import QGuiApplication,QMouseEvent
 from PySide6.QtWidgets import QApplication
 from PySide6.QtQml import QQmlApplicationEngine
 from qt_app.main import LibraryController
-from library import Library
+from core.library import Library
 app=QApplication([]);app.setDesktopFileName('io.github.estante.Test')
 def pump():
     deadline=time.monotonic()+.1

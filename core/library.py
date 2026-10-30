@@ -1,7 +1,7 @@
 """Local library, direct Faugus handoff and optional SteamGridDB artwork."""
-from steam_import import discover_steam, is_faugus_steam
-from heroic_import import discover_heroic, launch_url
-from i18n import tr
+from integrations.steam_import import discover_steam, is_faugus_steam
+from integrations.heroic_import import discover_heroic, launch_url
+from core.i18n import tr
 import json
 import os
 from pathlib import Path
