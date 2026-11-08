@@ -1,6 +1,6 @@
 # Estante
 
-Versión: **0.3.0**.
+Versión: **0.3.1**.
 
 [English documentation](README.en.md)
 
@@ -124,7 +124,7 @@ Recomendamos [Gear Lever](https://github.com/mijorus/gearlever) para organizar e
 AppImage e integrar Estante en el menú de aplicaciones con su icono.
 
 1. Instala Gear Lever desde [Flathub](https://flathub.org/apps/it.mijorus.gearlever).
-2. Descarga `Estante-0.3.0-x86_64.AppImage`.
+2. Descarga `Estante-0.3.1-x86_64.AppImage`.
 3. Abre el archivo con Gear Lever y utiliza su opción de integración en el menú.
 4. Abre **Estante** desde el lanzador de tu escritorio.
 
@@ -139,12 +139,12 @@ flatpak install flathub it.mijorus.gearlever
 Si prefieres gestionar el archivo a mano:
 
 ```sh
-chmod +x Estante-0.3.0-x86_64.AppImage
-./Estante-0.3.0-x86_64.AppImage
+chmod +x Estante-0.3.1-x86_64.AppImage
+./Estante-0.3.1-x86_64.AppImage
 ```
 
 La versión aparece en el pie de la biblioteca y en **Ajustes → Globales**.
-También puedes consultarla con `./Estante-0.3.0-x86_64.AppImage --version`.
+También puedes consultarla con `./Estante-0.3.1-x86_64.AppImage --version`.
 
 Puedes mover el archivo a la carpeta que prefieras. Los datos siguen guardándose en
 la ubicación habitual de Estante. Faugus debe estar instalado aparte para ejecutar
@@ -156,7 +156,7 @@ El runtime necesita FUSE para montar el archivo. Si FUSE no está disponible, pu
 extraerlo y ejecutarlo sin montar:
 
 ```sh
-./Estante-0.3.0-x86_64.AppImage --appimage-extract
+./Estante-0.3.1-x86_64.AppImage --appimage-extract
 ./squashfs-root/AppRun
 ```
 
@@ -209,11 +209,11 @@ gestor de paquetes de tu distribución (`SDL2` en Fedora, `sdl2` en Arch o
 
 ### Instalar desde el paquete descargable
 
-Descomprime `Estante-0.3.0-linux.tar.gz` y crea el entorno Qt fuera de la carpeta
+Descomprime `Estante-0.3.1-linux.tar.gz` y crea el entorno Qt fuera de la carpeta
 extraída para poder borrar el instalador después:
 
 ```sh
-tar -xzf Estante-0.3.0-linux.tar.gz
+tar -xzf Estante-0.3.1-linux.tar.gz
 cd Estante
 python3 -m venv "$HOME/.local/share/estante-venv"
 "$HOME/.local/share/estante-venv/bin/pip" install -r requirements/qt.txt
@@ -460,7 +460,7 @@ Para generar el instalador nativo, sin incluir datos personales ni credenciales:
 python3 packaging/build-release.py
 ```
 
-El resultado es `dist/Estante-0.3.0-linux.tar.gz`. Generarlo no lo publica en GitHub.
+El resultado es `dist/Estante-0.3.1-linux.tar.gz`. Generarlo no lo publica en GitHub.
 El instalador también admite `--prefix` y `--destdir` para preparar paquetes de distribución.
 
 ### Construir el AppImage
@@ -476,7 +476,7 @@ Con el entorno Qt/PySide6, SDL2, `ldd` y el AppImage de
 ```
 
 El constructor usa el runtime Type 2 y `mksquashfs` incluidos en ese archivo para
-generar `dist/Estante-0.3.0-x86_64.AppImage` sin descargar herramientas adicionales.
+generar `dist/Estante-0.3.1-x86_64.AppImage` sin descargar herramientas adicionales.
 Incluye las dependencias locales y ejecuta `--self-test` antes de comprimir y después
 de extraer el resultado. No necesita Docker ni FUSE para construir.
 

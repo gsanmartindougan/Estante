@@ -1,6 +1,6 @@
 # Estante
 
-Version: **0.3.0** · [Documentación en español](README.md)
+Version: **0.3.1** · [Documentación en español](README.md)
 
 A simple native Linux game library inspired by Cartridges. Launch games from **Steam**, **Faugus Launcher**, **Heroic Games Launcher**, **shell scripts** and **AppImages**, using a gamepad, keyboard or mouse.
 
@@ -103,19 +103,19 @@ https://github.com/user-attachments/assets/abd091ee-4039-403d-bb5d-9cdd9117199f
 
 The **x86_64 AppImage** includes Python, Qt Quick/PySide6 and SDL2. Faugus must be installed separately to launch its games.
 
-We recommend [Gear Lever](https://flathub.org/apps/it.mijorus.gearlever) to manage the AppImage and add Estante to your application menu. Open `Estante-0.3.0-x86_64.AppImage` with Gear Lever and use its integration option.
+We recommend [Gear Lever](https://flathub.org/apps/it.mijorus.gearlever) to manage the AppImage and add Estante to your application menu. Open `Estante-0.3.1-x86_64.AppImage` with Gear Lever and use its integration option.
 
 You can also run the file directly:
 
 ```sh
-chmod +x Estante-0.3.0-x86_64.AppImage
-./Estante-0.3.0-x86_64.AppImage
+chmod +x Estante-0.3.1-x86_64.AppImage
+./Estante-0.3.1-x86_64.AppImage
 ```
 
 If FUSE is unavailable:
 
 ```sh
-./Estante-0.3.0-x86_64.AppImage --appimage-extract
+./Estante-0.3.1-x86_64.AppImage --appimage-extract
 ./squashfs-root/AppRun
 ```
 
@@ -126,7 +126,7 @@ To uninstall, remove Estante through Gear Lever, or delete the AppImage if you m
 Requires Python 3.10+, PySide6 and SDL2. Install SDL2 with your distribution's
 package manager (`SDL2` on Fedora, `sdl2` on Arch, `libsdl2-2.0-0` on Debian/Ubuntu).
 
-Extract `Estante-0.3.0-linux.tar.gz`, enter `Estante`, and use a persistent Qt environment:
+Extract `Estante-0.3.1-linux.tar.gz`, enter `Estante`, and use a persistent Qt environment:
 
 ```sh
 python3 -m venv "$HOME/.local/share/estante-venv"

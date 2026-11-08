@@ -1,4 +1,4 @@
-# Próxima actualización de mantenimiento — sin publicar
+# Estante 0.3.1 — Explorador y mantenimiento
 
 - Reorganización del código en `core/`, `integrations/`, `qt_app/`, `gtk_app/`,
   `packaging/` y `requirements/`, conservando los scripts públicos de entrada.
@@ -9,9 +9,10 @@
 - Pruebas de estrés de 100 y 500 juegos tras las correcciones de imágenes,
   con cero decodificaciones fallidas y cero avisos Qt en esas ejecuciones.
 
-Pendiente antes de publicar: completar el selector del fondo global y validar
+Limitaciones conocidas: queda pendiente completar el selector del fondo global y validar
 fondos y colores al guardar. Véase [revisión de paridad](docs/qa/paridad-gtk-qt-2026-10-30.md).
-Esta sección no corresponde a una release publicada. La versión sigue en 0.3.0.
+No se garantiza una reducción fija de RAM. Las pruebas fuera de pantalla no validan
+la compatibilidad del AppImage con todas las distribuciones y GPU.
 
 ---
 
