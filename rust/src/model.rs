@@ -1591,7 +1591,7 @@ fn recomplauncher_command(install: Option<&str>, id: &str, token: &str) -> io::R
         command.args([
             "run".to_owned(),
             format!("--env=ESTANTE_GAME_SESSION={token}"),
-            "com.recomplauncher.app".to_owned(),
+            "com.recomplauncher.RecompLauncher".to_owned(),
             "--play".to_owned(),
             id.to_owned(),
         ]);

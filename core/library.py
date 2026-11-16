@@ -1,7 +1,11 @@
 """Local library, direct Faugus handoff and optional SteamGridDB artwork."""
 from integrations.steam_import import discover_steam, is_faugus_steam
 from integrations.heroic_import import discover_heroic, launch_url
-from integrations.recomp_import import APP_ID as RECOMP_APP_ID, discover_recomp
+from integrations.recomp_import import (
+    DATA_ID as RECOMP_DATA_ID,
+    FLATPAK_ID as RECOMP_FLATPAK_ID,
+    discover_recomp,
+)
 from core.i18n import tr
 import json
 import os
@@ -340,17 +344,17 @@ def recomplauncher_prefix(install):
     if install == 'flatpak':
         if not shutil.which('flatpak'):
             raise ValueError(tr('No se encuentra Flatpak.'))
-        return ['flatpak', 'run', RECOMP_APP_ID]
+        return ['flatpak', 'run', RECOMP_FLATPAK_ID]
     launcher = shutil.which('recomplauncher')
     if launcher:
         return [launcher]
     data = Path(os.environ.get('XDG_DATA_HOME', Path.home() / '.local/share'))
     desktop_files = (data / 'applications/recomplauncher.desktop',
-                     data / f'applications/{RECOMP_APP_ID}.desktop',
+                     data / f'applications/{RECOMP_DATA_ID}.desktop',
                      Path('/usr/local/share/applications/recomplauncher.desktop'),
-                     Path('/usr/local/share/applications') / f'{RECOMP_APP_ID}.desktop',
+                     Path('/usr/local/share/applications') / f'{RECOMP_DATA_ID}.desktop',
                      Path('/usr/share/applications/recomplauncher.desktop'),
-                     Path('/usr/share/applications') / f'{RECOMP_APP_ID}.desktop')
+                     Path('/usr/share/applications') / f'{RECOMP_DATA_ID}.desktop')
     for desktop in desktop_files:
         try:
             line = next(line[5:].strip() for line in desktop.read_text().splitlines()

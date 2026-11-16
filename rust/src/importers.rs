@@ -482,11 +482,15 @@ pub fn heroic(home: &Path, config: &Path) -> io::Result<Vec<Value>> {
 }
 
 pub fn recomp(home: &Path, data: &Path) -> io::Result<Vec<Value>> {
-    let app_id = "com.recomplauncher.app";
+    let data_id = "com.recomplauncher.app";
+    let flatpak_id = "com.recomplauncher.RecompLauncher";
     let roots = [
-        (data.join(app_id), "native"),
+        (data.join(data_id), "native"),
         (
-            home.join(".var/app").join(app_id).join("data").join(app_id),
+            home.join(".var/app")
+                .join(flatpak_id)
+                .join("data")
+                .join(data_id),
             "flatpak",
         ),
     ];
@@ -496,6 +500,8 @@ pub fn recomp(home: &Path, data: &Path) -> io::Result<Vec<Value>> {
         let Some(installed) = library.get("installed").and_then(Value::as_object) else {
             continue;
         };
+        let catalog = read_json(&root.join("cache/pc-catalog.json")).unwrap_or(Value::Null);
+        let catalog_apps = catalog.get("apps").and_then(Value::as_array);
         for (game_id, entry) in installed {
             let Some(entry) = entry.as_object() else { continue };
             if game_id.is_empty() || game_id.contains('\0') {
@@ -516,11 +522,24 @@ pub fn recomp(home: &Path, data: &Path) -> io::Result<Vec<Value>> {
             if games.contains_key(&identity) {
                 continue;
             }
+            let catalog_title = catalog_apps
+                .into_iter()
+                .flatten()
+                .find(|app| app.get("id").and_then(Value::as_str) == Some(game_id))
+                .and_then(|app| app.get("game"))
+                .and_then(Value::as_str)
+                .filter(|title| !title.is_empty());
             let title = entry
                 .get("game")
-                .or_else(|| entry.get("name"))
                 .and_then(Value::as_str)
                 .filter(|title| !title.is_empty())
+                .or(catalog_title)
+                .or_else(|| {
+                    entry
+                        .get("name")
+                        .and_then(Value::as_str)
+                        .filter(|title| !title.is_empty())
+                })
                 .unwrap_or(game_id);
             let mut game = Map::new();
             insert(&mut game, "id", &identity);

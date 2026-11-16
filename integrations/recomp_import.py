@@ -3,13 +3,14 @@ import json
 from pathlib import Path
 
 
-APP_ID = 'com.recomplauncher.app'
+DATA_ID = 'com.recomplauncher.app'
+FLATPAK_ID = 'com.recomplauncher.RecompLauncher'
 
 
 def discover_recomp(home, data):
     home, data = Path(home), Path(data)
-    roots = [(data / APP_ID, 'native'),
-             (home / '.var/app' / APP_ID / 'data' / APP_ID, 'flatpak')]
+    roots = [(data / DATA_ID, 'native'),
+             (home / '.var/app' / FLATPAK_ID / 'data' / DATA_ID, 'flatpak')]
     games = {}
     for root, install in roots:
         try:
@@ -19,6 +20,14 @@ def discover_recomp(home, data):
         installed = library.get('installed', {}) if isinstance(library, dict) else {}
         if not isinstance(installed, dict):
             continue
+        try:
+            catalog = json.loads((root / 'cache/pc-catalog.json').read_text())
+        except (OSError, ValueError):
+            catalog = {}
+        catalog_apps = catalog.get('apps', []) if isinstance(catalog, dict) else []
+        catalog_names = {row.get('id'): row.get('game') for row in catalog_apps
+                         if isinstance(row, dict) and isinstance(row.get('id'), str)
+                         and isinstance(row.get('game'), str) and row.get('game')}
         for game_id, entry in installed.items():
             if not isinstance(game_id, str) or not game_id or '\0' in game_id or not isinstance(entry, dict):
                 continue
@@ -31,7 +40,7 @@ def discover_recomp(home, data):
             identity = 'recomp:' + game_id
             if identity in games:
                 continue
-            title = entry.get('game') or entry.get('name') or game_id
+            title = entry.get('game') or catalog_names.get(game_id) or entry.get('name') or game_id
             cover = Path(str(entry.get('cover_file') or '')).expanduser()
             if not cover.is_absolute():
                 cover = root / cover
