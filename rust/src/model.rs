@@ -41,6 +41,7 @@ impl Game {
             "steam" => "Steam",
             "faugus" => "Faugus",
             "heroic" => "Heroic",
+            "recomp" => "RecompLauncher",
             _ => "Local",
         }
     }
@@ -198,7 +199,7 @@ impl Library {
         let overrides = self.state.get("overrides").and_then(Value::as_object);
         let mut games = Vec::new();
 
-        for source in ["faugus", "steam", "heroic"] {
+        for source in ["faugus", "steam", "heroic", "recomp"] {
             for item in self
                 .state
                 .get(source)
@@ -450,7 +451,7 @@ impl Library {
         {
             categories.retain(|item| item.as_str() != Some(name));
         }
-        for source in ["games", "steam", "faugus", "heroic"] {
+        for source in ["games", "steam", "faugus", "heroic", "recomp"] {
             for game in self
                 .state
                 .get_mut(source)
@@ -519,7 +520,7 @@ impl Library {
             }
             categories.sort_by_key(|item| item.as_str().unwrap_or_default().to_lowercase());
         }
-        for source in ["games", "steam", "faugus", "heroic"] {
+        for source in ["games", "steam", "faugus", "heroic", "recomp"] {
             if let Some(games) = self.state.get_mut(source).and_then(Value::as_array_mut) {
                 for game in games {
                     replace_category_value(game, previous, name);
@@ -599,7 +600,7 @@ impl Library {
         if selected {
             categories.push(category.to_owned());
         }
-        let target = if matches!(game.kind(), "steam" | "faugus" | "heroic") {
+        let target = if matches!(game.kind(), "steam" | "faugus" | "heroic" | "recomp") {
             self.state
                 .entry("overrides")
                 .or_insert_with(|| Value::Object(Map::new()))
@@ -739,7 +740,10 @@ impl Library {
             };
             if (game.kind() == "steam" && steam_match)
                 || (game.kind() == "heroic" && heroic_match)
-                || (!matches!(game.kind(), "steam" | "heroic") && token_match)
+                || (game.kind() == "recomp"
+                    && variables.contains(&b"RECOMPLAUNCHER=1".as_slice())
+                    && token_match)
+                || (!matches!(game.kind(), "steam" | "heroic" | "recomp") && token_match)
             {
                 found.push(pid);
             }
@@ -831,6 +835,16 @@ impl Library {
                     &token,
                     None,
                 )?
+            }
+            "recomp" => {
+                let id = game.field("recomp_id").unwrap_or_default();
+                if id.is_empty() || id.contains('\0') {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        "Identificador de RecompLauncher no válido.",
+                    ));
+                }
+                recomplauncher_command(game.field("install"), id, &token)?
             }
             "heroic" => {
                 let runner = game.field("heroic_runner").unwrap_or_default();
@@ -1056,7 +1070,7 @@ impl Library {
     }
 
     pub fn remove_game(&mut self, id: &str) -> io::Result<()> {
-        let imported = ["steam", "faugus", "heroic"].iter().any(|source| {
+        let imported = ["steam", "faugus", "heroic", "recomp"].iter().any(|source| {
             self.state
                 .get(*source)
                 .and_then(Value::as_array)
@@ -1127,7 +1141,7 @@ impl Library {
     }
 
     fn apply_game_update(&mut self, id: &str, updated: &Map<String, Value>) -> io::Result<()> {
-        let imported_source = ["steam", "faugus", "heroic"]
+        let imported_source = ["steam", "faugus", "heroic", "recomp"]
             .iter()
             .find(|source| {
                 self.state
@@ -1313,6 +1327,40 @@ impl Library {
         self.state
             .insert("heroic".into(), Value::Array(discovered.clone()));
         self.assign_source_category(&discovered, "Heroic");
+        self.save()?;
+        Ok((added, discovered.len()))
+    }
+
+    pub fn scan_recomp(&mut self) -> io::Result<(usize, usize)> {
+        let home = std::env::var_os("HOME").map(PathBuf::from).unwrap_or_default();
+        let data = std::env::var_os("XDG_DATA_HOME")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| home.join(".local/share"));
+        let excluded = string_set(self.state.get("excluded_imports"));
+        let discovered = crate::importers::recomp(&home, &data)?
+            .into_iter()
+            .filter(|game| {
+                !excluded.contains(game.get("id").and_then(Value::as_str).unwrap_or_default())
+            })
+            .collect::<Vec<_>>();
+        let previous = self
+            .state
+            .get("recomp")
+            .and_then(Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let ids = previous
+            .iter()
+            .filter_map(|game| game.get("id").and_then(Value::as_str))
+            .collect::<std::collections::HashSet<_>>();
+        let added = discovered
+            .iter()
+            .filter(|game| {
+                !ids.contains(game.get("id").and_then(Value::as_str).unwrap_or_default())
+            })
+            .count();
+        self.state.insert("recomp".into(), Value::Array(discovered.clone()));
+        self.assign_source_category(&discovered, "RecompLauncher");
         self.save()?;
         Ok((added, discovered.len()))
     }
@@ -1535,6 +1583,74 @@ fn launcher_command(
         command.args(args);
         Ok(command)
     }
+}
+
+fn recomplauncher_command(install: Option<&str>, id: &str, token: &str) -> io::Result<Command> {
+    if install == Some("flatpak") {
+        let mut command = Command::new("flatpak");
+        command.args([
+            "run".to_owned(),
+            format!("--env=ESTANTE_GAME_SESSION={token}"),
+            "com.recomplauncher.app".to_owned(),
+            "--play".to_owned(),
+            id.to_owned(),
+        ]);
+        return Ok(command);
+    }
+    let path = env::var_os("PATH").unwrap_or_default();
+    if let Some(executable) = env::split_paths(&path)
+        .map(|directory| directory.join("recomplauncher"))
+        .find(|candidate| candidate.is_file())
+    {
+        let mut command = Command::new(executable);
+        command.args(["--play", id]);
+        return Ok(command);
+    }
+    let home = env::var_os("HOME").map(PathBuf::from).unwrap_or_default();
+    let data = env::var_os("XDG_DATA_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| home.join(".local/share"));
+    let desktop_files = [
+        data.join("applications/recomplauncher.desktop"),
+        data.join("applications/com.recomplauncher.app.desktop"),
+        PathBuf::from("/usr/local/share/applications/recomplauncher.desktop"),
+        PathBuf::from("/usr/local/share/applications/com.recomplauncher.app.desktop"),
+        PathBuf::from("/usr/share/applications/recomplauncher.desktop"),
+        PathBuf::from("/usr/share/applications/com.recomplauncher.app.desktop"),
+    ];
+    for desktop in desktop_files {
+        let Ok(contents) = fs::read_to_string(desktop) else {
+            continue;
+        };
+        let Some(exec) = contents.lines().find_map(|line| line.strip_prefix("Exec=")) else {
+            continue;
+        };
+        let Some(mut words) = shlex::split(exec) else {
+            continue;
+        };
+        words.retain(|word| !word.starts_with('%'));
+        let Some(program) = words.first() else { continue };
+        let executable = if program.contains('/') {
+            PathBuf::from(program)
+        } else if let Some(path) = env::split_paths(&path)
+            .map(|directory| directory.join(program))
+            .find(|candidate| candidate.is_file())
+        {
+            path
+        } else {
+            continue;
+        };
+        if !executable.is_file() {
+            continue;
+        }
+        let mut command = Command::new(executable);
+        command.args(words.iter().skip(1)).args(["--play", id]);
+        return Ok(command);
+    }
+    Err(io::Error::new(
+        io::ErrorKind::NotFound,
+        "No se encuentra RecompLauncher.",
+    ))
 }
 
 fn url_encode(value: &str) -> String {

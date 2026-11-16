@@ -2,7 +2,7 @@
 
 Version: **0.4.0** · [Documentación en español](README.md)
 
-A simple native Linux game library inspired by Cartridges. Launch games from **Steam**, **Faugus Launcher**, **Heroic Games Launcher**, **shell scripts** and **AppImages**, using a gamepad, keyboard or mouse.
+A simple native Linux game library inspired by Cartridges. Launch games from **Steam**, **Faugus Launcher**, **Heroic Games Launcher**, **RecompLauncher**, **shell scripts** and **AppImages**, using a gamepad, keyboard or mouse.
 
 Faugus games are imported directly: you do not need to create `.desktop` entries. Faugus keeps control of the runner, prefix and launch arguments.
 
@@ -234,6 +234,10 @@ Use **Settings → Scan and scraping → Scan Steam / Scan Faugus**. Steam scans
 Scans assign **Steam** and **Faugus** categories while retaining other categories and custom artwork. Faugus entries using the **Steam** runner or a `steam://` URI are skipped, including previously imported ones. Titles and executable names are not used to identify these duplicates. Steam and Faugus files are never modified.
 
 Remove a game through **Edit → Organization → Remove from library**. Its files are not deleted or uninstalled. Removed Steam and Faugus games are excluded from future scans; restore them with their customizations from **Settings → Scan and scraping → Removed games → Restore removed games**. Local scripts and AppImages can be added again using Add.
+
+### Importing RecompLauncher
+
+Use **Settings → Scan and scraping → Import RecompLauncher games**. Estante reads its local library without changing it and launches each game with RecompLauncher's `--play` option, so the launcher applies its own profiles and setup. RecompLauncher must be installed as a native app or Flatpak.
 
 **Settings → List → List position** places the wheel on the left, right, top or bottom, with details on the opposite side. Side wheels use up/down; top and bottom wheels use left/right. Move toward the details to focus Play/Edit and toward the wheel to return to the logos.
 

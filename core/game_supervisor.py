@@ -54,7 +54,7 @@ def prepare(game, process, root, started, started_at, restore, reopen=None):
     try:
         source = Path(__file__).resolve().parents[1]
         # AppImage's temporary mount disappears when its UI exits.
-        for name in ('core/__init__.py', 'integrations/__init__.py', 'core/game_supervisor.py', 'core/game_session.py', 'core/library.py', 'integrations/steam_import.py', 'integrations/heroic_import.py', 'core/i18n.py'):
+        for name in ('core/__init__.py', 'integrations/__init__.py', 'core/game_supervisor.py', 'core/game_session.py', 'core/library.py', 'integrations/steam_import.py', 'integrations/heroic_import.py', 'integrations/recomp_import.py', 'core/i18n.py'):
             (folder/name).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source / name, folder / name)
         environment = host_environment()

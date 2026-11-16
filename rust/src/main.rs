@@ -1489,7 +1489,7 @@ impl App {
                     let start_behavior =
                         !was_observed && session.observed && !session.behavior_applied;
                     session.behavior_applied |= start_behavior;
-                    let external = matches!(session.game.kind(), "steam" | "heroic");
+                    let external = matches!(session.game.kind(), "steam" | "heroic" | "recomp");
                     if external
                         && !session.observed
                         && session.started.elapsed() >= Duration::from_secs(90)
@@ -1604,7 +1604,9 @@ impl App {
                     return Task::none();
                 }
                 self.scanning = true;
-                self.notice = Some("Buscando juegos de Steam y Faugus…".into());
+                self.notice = Some(
+                    "Buscando juegos de Steam, Faugus, Heroic y RecompLauncher…".into(),
+                );
                 return Task::perform(
                     async {
                         tokio::task::spawn_blocking(|| {
@@ -1612,9 +1614,10 @@ impl App {
                             let (steam_added, steam_total) = library.scan_steam()?;
                             let (faugus_added, faugus_total) = library.scan_faugus()?;
                             let (heroic_added, heroic_total) = library.scan_heroic()?;
+                            let (recomp_added, recomp_total) = library.scan_recomp()?;
                             Ok::<_, std::io::Error>((
-                                steam_added + faugus_added + heroic_added,
-                                steam_total + faugus_total + heroic_total,
+                                steam_added + faugus_added + heroic_added + recomp_added,
+                                steam_total + faugus_total + heroic_total + recomp_total,
                             ))
                         })
                         .await
@@ -1642,7 +1645,9 @@ impl App {
                 }
             }
             Message::ScanProvider(source) => {
-                if self.scanning || !["steam", "faugus", "heroic"].contains(&source.as_str()) {
+                if self.scanning
+                    || !["steam", "faugus", "heroic", "recomp"].contains(&source.as_str())
+                {
                     return Task::none();
                 }
                 self.scanning = true;
@@ -1655,6 +1660,7 @@ impl App {
                                 "steam" => library.scan_steam(),
                                 "faugus" => library.scan_faugus(),
                                 "heroic" => library.scan_heroic(),
+                                "recomp" => library.scan_recomp(),
                                 _ => unreachable!(),
                             }?;
                             Ok::<_, std::io::Error>((source, added, total))
@@ -5519,6 +5525,7 @@ impl App {
                 ("steam", "Steam"),
                 ("faugus", "Faugus"),
                 ("heroic", "Heroic"),
+                ("recomp", "RecompLauncher"),
             ]
             .into_iter()
             .fold(
@@ -5849,6 +5856,9 @@ impl App {
                     ),
                     button("Heroic").on_press_maybe(
                         (!self.scanning).then(|| Message::ScanProvider("heroic".into()))
+                    ),
+                    button("RecompLauncher").on_press_maybe(
+                        (!self.scanning).then(|| Message::ScanProvider("recomp".into()))
                     ),
                     button("Todos")
                         .on_press_maybe((!self.scanning).then_some(Message::ScanImports)),
@@ -6281,7 +6291,7 @@ impl App {
         } else {
             column![
                 text("Ejecución").size(18),
-                text("Steam, Faugus y Heroic mantienen la configuración de ejecución en sus aplicaciones.")
+                text("Steam, Faugus, Heroic y RecompLauncher mantienen la configuración de ejecución en sus aplicaciones.")
                     .size(13),
             ]
             .into()

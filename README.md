@@ -36,7 +36,7 @@ La IA es una herramienta de desarrollo; la responsabilidad sobre los cambios y l
 
 ## Funciones
 
-- Importación manual de Steam, Faugus y Heroic desde Ajustes, tanto nativos como Flatpak, con categorías por origen.
+- Importación manual de Steam, Faugus, Heroic y RecompLauncher desde Ajustes, con categorías por origen.
 - Juegos locales con parámetros y directorio de trabajo personalizados.
 - Cuatro apariencias: **Grid**, **Carousel**, **Sense** y **Lista**.
 - Categorías propias, búsqueda y navegación rápida por inicial.
@@ -520,6 +520,10 @@ En **Ajustes → Escaneo y scraping** puedes pulsar **Escanear Steam** o **Escan
 Los escaneos asignan las categorías **Steam** y **Faugus** y conservan las demás categorías y personalizaciones. Las entradas de Faugus con runner **Steam** o una dirección `steam://` se omiten, incluidas las importadas anteriormente. No se deduplica por título ni por nombres de ejecutables, para conservar juegos independientes que tengan «Steam» en su nombre. Los archivos de Steam y Faugus se leen sin modificarlos.
 
 Para quitar un juego, abre **Editar → Organización → Quitar de la biblioteca**. No se borra ni se desinstala. Los importados de Steam y Faugus quedan excluidos de futuros escaneos; puedes recuperarlos desde **Ajustes → Escaneo y scraping → Juegos quitados → Restaurar juegos quitados**, con sus personalizaciones. Los scripts y AppImages locales pueden añadirse de nuevo desde Añadir.
+
+### Importar RecompLauncher
+
+Usa **Ajustes → Escaneo y scraping → Importar juegos de RecompLauncher**. Estante lee su biblioteca local sin modificarla y lanza cada juego con RecompLauncher's opción `--play`, para que el propio lanzador aplique sus perfiles y preparación. RecompLauncher debe estar instalado como aplicación nativa o Flatpak.
 
 En **Ajustes → Lista → Posición de la lista** puedes situar la rueda a la izquierda, derecha, arriba o abajo. Los datos quedan en el lado opuesto. En los laterales navegas con arriba/abajo; en los bordes superior e inferior, con izquierda/derecha. La dirección hacia los datos enfoca Jugar/Editar y la dirección hacia la rueda vuelve a los logos.
 

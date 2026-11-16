@@ -1,6 +1,7 @@
 """Local library, direct Faugus handoff and optional SteamGridDB artwork."""
 from integrations.steam_import import discover_steam, is_faugus_steam
 from integrations.heroic_import import discover_heroic, launch_url
+from integrations.recomp_import import APP_ID as RECOMP_APP_ID, discover_recomp
 from core.i18n import tr
 import json
 import os
@@ -27,6 +28,7 @@ class Library:
         config = Path(os.environ.get('XDG_CONFIG_HOME', self.home / '.config'))
         self.steam_data = data
         self.heroic_config = config
+        self.recomp_data = data
         self.root = Path(data_dir or data / 'estante')
         self.root.mkdir(parents=True, exist_ok=True)
         self.file = self.root / 'library.json'
@@ -133,10 +135,20 @@ class Library:
         self.save()
         return added, len(discovered)
 
+    def scan_recomp(self):
+        excluded = set(self.state.get('excluded_imports', []))
+        discovered = [game for game in discover_recomp(self.home, self.recomp_data) if game['id'] not in excluded]
+        previous = {game['id']: game for game in self.state.get('recomp', [])}
+        added = sum(game['id'] not in previous for game in discovered)
+        self.state['recomp'] = discovered
+        self.assign_source_category(discovered, 'RecompLauncher')
+        self.save()
+        return added, len(discovered)
+
     def games(self):
         games = []
         excluded = set(self.state.get('excluded_imports', []))
-        for row in self.state.get('faugus', []) + self.state.get('steam', []) + self.state.get('heroic', []):
+        for row in self.state.get('faugus', []) + self.state.get('steam', []) + self.state.get('heroic', []) + self.state.get('recomp', []):
             if row['id'] in excluded:
                 continue
             if row['kind'] == 'faugus' and is_faugus_steam(row):
@@ -158,7 +170,7 @@ class Library:
         changed = False
         for game in games:
             changed = True
-            if game['kind'] in ('faugus', 'steam', 'heroic'):
+            if game['kind'] in ('faugus', 'steam', 'heroic', 'recomp'):
                 overrides[game['id']] = {
                     key: game[key] for key in ('cover', 'square_cover', 'logo', 'banner', 'banner_secondary', 'steamgriddb_id', 'metadata', 'categories') if key in game}
             else:
@@ -268,14 +280,14 @@ class Library:
             categories = [item for item in game.get('categories', []) if item != name]
             if game['id'] in selected:
                 categories.append(name)
-            if game['kind'] in ('faugus', 'steam', 'heroic'):
+            if game['kind'] in ('faugus', 'steam', 'heroic', 'recomp'):
                 self.state['overrides'].setdefault(game['id'], {})['categories'] = categories
             else:
                 next(row for row in self.state['games'] if row['id'] == game['id'])['categories'] = categories
         self.save()
 
     def remove(self, game):
-        if game['kind'] in ('faugus', 'steam', 'heroic'):
+        if game['kind'] in ('faugus', 'steam', 'heroic', 'recomp'):
             self.state['excluded_imports'] = sorted(set(self.state.get('excluded_imports', [])) | {game['id']})
         else:
             self.state['games'] = [g for g in self.state['games'] if g['id'] != game['id']]
@@ -324,7 +336,42 @@ class Library:
                     path=str(target), arguments=arguments, cwd=str(working), cover=cover)
 
 
+def recomplauncher_prefix(install):
+    if install == 'flatpak':
+        if not shutil.which('flatpak'):
+            raise ValueError(tr('No se encuentra Flatpak.'))
+        return ['flatpak', 'run', RECOMP_APP_ID]
+    launcher = shutil.which('recomplauncher')
+    if launcher:
+        return [launcher]
+    data = Path(os.environ.get('XDG_DATA_HOME', Path.home() / '.local/share'))
+    desktop_files = (data / 'applications/recomplauncher.desktop',
+                     data / f'applications/{RECOMP_APP_ID}.desktop',
+                     Path('/usr/local/share/applications/recomplauncher.desktop'),
+                     Path('/usr/local/share/applications') / f'{RECOMP_APP_ID}.desktop',
+                     Path('/usr/share/applications/recomplauncher.desktop'),
+                     Path('/usr/share/applications') / f'{RECOMP_APP_ID}.desktop')
+    for desktop in desktop_files:
+        try:
+            line = next(line[5:].strip() for line in desktop.read_text().splitlines()
+                        if line.startswith('Exec='))
+            command = [part for part in shlex.split(line) if not part.startswith('%')]
+        except (OSError, ValueError, StopIteration):
+            continue
+        if not command:
+            continue
+        executable = shutil.which(command[0]) if '/' not in command[0] else command[0]
+        if executable and Path(executable).is_file():
+            return [executable, *command[1:]]
+    raise ValueError(tr('No se encuentra RecompLauncher.'))
+
+
 def launch_command(game):
+    if game['kind'] == 'recomp':
+        game_id = game.get('recomp_id')
+        if not isinstance(game_id, str) or not game_id or '\0' in game_id:
+            raise ValueError(tr('Identificador de RecompLauncher no válido.'))
+        return [*recomplauncher_prefix(game.get('install')), '--play', game_id], None
     if game['kind'] == 'heroic':
         url = launch_url(game)
         if game.get('install') == 'flatpak':

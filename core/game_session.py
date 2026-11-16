@@ -31,6 +31,11 @@ def game_processes(game, launcher_pid, proc_root=Path('/proc'), ready_only=False
                 environment = (entry / 'environ').read_bytes().split(b'\0')
                 matches = (('HEROIC_APP_NAME=' + str(game.get('heroic_app_name', ''))).encode() in environment
                            and ('HEROIC_APP_RUNNER=' + str(game.get('heroic_runner', ''))).encode() in environment)
+            elif game.get('kind') == 'recomp':
+                environment = (entry / 'environ').read_bytes().split(b'\0')
+                matches = (b'RECOMPLAUNCHER=1' in environment
+                           and session_token is not None
+                           and ('ESTANTE_GAME_SESSION=' + session_token).encode() in environment)
             else:
                 matches = int(fields[3]) == launcher_pid
                 if session_token:
@@ -60,7 +65,7 @@ def wait_for_game(game, process, startup_timeout=90, interval=.5, on_started=Non
     token = token if isinstance(token, str) else None
     def members(ready_only=False):
         return game_processes(game, process.pid, ready_only=ready_only, session_token=token)
-    if game.get('kind') not in ('steam', 'heroic') and on_started is not None:
+    if game.get('kind') not in ('steam', 'heroic', 'recomp') and on_started is not None:
         observed = False
         while True:
             code = process.poll()
@@ -72,7 +77,7 @@ def wait_for_game(game, process, startup_timeout=90, interval=.5, on_started=Non
             if code is not None and not running:
                 return code
             time.sleep(interval)
-    if game.get('kind') not in ('steam', 'heroic'):
+    if game.get('kind') not in ('steam', 'heroic', 'recomp'):
         code = process.wait()
         while members():
             time.sleep(interval)
@@ -94,5 +99,6 @@ def wait_for_game(game, process, startup_timeout=90, interval=.5, on_started=Non
         elif code is not None and code != 0:
             return code
         elif time.monotonic() >= deadline:
-            raise RuntimeError('No se pudo detectar el proceso del juego de ' + ('Heroic.' if game.get('kind') == 'heroic' else 'Steam.'))
+            provider = {'heroic': 'Heroic', 'recomp': 'RecompLauncher'}.get(game.get('kind'), 'Steam')
+            raise RuntimeError('No se pudo detectar el proceso del juego de ' + provider + '.')
         time.sleep(interval)

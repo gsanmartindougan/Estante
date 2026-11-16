@@ -210,7 +210,7 @@ class Manager(QObject):
         def work():
             library=Library(data_dir=self.root)
             if source == 'restore': return f'{library.restore_excluded_imports()} juegos restaurados'
-            scanners = {'steam': library.scan_steam, 'faugus': library.scan_faugus, 'heroic': library.scan_heroic}
+            scanners = {'steam': library.scan_steam, 'faugus': library.scan_faugus, 'heroic': library.scan_heroic, 'recomp': library.scan_recomp}
             if source not in scanners:
                 raise ValueError('Origen de juegos no válido.')
             added, total = scanners[source]()

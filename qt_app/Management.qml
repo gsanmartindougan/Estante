@@ -193,7 +193,7 @@ Dialog {
                 GlassField { id: cwd; Layout.fillWidth: true; text: editLocal.checked ? panel.manager.local.cwd : "" }
                 GlassButton { id: localSave; objectName: "saveLocalExecution"; text: editLocal.checked ? "Guardar ejecución" : "Añadir juego"; enabled: !panel.manager.busy; onClicked: panel.manager.saveLocal(localTitle.text,localPath.text,args.text,cwd.text,editLocal.checked) }
                 Label { text: panel.controller.editorSaveHint; color: theme.muted }
-                Label { text: qsTr("Steam, Faugus y Heroic conservan su configuración de ejecución en sus aplicaciones."); color: theme.text; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+                Label { text: qsTr("Steam, Faugus, Heroic y RecompLauncher conservan su configuración de ejecución en sus aplicaciones."); color: theme.text; wrapMode: Text.WordWrap; Layout.fillWidth: true }
                 GlassButton { text: panel.deleting ? "Confirmar: quitar de Estante" : "Quitar juego seleccionado…"; enabled: panel.controller.selected>=0 && !panel.manager.busy; onClicked: { if (panel.deleting) { panel.manager.remove(); panel.deleting=false } else panel.deleting=true } }
             }
         }
@@ -256,6 +256,7 @@ Dialog {
                     width: scanScroll.availableWidth-16; spacing: 14
             GlassButton { objectName: "scanFaugusButton"; text: qsTr("Importar juegos de Faugus"); enabled: !panel.manager.busy; onClicked: panel.manager.scan("faugus") }
             GlassButton { objectName: "scanHeroicButton"; text: qsTr("Importar juegos de Heroic"); enabled: !panel.manager.busy; onClicked: panel.manager.scan("heroic") }
+            GlassButton { objectName: "scanRecompButton"; text: qsTr("Importar juegos de RecompLauncher"); enabled: !panel.manager.busy; onClicked: panel.manager.scan("recomp") }
             GlassButton { text: qsTr("Importar juegos de Steam"); enabled: !panel.manager.busy; onClicked: panel.manager.scan("steam") }
             GlassButton { text: qsTr("Restaurar juegos excluidos"); enabled: !panel.manager.busy; onClicked: panel.manager.scan("restore") }
             GlassCheck { id: replace; text: qsTr("Reemplazar imágenes y metadatos existentes") }

@@ -342,6 +342,8 @@ ENGLISH = {
     "Fondo secundario": "Secondary background",
     "Identificador de Steam no válido.": "Invalid Steam identifier.",
     "No se encuentra Steam.": "Steam could not be found.",
+    "Identificador de RecompLauncher no válido.": "Invalid RecompLauncher identifier.",
+    "No se encuentra RecompLauncher.": "RecompLauncher could not be found.",
     "Se inicia con Steam y utiliza la configuración del cliente.": "Launches through Steam using the client configuration.",
     "Escaneo de Steam": "Steam scan",
     "Escanear Steam": "Scan Steam",

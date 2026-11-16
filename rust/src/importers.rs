@@ -481,6 +481,81 @@ pub fn heroic(home: &Path, config: &Path) -> io::Result<Vec<Value>> {
     Ok(result)
 }
 
+pub fn recomp(home: &Path, data: &Path) -> io::Result<Vec<Value>> {
+    let app_id = "com.recomplauncher.app";
+    let roots = [
+        (data.join(app_id), "native"),
+        (
+            home.join(".var/app").join(app_id).join("data").join(app_id),
+            "flatpak",
+        ),
+    ];
+    let mut games = Map::<String, Value>::new();
+    for (root, install) in roots {
+        let library = read_json(&root.join("library.json"))?;
+        let Some(installed) = library.get("installed").and_then(Value::as_object) else {
+            continue;
+        };
+        for (game_id, entry) in installed {
+            let Some(entry) = entry.as_object() else { continue };
+            if game_id.is_empty() || game_id.contains('\0') {
+                continue;
+            }
+            let Some(directory) = entry
+                .get("path")
+                .and_then(Value::as_str)
+                .filter(|path| !path.is_empty())
+            else {
+                continue;
+            };
+            let directory = PathBuf::from(directory);
+            if !directory.is_absolute() || !directory.is_dir() {
+                continue;
+            }
+            let identity = format!("recomp:{game_id}");
+            if games.contains_key(&identity) {
+                continue;
+            }
+            let title = entry
+                .get("game")
+                .or_else(|| entry.get("name"))
+                .and_then(Value::as_str)
+                .filter(|title| !title.is_empty())
+                .unwrap_or(game_id);
+            let mut game = Map::new();
+            insert(&mut game, "id", &identity);
+            insert(&mut game, "kind", "recomp");
+            insert(&mut game, "recomp_id", game_id);
+            insert(&mut game, "install", install);
+            insert(&mut game, "title", title);
+            insert(&mut game, "path", directory.to_string_lossy());
+            let cover = entry
+                .get("cover_file")
+                .and_then(Value::as_str)
+                .filter(|cover| !cover.is_empty())
+                .map(PathBuf::from)
+                .map(|cover| if cover.is_absolute() { cover } else { root.join(cover) })
+                .filter(|cover| cover.is_file());
+            insert(
+                &mut game,
+                "cover",
+                cover
+                    .map(|cover| cover.to_string_lossy().into_owned())
+                    .unwrap_or_default(),
+            );
+            games.insert(identity, Value::Object(game));
+        }
+    }
+    let mut result = games.into_values().collect::<Vec<_>>();
+    result.sort_by_key(|game| {
+        game.get("title")
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_lowercase()
+    });
+    Ok(result)
+}
+
 fn faugus_steam(game: &Map<String, Value>) -> bool {
     game.get("runner")
         .and_then(Value::as_str)
