@@ -1,3 +1,21 @@
+# Estante 0.4.0 — Interfaz renovada y frontend Rust experimental
+
+- La barra principal integra búsqueda, categorías, acciones y estados en una sola
+  franja compacta; las acciones se muestran según el mando configurado.
+- Los iconos de los botones de mando son vectoriales y las categorías muestran su
+  icono en lugar del texto cuando tienen uno configurado.
+- Qt es ahora el único frontend Python mantenido; se elimina la interfaz GTK.
+- Se añade el frontend paralelo en Rust/iced, todavía en desarrollo y sin paridad
+  funcional con Qt.
+- Se amplía la personalización y la obtención de iconos de categorías, incluyendo
+  Simple Icons.
+
+La biblioteca y los ajustes existentes se conservan. El frontend recomendado sigue
+siendo Qt. El AppImage se construye con las dependencias de la máquina de origen y
+no se ha validado en una matriz de distribuciones y GPU.
+
+---
+
 # Estante 0.3.1 — Explorador y mantenimiento
 
 - Reorganización del código en `core/`, `integrations/`, `qt_app/`, `gtk_app/`,
