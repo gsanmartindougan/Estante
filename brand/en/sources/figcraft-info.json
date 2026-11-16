@@ -1,0 +1,55 @@
+{
+  "file": "/home/gabriel/personal/estante/brand/en/sources/estante-identity.figcraft",
+  "images": 2,
+  "missingFonts": [],
+  "name": "estante-identity",
+  "nodes": 94,
+  "notes": [],
+  "pages": [
+    {
+      "frames": [
+        {
+          "height": 1200.0,
+          "id": 2,
+          "name": "01-identidad",
+          "type": "FRAME",
+          "width": 1600.0
+        },
+        {
+          "height": 900.0,
+          "id": 3,
+          "name": "02-portada",
+          "type": "FRAME",
+          "width": 1600.0
+        },
+        {
+          "height": 1080.0,
+          "id": 4,
+          "name": "03-anuncio",
+          "type": "FRAME",
+          "width": 1080.0
+        },
+        {
+          "height": 1320.0,
+          "id": 5,
+          "name": "04-producto",
+          "type": "FRAME",
+          "width": 1600.0
+        },
+        {
+          "height": 280.0,
+          "id": 6,
+          "name": "05-firma",
+          "type": "FRAME",
+          "width": 1000.0
+        }
+      ],
+      "id": 1,
+      "name": "Page 1",
+      "nodes": 93,
+      "topLevel": 5
+    }
+  ],
+  "styles": 0,
+  "variables": 0
+}

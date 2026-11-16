@@ -107,7 +107,7 @@ def merge_values(settings, values):
 
 
 def groups(settings, mode='global'):
-    """GTK settings cards, in the same columns and order as SettingsView."""
+    """Build settings groups for the Qt settings pane."""
     rows=specs(settings)
     bypath={tuple(row['path']):row for row in rows}
     def group(title, keys, column=0, hint=''):

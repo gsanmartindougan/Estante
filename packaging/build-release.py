@@ -9,9 +9,11 @@ root = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('installer', root / 'packaging/install.py')
 installer = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(installer)
-files = [*installer.MODULES, *installer.DOCUMENTS, *installer.ASSETS, 'run.sh', 'run-qt.sh', 'run-gtk.sh', 'install.sh', 'packaging/install.py',
-         'packaging/build-appimage.py', 'packaging/qt_bundle.py', 'packaging/AppRun', 'packaging/appimage-entry.py', 'packaging/bwrap-appimage',
-         'packaging/io.github.estante.Launcher.desktop', 'packaging/io.github.estante.Launcher.svg']
+files = [*installer.MODULES, *installer.DOCUMENTS, *installer.ASSETS, 'run.sh', 'run-qt.sh', 'install.sh', 'packaging/install.py',
+         'packaging/build-appimage.py', 'packaging/qt_bundle.py', 'packaging/bwrap-appimage',
+         'packaging/io.github.estante.Launcher.desktop', 'packaging/io.github.estante.Launcher.svg', 'run-rust.sh']
+files.extend(str(path.relative_to(root)) for path in sorted((root / 'rust').rglob('*'))
+             if path.is_file() and 'target' not in path.parts)
 version = runpy.run_path(str(root / 'core/version.py'))['__version__']
 output = root / 'dist' / f'Estante-{version}-linux.tar.gz'
 output.parent.mkdir(exist_ok=True)

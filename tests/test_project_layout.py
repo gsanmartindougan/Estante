@@ -24,9 +24,9 @@ class ProjectLayoutTests(TestCase):
         with tempfile.TemporaryDirectory() as folder:
             base=Path(folder);source=base/'source';source.mkdir()
             files=[*installer.MODULES,*installer.DOCUMENTS,*installer.ASSETS,
-                   'run.sh','run-qt.sh','run-gtk.sh','install.sh','packaging/install.py',
+                   'run.sh','run-qt.sh','install.sh','packaging/install.py',
                    'packaging/build-appimage.py','packaging/build-release.py','packaging/qt_bundle.py',
-                   'packaging/AppRun','packaging/appimage-entry.py','packaging/bwrap-appimage',
+                   'packaging/bwrap-appimage',
                    'packaging/io.github.estante.Launcher.desktop']
             for name in dict.fromkeys(files):
                 target=source/name;target.parent.mkdir(parents=True,exist_ok=True)
@@ -41,7 +41,7 @@ class ProjectLayoutTests(TestCase):
             entry=stage/'opt/Test/share/estante/qt_app/__main__.py'
             result=subprocess.check_output([sys.executable,'-I',str(entry),'--version'],cwd=base,text=True)
             self.assertEqual(result.strip(),'Estante '+__version__)
-            for package in ('core','integrations','gtk_app','qt_app'):
+            for package in ('core','integrations','qt_app'):
                 self.assertTrue((entry.parents[1]/package/'__init__.py').is_file())
 
     def test_detached_supervisor_has_all_required_packages(self):

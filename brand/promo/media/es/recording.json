@@ -1,0 +1,154 @@
+[
+  {
+    "scene": "activity",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  },
+  {
+    "scene": "appearance",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  },
+  {
+    "scene": "artwork",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  },
+  {
+    "scene": "background",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  },
+  {
+    "scene": "carousel",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  },
+  {
+    "scene": "categories",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  },
+  {
+    "scene": "controls",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  },
+  {
+    "scene": "editor",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  },
+  {
+    "scene": "grid",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  },
+  {
+    "scene": "imports",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  },
+  {
+    "scene": "keyboard",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  },
+  {
+    "scene": "list",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  },
+  {
+    "scene": "local",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  },
+  {
+    "scene": "playing",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  },
+  {
+    "scene": "screensaver",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  },
+  {
+    "scene": "search",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  },
+  {
+    "scene": "sense",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  },
+  {
+    "scene": "startup",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  },
+  {
+    "scene": "updates",
+    "duration": 6,
+    "fps": 24,
+    "language": "es",
+    "source": "Isolated real Qt library recording",
+    "userProfileUnchanged": true
+  }
+]

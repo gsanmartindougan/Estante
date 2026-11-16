@@ -1,4 +1,4 @@
-"""List actions belong below the detail cover, outside the focused logo strip."""
+"""List actions share a bottom band, outside the focused logo strip."""
 import sys,tempfile,time
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
@@ -40,34 +40,35 @@ with tempfile.TemporaryDirectory() as folder:
                 assert panel.height()<=content.property('implicitHeight')+48.5
                 panel_point=panel.mapToScene(QPointF(0,0))
                 assert abs(panel_point.x()+panel.width()/2-width*(.675 if side=='left' else .325))<1
-                assert actions.y()+actions.height()<panel_point.y()
+                assert actions.y()>panel_point.y()+panel.height()
             else:
                 assert abs(strip.y()+strip.height()/2-body_top-body_height*(.175 if side=='top' else .825))<1
-            point=cover.mapToScene(QPointF(0,0))
-            assert point.y()+cover.height()<actions.y(),(width,height,side,point,actions.y())
-            assert abs(point.x()+cover.width()/2-actions.x()-actions.width()/2)<1
+            point=cover.mapToScene(QPointF(0,0));action_point=actions.mapToScene(QPointF(0,0))
+            assert point.y()+cover.height()<action_point.y(),(width,height,side,point,action_point)
+            assert abs(action_point.x()+actions.width()/2-width/2)<1
             assert actions.x()>=0 and actions.x()+actions.width()<=width
-            assert actions.y()+actions.height()<=height,(width,height,side,actions.y())
+            assert action_point.y()+actions.height()<=height,(width,height,side,action_point)
             selected,error=QQmlExpression(engine.rootContext(),strip,'selectedItem()').evaluate()
             assert not error and selected is not None
             assert window.findChild(QObject,'wheelSelector') is None
             assert selected.property('color').alpha()>0
             if side in ['left','right']: assert abs(strip.width()/width-.35)<.001
             position=selected.mapToScene(QPointF(0,0))
-            assert actions.y()>=position.y()+selected.height() or actions.y()+actions.height()<=position.y() or actions.x()>=position.x()+selected.width() or actions.x()+actions.width()<=position.x()
+            assert action_point.y()>=position.y()+selected.height() or action_point.y()+actions.height()<=position.y() or action_point.x()>=position.x()+selected.width() or action_point.x()+actions.width()<=position.x()
     for game in c.catalog.games: game['cover']=''
     c.changed.emit();c.selectionChanged.emit()
     window.resize(800,600)
     for side in ['left','right','top','bottom']:
         c.settings['list_side']=side;c.appearanceChanged.emit();pump()
         assert not cover.property('visible')
+        action_point=actions.mapToScene(QPointF(0,0))
         if side in ['left','right']:
             panel=window.findChild(QObject,'heroSurface')
-            assert actions.y()+actions.height()<panel.mapToScene(QPointF(0,0)).y()
+            assert action_point.y()>panel.mapToScene(QPointF(0,0)).y()+panel.height()
         else:
-            assert actions.y()>strip.y()+strip.height()
+            assert action_point.y()>strip.y()+strip.height()
         assert actions.x()>=0 and actions.x()+actions.width()<=window.width()
-        assert actions.y()+actions.height()<=window.height()
+        assert action_point.y()+actions.height()<=window.height()
     c.catalog.games[0]['metadata']={'synopsis':'Descripción larga del juego. '*300}
     c.catalog.select(0)
     c.settings['list_side']='left'
@@ -79,4 +80,4 @@ with tempfile.TemporaryDirectory() as folder:
     assert panel.height()<=420
     assert not errors,errors
     c.manager.shutdown();c.idle_timer.stop();window.close();del engine
-print('QT_LIST_ACTIONS_OK: buttons under cover, visible selected-logo highlight, no overlap, four positions and three window sizes')
+print('QT_LIST_ACTIONS_OK: shared bottom action band, visible selected-logo highlight, no overlap, four positions and three window sizes')

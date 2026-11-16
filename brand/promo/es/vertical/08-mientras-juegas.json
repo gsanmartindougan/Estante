@@ -1,0 +1,63 @@
+{
+  "clip": "08-mientras-juegas",
+  "title": "Durante y entre partidas",
+  "language": "es",
+  "aspect": "vertical",
+  "width": 1080,
+  "height": 1920,
+  "fps": 24,
+  "duration": 20,
+  "video": "promo/es/vertical/08-mientras-juegas.mp4",
+  "project": "promo/projects/es/vertical/08-mientras-juegas.fcproj",
+  "captions": [
+    {
+      "start": 2,
+      "end": 6,
+      "text": "Mantén Estante abierto o ciérralo y restáuralo."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "text": "También puedes elegir bandeja o salvapantallas."
+    },
+    {
+      "start": 10,
+      "end": 14,
+      "text": "El salvapantallas recorre los fondos de tu biblioteca."
+    },
+    {
+      "start": 14,
+      "end": 18,
+      "text": "Ajusta el fondo y la presentación a tu gusto."
+    }
+  ],
+  "decoded": true,
+  "audio": false,
+  "shots": [
+    {
+      "scene": "playing",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 2
+    },
+    {
+      "scene": "playing",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 6
+    },
+    {
+      "scene": "screensaver",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 10
+    },
+    {
+      "scene": "background",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 14
+    }
+  ],
+  "layout": "single full application window, uncropped, no duplicate detail or zoom"
+}

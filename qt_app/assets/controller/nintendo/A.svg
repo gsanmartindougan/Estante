@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="64" height="64" viewBox="0 0 64 64">
+  <title>Nintendo A</title>
+  <g id="Layer_1" data-name="Layer 1">
+    <circle cx="32" cy="32" r="29" fill="#ffffff"/>
+    <g>
+      <path d="M36.417 37.016 L27.598 37.016 L26.207 41 L20.538 41 L28.638 19.13 L35.362 19.13 L43.462 41 L37.793 41 Z M29.004 32.958 L34.996 32.958 L32.007 24.257 Z" fill="#292929"/>
+    </g>
+  </g>
+</svg>

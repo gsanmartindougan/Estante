@@ -72,9 +72,11 @@ with tempfile.TemporaryDirectory() as tmp:
         details=w.findChild(QObject,'detailLayout')
         cover=w.findChild(QObject,'detailCover')
         assert heading.property('visible')
-        assert heading.y()+heading.height()<=actions.y()
-        assert actions.y()+actions.height()<details.y()
-        assert abs(heading.x()+heading.width()/2-actions.x()-actions.width()/2)<1
+        actions_point=actions.mapToScene(QPointF(0,0))
+        details_point=details.mapToScene(QPointF(0,0))
+        assert heading.y()+heading.height()<=actions_point.y()
+        assert actions_point.y()>details_point.y()+details.height()
+        assert abs(heading.x()+heading.width()/2-actions_point.x()-actions.width()/2)<1
         assert details.x()==heading.x() and details.width()==heading.width()
         if mode=='carousel':
             assert abs(heading.x()+heading.width()/2-w.width()/2)<1
@@ -97,16 +99,35 @@ with tempfile.TemporaryDirectory() as tmp:
     for width,height in [(800,600),(1280,720),(1440,900)]:
         w.resize(width,height)
         toolbar=w.findChild(QObject,'libraryToolbar')
-        assert toolbar.height()==52
-        assert toolbar.width()<width-31
+        assert toolbar.height()==64
+        assert toolbar.width()<width
+        search=w.findChild(QObject,'search')
+        search_filters=w.findChild(QObject,'searchFilters')
+        filters_point=search_filters.mapToScene(QPointF(0,0))
+        if width>=1280:
+            assert abs(filters_point.x()+search_filters.width()/2-width/2)<1
+        category=w.findChild(QObject,'category')
+        assert search.mapToScene(QPointF(0,0)).x()<category.mapToScene(QPointF(0,0)).x()
         for mode in ['list','grid','carousel','ps5']:
             c.changeView(mode);pump()
             for name in ['search','settingsToolbarButton','playButton','editButton','libraryStrip']:
                 item=w.findChild(QObject,name);assert item is not None,name
                 assert item.width()>0 and item.height()>0,(name,width,mode)
                 point=item.mapToScene(item.boundingRect().topLeft())
-                assert point.x()>=0 and point.x()+item.width()<=width+1,(name,width,mode,point.x(),item.width())
+                if name in ['playButton','editButton']:
+                    scroller=w.findChild(QObject,'gameActions')
+                    assert item.x()>=0 and item.x()+item.width()<=scroller.property('contentWidth'),(name,width,mode,item.x(),item.width())
+                else:
+                    assert point.x()>=0 and point.x()+item.width()<=width+1,(name,width,mode,point.x(),item.width())
                 assert point.y()>=0 and point.y()+item.height()<=height+1,(name,height,mode,point.y(),item.height())
+            play=w.findChild(QObject,'playButton');edit=w.findChild(QObject,'editButton')
+            back=w.findChild(QObject,'backButton');settings=w.findChild(QObject,'settingsToolbarButton')
+            assert play.x()<edit.x()<back.x()<settings.x()
+            steam=w.findChild(QObject,'launcherStatus:steam')
+            assert steam is not None and steam.property('text')=='●'
+            alphabet=w.findChild(QObject,'alphabetStrip')
+            if alphabet.isVisible():
+                assert alphabet.mapToScene(QPointF(0,0)).x()<category.mapToScene(QPointF(0,0)).x()
             c.move(1);pump()
             if mode in ['grid','carousel']:
                 check_details(mode)

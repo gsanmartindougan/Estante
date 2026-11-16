@@ -1,0 +1,41 @@
+{
+  "assets": [
+    {
+      "path": "packaging/io.github.estante.Launcher.svg",
+      "sha256": "22935ccdb28bc83764ada7d61488bd3088e48cd85e46b612be7898c22608e3f7"
+    },
+    {
+      "path": "brand/originals/estante-icon-original.png",
+      "sha256": "4088d99cbf1b4dfb471c10a7acc019f4cdf209c1479ea584829e8f67a740da42"
+    },
+    {
+      "path": "/usr/share/fonts/noto/NotoSans-Regular.ttf",
+      "sha256": "478c558ea716033cd60c03438f628dfa75694dcf6b5f6d505a2f05fd2b4f3823"
+    },
+    {
+      "path": "/usr/share/fonts/noto/NotoSans-Bold.ttf",
+      "sha256": "1df075a380fc7cb898acf64c1f7b3b4dd780de3caa860178bf929de35817a913"
+    },
+    {
+      "path": "brand/originals/estante-list-default.png",
+      "sha256": "fa3f3a2cacfbf50c2bdd171ab534926bf03556b4b6247295a59a876b8f992489"
+    },
+    {
+      "path": "brand/originals/estante-list-default-en.png",
+      "sha256": "166bf10f4971bbefa9f2a168be66cba2fb624c639947039f78f51dc26d6c5c7b"
+    }
+  ],
+  "fontCoverage": {
+    "Regular": {
+      "version": "Version 2.015; ttfautohint (v1.8.4.7-5d5b)",
+      "sample": "Estante Biblioteca Acción configuración Ññ ¿Jugamos? ¡A jugar! 0123456789",
+      "missing": []
+    },
+    "Bold": {
+      "version": "Version 2.015; ttfautohint (v1.8.4.7-5d5b)",
+      "sample": "Estante Biblioteca Acción configuración Ññ ¿Jugamos? ¡A jugar! 0123456789",
+      "missing": []
+    }
+  },
+  "licenseURL": "https://github.com/notofonts/latin-greek-cyrillic/blob/main/OFL.txt"
+}

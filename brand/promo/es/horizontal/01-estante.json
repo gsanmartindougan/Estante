@@ -1,0 +1,62 @@
+{
+  "clip": "01-estante",
+  "title": "Tu próxima partida",
+  "language": "es",
+  "aspect": "horizontal",
+  "width": 1920,
+  "height": 1080,
+  "fps": 24,
+  "duration": 20,
+  "video": "promo/es/horizontal/01-estante.mp4",
+  "project": "promo/projects/es/horizontal/01-estante.fcproj",
+  "captions": [
+    {
+      "start": 2,
+      "end": 6,
+      "text": "Tus juegos, reunidos en una biblioteca para Linux."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "text": "Steam, Faugus, Heroic y juegos locales."
+    },
+    {
+      "start": 10,
+      "end": 14,
+      "text": "Elige cómo recorrer tu colección."
+    },
+    {
+      "start": 14,
+      "end": 18,
+      "text": "Mando, teclado o ratón. Tú eliges."
+    }
+  ],
+  "decoded": true,
+  "audio": false,
+  "shots": [
+    {
+      "scene": "list",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 2
+    },
+    {
+      "scene": "grid",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 6
+    },
+    {
+      "scene": "carousel",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 10
+    },
+    {
+      "scene": "sense",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 14
+    }
+  ]
+}

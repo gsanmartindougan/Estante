@@ -1,0 +1,19 @@
+1
+00:00:02,000 --> 00:00:06,000
+Elige español o inglés y tu tipo de
+mando.
+
+2
+00:00:06,000 --> 00:00:10,000
+Escribe con el teclado integrado para
+mando.
+
+3
+00:00:10,000 --> 00:00:14,000
+Recorre la colección con mando,
+teclado o ratón.
+
+4
+00:00:14,000 --> 00:00:18,000
+Cambia de apariencia y abre los
+ajustes con atajos.

@@ -1,4 +1,4 @@
-"""GTK/Qt-independent launch worker; all UI delivery goes through emit."""
+"""UI-independent launch worker; all UI delivery goes through emit."""
 from datetime import datetime
 from pathlib import Path
 from threading import Event

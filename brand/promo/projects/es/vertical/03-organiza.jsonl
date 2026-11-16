@@ -1,0 +1,4 @@
+{"id": "file.newSequence", "params": {"name": "03-organiza", "width": 1080, "height": 1920, "fps": 24, "video": 1, "audio": 0}}
+{"id": "timeline.place", "params": {"item": 1, "track": "V1", "seconds": 0, "insert": false, "sourceIn": 0, "duration": 5080320000000, "video": true, "audio": false}}
+{"id": "captions.import", "params": {"path": "/home/gabriel/personal/estante/brand/promo/es/vertical/03-organiza.srt", "name": "es"}}
+{"id": "captions.setStyle", "params": {"track": "C1", "font": "Noto Sans", "size": 46, "color": "#F4F7FB", "background": true, "backgroundColor": "#101923FF", "anchor": "bottom", "margin": 0.25}}

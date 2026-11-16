@@ -1,0 +1,106 @@
+{
+  "platform": "LinkedIn",
+  "languages": [
+    "es",
+    "en"
+  ],
+  "published": false,
+  "scheduled": false,
+  "posts": [
+    {
+      "id": "01-presentacion",
+      "language": "es",
+      "title": "Una biblioteca para tus juegos de Linux.",
+      "characters": 567,
+      "media": "imagen.png",
+      "kind": "image",
+      "dimensions": [
+        1600,
+        1320
+      ],
+      "status": "ready_for_user_review",
+      "folder": "es/01-presentacion"
+    },
+    {
+      "id": "02-apariencias",
+      "language": "es",
+      "title": "Cuatro apariencias para una misma colección.",
+      "characters": 524,
+      "media": "video.mp4",
+      "kind": "video",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "status": "ready_for_user_review",
+      "folder": "es/02-apariencias"
+    },
+    {
+      "id": "03-origenes",
+      "language": "es",
+      "title": "Tu colección puede venir de varios sitios.",
+      "characters": 526,
+      "media": "imagen.png",
+      "kind": "image",
+      "dimensions": [
+        1080,
+        1080
+      ],
+      "status": "ready_for_user_review",
+      "folder": "es/03-origenes"
+    },
+    {
+      "id": "01-presentacion",
+      "language": "en",
+      "title": "A library for your Linux games.",
+      "characters": 528,
+      "media": "imagen.png",
+      "kind": "image",
+      "dimensions": [
+        1600,
+        1320
+      ],
+      "status": "ready_for_user_review",
+      "folder": "en/01-presentacion"
+    },
+    {
+      "id": "02-apariencias",
+      "language": "en",
+      "title": "Four layouts for the same collection.",
+      "characters": 480,
+      "media": "video.mp4",
+      "kind": "video",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "status": "ready_for_user_review",
+      "folder": "en/02-apariencias"
+    },
+    {
+      "id": "03-origenes",
+      "language": "en",
+      "title": "Your collection can come from different places.",
+      "characters": 505,
+      "media": "imagen.png",
+      "kind": "image",
+      "dimensions": [
+        1080,
+        1080
+      ],
+      "status": "ready_for_user_review",
+      "folder": "en/03-origenes"
+    }
+  ],
+  "checkedOn": "2026-10-28",
+  "references": [
+    {
+      "url": "https://www.linkedin.com/help/linkedin/answer/a528176",
+      "supports": "3000-character post limit"
+    },
+    {
+      "url": "https://www.linkedin.com/help/linkedin/answer/a7494039",
+      "supports": "Video upload, thumbnail, captions and format requirements"
+    }
+  ]
+}

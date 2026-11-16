@@ -1,0 +1,19 @@
+1
+00:00:02,000 --> 00:00:06,000
+List: a logo wheel alongside the game
+details.
+
+2
+00:00:06,000 --> 00:00:10,000
+Grid: organized covers with details on
+the side.
+
+3
+00:00:10,000 --> 00:00:14,000
+Carousel: centered selection and
+circular navigation.
+
+4
+00:00:14,000 --> 00:00:18,000
+Sense: a compact row over the game
+background.

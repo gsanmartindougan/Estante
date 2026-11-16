@@ -1,0 +1,63 @@
+{
+  "clip": "09-instala-actualiza",
+  "title": "Ready for Linux",
+  "language": "en",
+  "aspect": "vertical",
+  "width": 1080,
+  "height": 1920,
+  "fps": 24,
+  "duration": 20,
+  "video": "promo/en/vertical/09-instala-actualiza.mp4",
+  "project": "promo/projects/en/vertical/09-instala-actualiza.fcproj",
+  "captions": [
+    {
+      "start": 2,
+      "end": 6,
+      "text": "Available as an AppImage for Linux x86_64."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "text": "The AppImage includes Python, Qt and SDL2."
+    },
+    {
+      "start": 10,
+      "end": 14,
+      "text": "Check for updates in global settings."
+    },
+    {
+      "start": 14,
+      "end": 18,
+      "text": "Your library and settings are preserved when updating."
+    }
+  ],
+  "decoded": true,
+  "audio": false,
+  "shots": [
+    {
+      "scene": "list",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 2
+    },
+    {
+      "scene": "updates",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 6
+    },
+    {
+      "scene": "updates",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 10
+    },
+    {
+      "scene": "list",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 14
+    }
+  ],
+  "layout": "single full application window, uncropped, no duplicate detail or zoom"
+}

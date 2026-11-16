@@ -26,7 +26,10 @@ class LauncherStatus(QObject):
                   'opening': tr('Abriendo…'), 'closing': tr('Cerrando…'), 'open': tr('Abierto'),
                   'missing': tr('No instalado'), 'error': tr('No se pudo abrir'),
                   'timeout': tr('No se ha confirmado el inicio')}
-        return [dict(id=key, name=name, state=self._states[key], text=labels[self._states[key]])
+        icons = {'steam': 'https://cdn.simpleicons.org/steam/ffffff',
+                 'heroic': 'https://cdn.simpleicons.org/heroicgameslauncher/ffffff'}
+        return [dict(id=key, name=name, state=self._states[key], text=labels[self._states[key]],
+                     icon=icons.get(key, ''))
                 for key, name in CLIENT_NAMES.items()]
 
     @Property(str, notify=changed)

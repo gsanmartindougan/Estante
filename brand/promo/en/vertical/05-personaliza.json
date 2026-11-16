@@ -1,0 +1,63 @@
+{
+  "clip": "05-personaliza",
+  "title": "Make it yours",
+  "language": "en",
+  "aspect": "vertical",
+  "width": 1080,
+  "height": 1920,
+  "fps": 24,
+  "duration": 20,
+  "video": "promo/en/vertical/05-personaliza.mp4",
+  "project": "promo/projects/en/vertical/05-personaliza.fcproj",
+  "captions": [
+    {
+      "start": 2,
+      "end": 6,
+      "text": "Edit game details and the synopsis in the side panel."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "text": "Choose covers, logos and backgrounds for each game."
+    },
+    {
+      "start": 10,
+      "end": 14,
+      "text": "Adjust sizes, presentation and selection."
+    },
+    {
+      "start": 14,
+      "end": 18,
+      "text": "Configure backgrounds, splits and dimming."
+    }
+  ],
+  "decoded": true,
+  "audio": false,
+  "shots": [
+    {
+      "scene": "editor",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 2
+    },
+    {
+      "scene": "artwork",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 6
+    },
+    {
+      "scene": "appearance",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 10
+    },
+    {
+      "scene": "background",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 14
+    }
+  ],
+  "layout": "single full application window, uncropped, no duplicate detail or zoom"
+}

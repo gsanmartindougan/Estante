@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="64" height="64" viewBox="0 0 64 64">
+  <title>Xbox Y</title>
+  <g id="Layer_1" data-name="Layer 1">
+    <circle cx="32" cy="32" r="29" fill="#ffffff"/>
+    <g>
+      <path d="M20.845 19.13 L27.012 19.13 L31.993 26.923 L36.973 19.13 L43.155 19.13 L34.82 31.786 L34.82 41 L29.18 41 L29.18 31.786 Z" fill="#292929"/>
+    </g>
+  </g>
+</svg>

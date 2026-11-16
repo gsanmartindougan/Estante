@@ -1,0 +1,15 @@
+1
+00:00:02,000 --> 00:00:06,000
+Busca carátulas y logos con SteamGridDB.
+
+2
+00:00:06,000 --> 00:00:10,000
+Configura IGDB para obtener fondos.
+
+3
+00:00:10,000 --> 00:00:14,000
+Obtén fichas de Wikidata o edítalas a mano.
+
+4
+00:00:14,000 --> 00:00:18,000
+También puedes usar imágenes locales o una URL.

@@ -4,7 +4,7 @@
   gestión de memoria, traducciones y versión.
 - `integrations/`: importación Steam/Heroic, metadatos, imágenes y actualizaciones.
 - `qt_app/`: interfaz Qt, componentes QML, adaptadores y entrada `__main__.py`.
-- `gtk_app/`: interfaz GTK anterior y sus componentes gráficos.
+- `rust/`: interfaz Iced, modelo, integraciones y pruebas del port paralelo.
 - `packaging/`: instalador, constructores, entradas AppImage e iconos de distribución.
 - `requirements/`: dependencias Python; `qt.txt` es el entorno de la interfaz Qt.
 - `assets/`: fondos y conceptos de iconos; `concepts/` conserva los dos PNG originales.
@@ -19,6 +19,7 @@ La raíz mantiene los README, las notas de versión y los scripts públicos de e
 ./run.sh
 ./run-qt.sh
 ./run-gtk.sh
+./run-rust.sh
 ./install.sh
 ```
 
@@ -33,6 +34,7 @@ python3 -m unittest discover -s tests
 QT_QPA_PLATFORM=offscreen .venv-qt/bin/python tests/check_qt_migration.py
 .venv-qt/bin/python packaging/build-appimage.py --frontend qt
 python3 packaging/build-release.py
+cargo test --manifest-path rust/Cargo.toml --offline
 ```
 
 El supervisor copia una instantánea mínima de `core/` e `integrations/` a su carpeta

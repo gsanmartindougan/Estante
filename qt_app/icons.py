@@ -1,8 +1,8 @@
-"""Render category icon providers with Qt, without loading GTK/Cairo."""
+"""Render category icon providers with Qt."""
 from PySide6.QtCore import QRectF
 from PySide6.QtGui import QImage, QPainter
 from PySide6.QtSvg import QSvgRenderer
-from integrations.metadata import CategoryIcons, IconifyIcons
+from integrations.metadata import CategoryIcons, IconifyIcons, SimpleIcons as SimpleIconsProvider
 
 
 class QtSvgRenderer:
@@ -20,3 +20,4 @@ class QtSvgRenderer:
 
 class BootstrapIcons(QtSvgRenderer, CategoryIcons): pass
 class SearchIcons(QtSvgRenderer, IconifyIcons): pass
+class SimpleIcons(QtSvgRenderer, SimpleIconsProvider): pass

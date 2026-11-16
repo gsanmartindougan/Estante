@@ -1,0 +1,17 @@
+1
+00:00:02,000 --> 00:00:06,000
+Tus juegos, reunidos en una biblioteca
+para Linux.
+
+2
+00:00:06,000 --> 00:00:10,000
+Steam, Faugus, Heroic y juegos
+locales.
+
+3
+00:00:10,000 --> 00:00:14,000
+Elige cómo recorrer tu colección.
+
+4
+00:00:14,000 --> 00:00:18,000
+Mando, teclado o ratón. Tú eliges.

@@ -1,0 +1,14 @@
+Four layouts for the same collection.
+
+Estante lets you choose how you browse your library:
+
+• List: a logo wheel alongside the game details.
+• Grid: organized covers with an information panel on the side.
+• Carousel: centered selection and circular navigation.
+• Sense: a compact row over the game background.
+
+The video shows all four views. Covers, backgrounds and selection can also be adjusted for each layout.
+
+Which one fits the way you play?
+
+#Linux #LinuxGaming #UIDesign

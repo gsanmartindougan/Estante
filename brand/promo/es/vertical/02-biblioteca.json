@@ -1,0 +1,63 @@
+{
+  "clip": "02-biblioteca",
+  "title": "Reúne tus juegos",
+  "language": "es",
+  "aspect": "vertical",
+  "width": 1080,
+  "height": 1920,
+  "fps": 24,
+  "duration": 20,
+  "video": "promo/es/vertical/02-biblioteca.mp4",
+  "project": "promo/projects/es/vertical/02-biblioteca.fcproj",
+  "captions": [
+    {
+      "start": 2,
+      "end": 6,
+      "text": "Importa Steam, Faugus y Heroic desde Ajustes."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "text": "Añade scripts .sh y AppImages locales."
+    },
+    {
+      "start": 10,
+      "end": 14,
+      "text": "Configura argumentos y directorio de trabajo."
+    },
+    {
+      "start": 14,
+      "end": 18,
+      "text": "Elige qué launchers abrir al iniciar Estante."
+    }
+  ],
+  "decoded": true,
+  "audio": false,
+  "shots": [
+    {
+      "scene": "imports",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 2
+    },
+    {
+      "scene": "local",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 6
+    },
+    {
+      "scene": "local",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 10
+    },
+    {
+      "scene": "startup",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 14
+    }
+  ],
+  "layout": "single full application window, uncropped, no duplicate detail or zoom"
+}

@@ -10,20 +10,24 @@ import sys
 
 SOURCE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SOURCE))
-CODE_PACKAGES = ('core', 'integrations', 'gtk_app', 'qt_app')
+CODE_PACKAGES = ('core', 'integrations', 'qt_app')
 MODULES = tuple(str(path.relative_to(SOURCE)) for package in CODE_PACKAGES
                 for path in sorted((SOURCE/package).iterdir())
                 if path.suffix in ('.py', '.qml', '.js'))
 MODULES += ('tools/memory_fixture.py', 'requirements/qt.txt')
 APP_ID = 'io.github.estante.Launcher'
 DOCUMENTS = ('README.md', 'README.en.md')
-ASSETS = ('packaging/io.github.estante.Launcher.svg',) + tuple(str(path.relative_to(SOURCE)) for path in sorted((SOURCE / 'assets/backgrounds').glob('*')) if path.is_file())
+ASSETS = (
+    ('packaging/io.github.estante.Launcher.svg',)
+    + tuple(str(path.relative_to(SOURCE)) for path in sorted((SOURCE / 'assets/backgrounds').glob('*')) if path.is_file())
+    + tuple(str(path.relative_to(SOURCE)) for path in sorted((SOURCE / 'qt_app/assets/controller').rglob('*')) if path.is_file())
+)
 
 
 def main():
     from core.version import __version__
     parser = argparse.ArgumentParser(description='Instala Estante para tu usuario o para todo el sistema.')
-    parser.add_argument('--frontend', choices=('gtk','qt'), default='qt')
+    parser.add_argument('--frontend', choices=('qt','rust'), default='qt')
     parser.add_argument('--python', default=None, help='Intérprete Python del lanzador instalado')
     parser.add_argument('--version', action='version', version='Estante ' + __version__)
     location = parser.add_mutually_exclusive_group()
@@ -39,7 +43,8 @@ def main():
     desktop = root / 'share/applications' / (APP_ID + '.desktop')
     icon = root / 'share/icons/hicolor/scalable/apps' / (APP_ID + '.svg')
     launcher = root / 'bin/estante'
-    files = [app / name for name in (*MODULES, *DOCUMENTS, *ASSETS)] + [desktop, icon, launcher]
+    payload = (*DOCUMENTS, *ASSETS) if args.frontend == 'rust' else (*MODULES, *DOCUMENTS, *ASSETS)
+    files = [app / name for name in payload] + [desktop, icon, launcher]
     if args.uninstall:
         for target in files:
             target.unlink(missing_ok=True)
@@ -66,24 +71,35 @@ def main():
                 app.rmdir()
         print('Estante desinstalado. Tus juegos, ajustes e imágenes se conservan.')
     else:
-        if not args.destdir:
-            probe = ("from PySide6 import QtCore, QtQuick, QtQml, QtWidgets, QtSvg" if args.frontend == 'qt' else
-                     "import gi; gi.require_version('Gtk', '4.0'); gi.require_version('Adw', '1'); from gi.repository import Gtk, Adw")
+        rust_binary = SOURCE / 'rust/target/release/estante'
+        rust_sources = [path for path in (SOURCE / 'rust').rglob('*')
+                        if path.is_file() and 'target' not in path.parts]
+        rust_stale = not rust_binary.is_file() or any(
+            path.stat().st_mtime_ns > rust_binary.stat().st_mtime_ns for path in rust_sources)
+        if args.frontend == 'rust' and rust_stale:
+            if not shutil.which('cargo'):
+                parser.exit(1, 'Falta cargo. Instala Rust y vuelve a ejecutar el instalador.\n')
+            subprocess.run(['cargo', 'build', '--release', '--manifest-path', str(SOURCE / 'rust/Cargo.toml')], check=True)
+        if not args.destdir and args.frontend == 'qt':
+            probe = "from PySide6 import QtCore, QtQuick, QtQml, QtWidgets, QtSvg"
             check = subprocess.run([args.python or sys.executable, '-c', probe], capture_output=True, text=True)
             if check.returncode:
-                parser.exit(1, 'Faltan dependencias del frontend ' + args.frontend + '. Consulta README.md.\n')
-        for name in (*MODULES, *DOCUMENTS, *ASSETS):
+                parser.exit(1, 'Faltan dependencias del frontend Qt. Consulta README.md.\n')
+        for name in payload:
             if not (SOURCE / name).is_file():
                 parser.exit(1, 'Paquete incompleto: falta ' + name + '\n')
         for target in (app, desktop.parent, icon.parent, launcher.parent):
             target.mkdir(parents=True, exist_ok=True)
-        for name in (*MODULES, *DOCUMENTS, *ASSETS):
+        for name in payload:
             (app / name).parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(SOURCE / name, app / name)
             (app / name).chmod(0o644)
-        command = shlex.quote(str(prefix / 'share/estante' / ('qt_app/__main__.py' if args.frontend == 'qt' else 'gtk_app/estante.py')))
-        interpreter = shlex.quote(args.python) if args.python else '/usr/bin/env python3'
-        launcher.write_text('#!/bin/sh\nexec ' + interpreter + ' ' + command + ' "$@"\n')
+        if args.frontend == 'rust':
+            shutil.copyfile(rust_binary, launcher)
+        else:
+            command = shlex.quote(str(prefix / 'share/estante/qt_app/__main__.py'))
+            interpreter = shlex.quote(args.python) if args.python else '/usr/bin/env python3'
+            launcher.write_text('#!/bin/sh\nexec ' + interpreter + ' ' + command + ' "$@"\n')
         launcher.chmod(0o755)
         text = (SOURCE / 'packaging' / (APP_ID + '.desktop')).read_text()
         # Desktop Exec uses its own quoting rules, rather than shell escaping.

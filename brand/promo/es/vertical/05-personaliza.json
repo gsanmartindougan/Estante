@@ -1,0 +1,63 @@
+{
+  "clip": "05-personaliza",
+  "title": "Hazla tuya",
+  "language": "es",
+  "aspect": "vertical",
+  "width": 1080,
+  "height": 1920,
+  "fps": 24,
+  "duration": 20,
+  "video": "promo/es/vertical/05-personaliza.mp4",
+  "project": "promo/projects/es/vertical/05-personaliza.fcproj",
+  "captions": [
+    {
+      "start": 2,
+      "end": 6,
+      "text": "Edita la ficha y la sinopsis en el panel lateral."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "text": "Elige carátulas, logos y fondos para cada juego."
+    },
+    {
+      "start": 10,
+      "end": 14,
+      "text": "Ajusta tamaños, presentación y selección."
+    },
+    {
+      "start": 14,
+      "end": 18,
+      "text": "Configura fondos, divisiones y oscurecimiento."
+    }
+  ],
+  "decoded": true,
+  "audio": false,
+  "shots": [
+    {
+      "scene": "editor",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 2
+    },
+    {
+      "scene": "artwork",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 6
+    },
+    {
+      "scene": "appearance",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 10
+    },
+    {
+      "scene": "background",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 14
+    }
+  ],
+  "layout": "single full application window, uncropped, no duplicate detail or zoom"
+}

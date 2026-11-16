@@ -432,8 +432,8 @@ class Manager(QObject):
         self._results=[]
         self._icon_provider=provider
         def work():
-            from qt_app.icons import BootstrapIcons, SearchIcons
-            client=(SearchIcons if provider=='iconify' else BootstrapIcons)(self.root/'category-icons')
+            from qt_app.icons import BootstrapIcons, SearchIcons, SimpleIcons
+            client={'iconify':SearchIcons,'simpleicons':SimpleIcons}.get(provider,BootstrapIcons)(self.root/'category-icons')
             return [dict(row,kind='icon') for row in client.search(query)[:40]]
         self.submit(work)
 
@@ -442,8 +442,8 @@ class Manager(QObject):
         if not 0 <= index < len(self._results): return
         row=dict(self._results[index]); provider=self._icon_provider
         def work():
-            from qt_app.icons import BootstrapIcons, SearchIcons
-            client=(SearchIcons if provider=='iconify' else BootstrapIcons)(self.root/'category-icons')
+            from qt_app.icons import BootstrapIcons, SearchIcons, SimpleIcons
+            client={'iconify':SearchIcons,'simpleicons':SimpleIcons}.get(provider,BootstrapIcons)(self.root/'category-icons')
             if provider=='iconify': client.prepare([row],cancelled=self._cancel.is_set)
             path=client.download(row['url'])
             Library(data_dir=self.root).set_category_icon(category or None,path,credit=row)

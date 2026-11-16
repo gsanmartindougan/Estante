@@ -1,4 +1,4 @@
-"""Controller focus must be visually distinct on the primary play button."""
+"""Controller focus remains visible on the compact footer actions."""
 import sys,tempfile,time
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
@@ -22,7 +22,6 @@ with tempfile.TemporaryDirectory() as folder:
     window=engine.rootObjects()[0]
     play=window.findChild(QObject,'playButton');edit=window.findChild(QObject,'editButton')
     ring=play.findChild(QObject,'buttonFocusRing')
-    edit_ring=edit.findChild(QObject,'buttonFocusRing')
     strip=window.findChild(QObject,'libraryStrip')
     for highlight in ['#7e2a2b','#e3c7f2']:
         palette=QPalette(app.palette());palette.setColor(QPalette.Highlight,QColor(highlight));app.setPalette(palette)
@@ -31,10 +30,11 @@ with tempfile.TemporaryDirectory() as folder:
         c.inputAction.emit('up');pump()
         assert window.activeFocusItem()==play
         assert ring.property('visible') and QQmlExpression(engine.rootContext(),ring,'border.width').evaluate()==(3,False)
-        assert ring.width()>play.width()+10
+        assert ring.width()>24
         before=window.grabWindow()
         c.inputAction.emit('right');pump()
         assert window.activeFocusItem()==edit
+        edit_ring=edit.findChild(QObject,'buttonFocusRing')
         assert not ring.property('visible') and edit_ring.property('visible')
         assert before!=window.grabWindow()
     c.inputAction.emit('menu');pump()
@@ -75,4 +75,4 @@ with tempfile.TemporaryDirectory() as folder:
                 ancestor=ancestor.parentItem()
     assert not errors,errors
     c.manager.shutdown();c.idle_timer.stop();window.close();del engine
-print('QT_BUTTON_FOCUS_OK: controller navigation, separated high-contrast ring on dark/light fills, focus follows selection')
+print('QT_BUTTON_FOCUS_OK: controller navigation and visible focus ring on compact footer actions')

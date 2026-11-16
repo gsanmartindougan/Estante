@@ -1,0 +1,62 @@
+{
+  "clip": "08-mientras-juegas",
+  "title": "During and between games",
+  "language": "en",
+  "aspect": "horizontal",
+  "width": 1920,
+  "height": 1080,
+  "fps": 24,
+  "duration": 20,
+  "video": "promo/en/horizontal/08-mientras-juegas.mp4",
+  "project": "promo/projects/en/horizontal/08-mientras-juegas.fcproj",
+  "captions": [
+    {
+      "start": 2,
+      "end": 6,
+      "text": "Keep Estante open, or close and restore it."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "text": "You can also choose the tray or screensaver."
+    },
+    {
+      "start": 10,
+      "end": 14,
+      "text": "The screensaver cycles through your library backgrounds."
+    },
+    {
+      "start": 14,
+      "end": 18,
+      "text": "Adjust the background and presentation to your taste."
+    }
+  ],
+  "decoded": true,
+  "audio": false,
+  "shots": [
+    {
+      "scene": "playing",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 2
+    },
+    {
+      "scene": "playing",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 6
+    },
+    {
+      "scene": "screensaver",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 10
+    },
+    {
+      "scene": "background",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 14
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "clip": "10-imagenes-fichas",
+  "title": "Imágenes y fichas",
+  "language": "es",
+  "aspect": "vertical",
+  "width": 1080,
+  "height": 1920,
+  "fps": 24,
+  "duration": 20,
+  "video": "promo/es/vertical/10-imagenes-fichas.mp4",
+  "project": "promo/projects/es/vertical/10-imagenes-fichas.fcproj",
+  "captions": [
+    {
+      "start": 2,
+      "end": 6,
+      "text": "Busca carátulas y logos con SteamGridDB."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "text": "Configura IGDB para obtener fondos."
+    },
+    {
+      "start": 10,
+      "end": 14,
+      "text": "Obtén fichas de Wikidata o edítalas a mano."
+    },
+    {
+      "start": 14,
+      "end": 18,
+      "text": "También puedes usar imágenes locales o una URL."
+    }
+  ],
+  "decoded": true,
+  "audio": false,
+  "shots": [
+    {
+      "scene": "artwork",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 2
+    },
+    {
+      "scene": "imports",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 6
+    },
+    {
+      "scene": "editor",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 10
+    },
+    {
+      "scene": "artwork",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 14
+    }
+  ],
+  "layout": "single full application window, uncropped, no duplicate detail or zoom"
+}

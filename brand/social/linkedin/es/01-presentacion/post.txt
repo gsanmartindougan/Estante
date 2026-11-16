@@ -1,0 +1,12 @@
+Una biblioteca para tus juegos de Linux.
+
+Estante reúne juegos de Steam, Faugus, Heroic y lanzadores locales en una misma interfaz. Puedes recorrer la colección con mando, teclado o ratón, y elegir entre cuatro apariencias.
+
+El proyecto está en desarrollo y utiliza Python y Qt Quick/PySide6. Incluye categorías, búsqueda, personalización de carátulas y seguimiento del tiempo jugado.
+
+Código y documentación:
+https://github.com/gsanmartindougan/Estante
+
+¿Qué es lo primero que buscas en una biblioteca de juegos para Linux?
+
+#Linux #Videojuegos #DesarrolloDeSoftware

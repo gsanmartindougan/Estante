@@ -1,4 +1,4 @@
-"""Configure glibc before GTK starts workers, keeping large image buffers releasable."""
+"""Configure glibc before image workers start, keeping large buffers releasable."""
 import ctypes
 import os
 

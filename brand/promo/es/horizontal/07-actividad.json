@@ -1,0 +1,62 @@
+{
+  "clip": "07-actividad",
+  "title": "Tu historia de juego",
+  "language": "es",
+  "aspect": "horizontal",
+  "width": 1920,
+  "height": 1080,
+  "fps": 24,
+  "duration": 20,
+  "video": "promo/es/horizontal/07-actividad.mp4",
+  "project": "promo/projects/es/horizontal/07-actividad.fcproj",
+  "captions": [
+    {
+      "start": 2,
+      "end": 6,
+      "text": "Consulta el tiempo jugado en la ficha de cada juego."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "text": "Revisa las sesiones y cuándo jugaste por última vez."
+    },
+    {
+      "start": 10,
+      "end": 14,
+      "text": "Abre el historial desde el editor del juego."
+    },
+    {
+      "start": 14,
+      "end": 18,
+      "text": "Configura qué hace Estante durante la partida."
+    }
+  ],
+  "decoded": true,
+  "audio": false,
+  "shots": [
+    {
+      "scene": "list",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 2
+    },
+    {
+      "scene": "activity",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 6
+    },
+    {
+      "scene": "activity",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 10
+    },
+    {
+      "scene": "playing",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 14
+    }
+  ]
+}

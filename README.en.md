@@ -8,8 +8,7 @@ Faugus games are imported directly: you do not need to create `.desktop` entries
 
 ## Qt frontend (Linux)
 
-The default frontend is now Qt Quick/PySide6. The previous GTK frontend remains
-available through `./run-gtk.sh`.
+Estante uses Qt Quick/PySide6 on Linux.
 
 ```sh
 python3 -m venv .venv-qt
@@ -17,9 +16,7 @@ python3 -m venv .venv-qt
 ./run.sh
 ```
 
-`./run.sh --games 100` uses a temporary test library. Do not run both frontends
-against the same data simultaneously. Installation and AppImage builds default to
-Qt; `--frontend gtk` selects the previous frontend. See the [Qt guide](qt_app/README.md)
+`./run.sh --games 100` uses a temporary test library. See the [Qt guide](qt_app/README.md)
 and [migration evidence](docs/migracion-qt-2026-10-24.md) (Spanish).
 The videos on this page show the Qt frontend in 0.3.0.
 
@@ -135,8 +132,7 @@ python3 -m venv "$HOME/.local/share/estante-venv"
 ```
 
 This installs into `~/.local` without administrator privileges. Launch Estante from
-the menu or `~/.local/bin/estante`. Keep `estante-venv` after installation. The old
-GTK frontend requires PyGObject, GTK 4.10+, libadwaita and `--frontend gtk`.
+the menu or `~/.local/bin/estante`. Keep `estante-venv` after installation.
 
 Run the new installer again to update. To uninstall, use the matching command from a copy of the installer:
 

@@ -9,7 +9,11 @@ Una biblioteca de juegos para Linux, sencilla y nativa, inspirada en Cartridges.
 Estante lee la biblioteca de Faugus directamente: **no necesitas crear archivos `.desktop`**. Al jugar, Faugus se encarga del runner, el prefijo y los parámetros que ya tengas configurados.
 
 Proyecto en desarrollo, con interfaz principal Python y Qt Quick/PySide6 para Linux.
-La interfaz GTK 4 anterior sigue disponible como alternativa.
+
+La versión paralela en Rust/iced está en desarrollo: ejecútala con `./run-rust.sh` (release).
+Para instalarla desde el checkout usa `./install.sh rust` (requiere Cargo); después puedes abrirla con `estante`.
+Para depurar: `ESTANTE_DEBUG=1 ./run-rust.sh`.
+Su estado y las funciones que faltan están en [rust/README.md](rust/README.md).
 
 ## Ejecutar la versión Qt
 
@@ -19,14 +23,10 @@ python3 -m venv .venv-qt
 ./run.sh
 ```
 
-`./run.sh --games 100` usa una biblioteca temporal para pruebas. Para volver a GTK,
-cierra Qt y ejecuta `./run-gtk.sh`. No ejecutes ambas interfaces sobre los mismos
-datos a la vez. El instalador y el constructor AppImage seleccionan Qt por defecto;
-aceptan `--frontend gtk` para la alternativa anterior.
+`./run.sh --games 100` usa una biblioteca temporal para pruebas.
 
 Consulta [la guía Qt](qt_app/README.md) y [la validación de la migración](docs/migracion-qt-2026-10-24.md).
-Los vídeos de esta página muestran la interfaz Qt de 0.3.0. GTK queda disponible
-como alternativa con `./run-gtk.sh`.
+Los vídeos de esta página muestran la interfaz Qt de 0.3.0.
 
 Consulta la [estructura del proyecto](docs/estructura-del-proyecto.md) para localizar código, recursos y herramientas.
 
@@ -223,9 +223,6 @@ python3 -m venv "$HOME/.local/share/estante-venv"
 La instalación predeterminada es para tu usuario, en `~/.local`, sin `sudo`.
 Abre **Estante** desde el menú o ejecuta `~/.local/bin/estante`. Conserva el entorno
 `estante-venv`: contiene el intérprete y las dependencias de la aplicación.
-Para usar GTK, instala sus dependencias (PyGObject, GTK 4.10+, libadwaita y SDL2) y
-selecciona `--frontend gtk` en el instalador.
-
 ### Actualizar la instalación nativa
 
 Descarga y descomprime el nuevo paquete. Ejecuta `sh install.sh` para actualizar
@@ -263,7 +260,6 @@ cd Estante
 sh install.sh
 ```
 
-También puedes ejecutar `python3 gtk_app/estante.py` desde la carpeta del proyecto.
 
 ## Añadir juegos
 

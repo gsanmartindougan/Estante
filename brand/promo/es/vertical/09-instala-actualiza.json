@@ -1,0 +1,63 @@
+{
+  "clip": "09-instala-actualiza",
+  "title": "Listo para Linux",
+  "language": "es",
+  "aspect": "vertical",
+  "width": 1080,
+  "height": 1920,
+  "fps": 24,
+  "duration": 20,
+  "video": "promo/es/vertical/09-instala-actualiza.mp4",
+  "project": "promo/projects/es/vertical/09-instala-actualiza.fcproj",
+  "captions": [
+    {
+      "start": 2,
+      "end": 6,
+      "text": "Disponible como AppImage para Linux x86_64."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "text": "El AppImage incluye Python, Qt y SDL2."
+    },
+    {
+      "start": 10,
+      "end": 14,
+      "text": "Busca actualizaciones desde los ajustes globales."
+    },
+    {
+      "start": 14,
+      "end": 18,
+      "text": "La biblioteca y tus ajustes se conservan al actualizar."
+    }
+  ],
+  "decoded": true,
+  "audio": false,
+  "shots": [
+    {
+      "scene": "list",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 2
+    },
+    {
+      "scene": "updates",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 6
+    },
+    {
+      "scene": "updates",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 10
+    },
+    {
+      "scene": "list",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 14
+    }
+  ],
+  "layout": "single full application window, uncropped, no duplicate detail or zoom"
+}

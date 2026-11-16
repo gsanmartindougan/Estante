@@ -1,0 +1,62 @@
+{
+  "clip": "10-imagenes-fichas",
+  "title": "Artwork and game details",
+  "language": "en",
+  "aspect": "horizontal",
+  "width": 1920,
+  "height": 1080,
+  "fps": 24,
+  "duration": 20,
+  "video": "promo/en/horizontal/10-imagenes-fichas.mp4",
+  "project": "promo/projects/en/horizontal/10-imagenes-fichas.fcproj",
+  "captions": [
+    {
+      "start": 2,
+      "end": 6,
+      "text": "Find covers and logos with SteamGridDB."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "text": "Configure IGDB to retrieve backgrounds."
+    },
+    {
+      "start": 10,
+      "end": 14,
+      "text": "Get details from Wikidata or edit them by hand."
+    },
+    {
+      "start": 14,
+      "end": 18,
+      "text": "You can also use local images or a URL."
+    }
+  ],
+  "decoded": true,
+  "audio": false,
+  "shots": [
+    {
+      "scene": "artwork",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 2
+    },
+    {
+      "scene": "imports",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 6
+    },
+    {
+      "scene": "editor",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 10
+    },
+    {
+      "scene": "artwork",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 14
+    }
+  ]
+}

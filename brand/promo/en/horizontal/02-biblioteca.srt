@@ -1,0 +1,15 @@
+1
+00:00:02,000 --> 00:00:06,000
+Import Steam, Faugus and Heroic from Settings.
+
+2
+00:00:06,000 --> 00:00:10,000
+Add local .sh scripts and AppImages.
+
+3
+00:00:10,000 --> 00:00:14,000
+Set launch arguments and the working directory.
+
+4
+00:00:14,000 --> 00:00:18,000
+Choose which launchers open when Estante starts.

@@ -1,0 +1,17 @@
+{
+  "mp4Count": 40,
+  "fullDecodePassed": true,
+  "totalSeconds": 800,
+  "visualSamples": 160,
+  "nativeProjectCount": 40,
+  "staticDesignCount": 10,
+  "staticLanguages": [
+    "es",
+    "en"
+  ],
+  "notes": "Four shots sampled per final MP4; representative intro/outro cards; no claim of manual full playback",
+  "portraitRevision": "Removed duplicated zoomed detail; single complete application window",
+  "horizontalFilesUnchanged": true,
+  "revisedPortraitCount": 20,
+  "revisedPortraitSamples": 80
+}

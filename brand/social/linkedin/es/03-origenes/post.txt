@@ -1,0 +1,12 @@
+Tu colección puede venir de varios sitios.
+
+Estante permite importar juegos de Steam, Faugus y Heroic desde Ajustes. También puedes añadir scripts .sh y AppImages locales, con sus argumentos y directorio de trabajo.
+
+Los juegos administrados por otros launchers siguen utilizando su configuración de ejecución. Esos launchers deben estar instalados para ejecutar sus juegos.
+
+Proyecto y documentación:
+https://github.com/gsanmartindougan/Estante
+
+¿Qué orígenes usas en tu biblioteca de Linux?
+
+#Linux #LinuxGaming #Videojuegos

@@ -1,0 +1,15 @@
+1
+00:00:02,000 --> 00:00:06,000
+Importa Steam, Faugus y Heroic desde Ajustes.
+
+2
+00:00:06,000 --> 00:00:10,000
+Añade scripts .sh y AppImages locales.
+
+3
+00:00:10,000 --> 00:00:14,000
+Configura argumentos y directorio de trabajo.
+
+4
+00:00:14,000 --> 00:00:18,000
+Elige qué launchers abrir al iniciar Estante.

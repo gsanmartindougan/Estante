@@ -1,22 +1,34 @@
 import QtQuick
 import QtQuick.Controls
-GlassButton {
+Button {
     id: control
     required property string symbol
     required property string label
-    implicitWidth: 40
+    property bool gamepadFocusable: true
+    property string gamepadKind: "button"
+    property QtObject theme: ConsoleTheme {}
+    implicitWidth: 44
     implicitHeight: 40
     leftPadding: 0; rightPadding: 0
+    focusPolicy: Qt.StrongFocus
+    hoverEnabled: true
     Accessible.name: label
     ToolTip.visible: hovered || activeFocus
     ToolTip.text: label
     ToolTip.delay: hovered ? 500 : 0
+    background: Rectangle {
+        radius: 12
+        color: Qt.alpha(control.theme.text, control.down ? 0.16 : control.activeFocus ? 0.14 : control.hovered ? 0.11 : 0.08)
+        border.color: control.activeFocus ? control.theme.highlight : Qt.alpha(control.theme.text, 0.2)
+        border.width: control.activeFocus ? 2 : 1
+        opacity: control.enabled ? 1 : 0.55
+    }
     contentItem: Item {
         Canvas {
             id: drawing
             anchors.centerIn: parent
             width: 24; height: 24
-            property color ink: control.palette.buttonText
+            property color ink: control.theme.text
             onInkChanged: requestPaint()
             onPaint: {
                 let c=getContext("2d")

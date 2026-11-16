@@ -1,0 +1,19 @@
+1
+00:00:02,000 --> 00:00:06,000
+Mantén Estante abierto o ciérralo y
+restáuralo.
+
+2
+00:00:06,000 --> 00:00:10,000
+También puedes elegir bandeja o
+salvapantallas.
+
+3
+00:00:10,000 --> 00:00:14,000
+El salvapantallas recorre los fondos
+de tu biblioteca.
+
+4
+00:00:14,000 --> 00:00:18,000
+Ajusta el fondo y la presentación a tu
+gusto.

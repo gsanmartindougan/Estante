@@ -1,0 +1,2502 @@
+[
+  {
+    "clip": "01-estante",
+    "title": "Tu próxima partida",
+    "language": "es",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/horizontal/01-estante.mp4",
+    "project": "promo/projects/es/horizontal/01-estante.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Tus juegos, reunidos en una biblioteca para Linux."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Steam, Faugus, Heroic y juegos locales."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Elige cómo recorrer tu colección."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Mando, teclado o ratón. Tú eliges."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "grid",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "carousel",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "sense",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "02-biblioteca",
+    "title": "Reúne tus juegos",
+    "language": "es",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/horizontal/02-biblioteca.mp4",
+    "project": "promo/projects/es/horizontal/02-biblioteca.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Importa Steam, Faugus y Heroic desde Ajustes."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Añade scripts .sh y AppImages locales."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Configura argumentos y directorio de trabajo."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Elige qué launchers abrir al iniciar Estante."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "imports",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "local",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "local",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "startup",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "03-organiza",
+    "title": "Encuentra tu próxima partida",
+    "language": "es",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/horizontal/03-organiza.mp4",
+    "project": "promo/projects/es/horizontal/03-organiza.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Busca por nombre mientras recorres tu biblioteca."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Crea, ordena y edita tus categorías."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Recorre Grid por páginas; el tamaño es configurable."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Navega por selección o salta por inicial."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "search",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "categories",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "grid",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "04-apariencias",
+    "title": "Cuatro formas de explorar",
+    "language": "es",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/horizontal/04-apariencias.mp4",
+    "project": "promo/projects/es/horizontal/04-apariencias.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Lista: una rueda de logos y la ficha del juego."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Grid: carátulas ordenadas y ficha lateral."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Carousel: selección central y navegación circular."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Sense: una fila compacta sobre el fondo del juego."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "grid",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "carousel",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "sense",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "05-personaliza",
+    "title": "Hazla tuya",
+    "language": "es",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/horizontal/05-personaliza.mp4",
+    "project": "promo/projects/es/horizontal/05-personaliza.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Edita la ficha y la sinopsis en el panel lateral."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Elige carátulas, logos y fondos para cada juego."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Ajusta tamaños, presentación y selección."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Configura fondos, divisiones y oscurecimiento."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "editor",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "artwork",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "appearance",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "background",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "06-controles",
+    "title": "A tu manera",
+    "language": "es",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/horizontal/06-controles.mp4",
+    "project": "promo/projects/es/horizontal/06-controles.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Elige español o inglés y tu tipo de mando."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Escribe con el teclado integrado para mando."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Recorre la colección con mando, teclado o ratón."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Cambia de apariencia y abre los ajustes con atajos."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "controls",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "keyboard",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "grid",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "07-actividad",
+    "title": "Tu historia de juego",
+    "language": "es",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/horizontal/07-actividad.mp4",
+    "project": "promo/projects/es/horizontal/07-actividad.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Consulta el tiempo jugado en la ficha de cada juego."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Revisa las sesiones y cuándo jugaste por última vez."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Abre el historial desde el editor del juego."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Configura qué hace Estante durante la partida."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "activity",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "activity",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "playing",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "08-mientras-juegas",
+    "title": "Durante y entre partidas",
+    "language": "es",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/horizontal/08-mientras-juegas.mp4",
+    "project": "promo/projects/es/horizontal/08-mientras-juegas.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Mantén Estante abierto o ciérralo y restáuralo."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "También puedes elegir bandeja o salvapantallas."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "El salvapantallas recorre los fondos de tu biblioteca."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Ajusta el fondo y la presentación a tu gusto."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "playing",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "playing",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "screensaver",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "background",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "09-instala-actualiza",
+    "title": "Listo para Linux",
+    "language": "es",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/horizontal/09-instala-actualiza.mp4",
+    "project": "promo/projects/es/horizontal/09-instala-actualiza.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Disponible como AppImage para Linux x86_64."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "El AppImage incluye Python, Qt y SDL2."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Busca actualizaciones desde los ajustes globales."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "La biblioteca y tus ajustes se conservan al actualizar."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "updates",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "updates",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "10-imagenes-fichas",
+    "title": "Imágenes y fichas",
+    "language": "es",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/horizontal/10-imagenes-fichas.mp4",
+    "project": "promo/projects/es/horizontal/10-imagenes-fichas.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Busca carátulas y logos con SteamGridDB."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Configura IGDB para obtener fondos."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Obtén fichas de Wikidata o edítalas a mano."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "También puedes usar imágenes locales o una URL."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "artwork",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "imports",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "editor",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "artwork",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "01-estante",
+    "title": "Tu próxima partida",
+    "language": "es",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/vertical/01-estante.mp4",
+    "project": "promo/projects/es/vertical/01-estante.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Tus juegos, reunidos en una biblioteca para Linux."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Steam, Faugus, Heroic y juegos locales."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Elige cómo recorrer tu colección."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Mando, teclado o ratón. Tú eliges."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "grid",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "carousel",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "sense",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "02-biblioteca",
+    "title": "Reúne tus juegos",
+    "language": "es",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/vertical/02-biblioteca.mp4",
+    "project": "promo/projects/es/vertical/02-biblioteca.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Importa Steam, Faugus y Heroic desde Ajustes."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Añade scripts .sh y AppImages locales."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Configura argumentos y directorio de trabajo."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Elige qué launchers abrir al iniciar Estante."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "imports",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "local",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "local",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "startup",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "03-organiza",
+    "title": "Encuentra tu próxima partida",
+    "language": "es",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/vertical/03-organiza.mp4",
+    "project": "promo/projects/es/vertical/03-organiza.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Busca por nombre mientras recorres tu biblioteca."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Crea, ordena y edita tus categorías."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Recorre Grid por páginas; el tamaño es configurable."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Navega por selección o salta por inicial."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "search",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "categories",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "grid",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "04-apariencias",
+    "title": "Cuatro formas de explorar",
+    "language": "es",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/vertical/04-apariencias.mp4",
+    "project": "promo/projects/es/vertical/04-apariencias.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Lista: una rueda de logos y la ficha del juego."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Grid: carátulas ordenadas y ficha lateral."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Carousel: selección central y navegación circular."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Sense: una fila compacta sobre el fondo del juego."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "grid",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "carousel",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "sense",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "05-personaliza",
+    "title": "Hazla tuya",
+    "language": "es",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/vertical/05-personaliza.mp4",
+    "project": "promo/projects/es/vertical/05-personaliza.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Edita la ficha y la sinopsis en el panel lateral."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Elige carátulas, logos y fondos para cada juego."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Ajusta tamaños, presentación y selección."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Configura fondos, divisiones y oscurecimiento."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "editor",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "artwork",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "appearance",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "background",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "06-controles",
+    "title": "A tu manera",
+    "language": "es",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/vertical/06-controles.mp4",
+    "project": "promo/projects/es/vertical/06-controles.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Elige español o inglés y tu tipo de mando."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Escribe con el teclado integrado para mando."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Recorre la colección con mando, teclado o ratón."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Cambia de apariencia y abre los ajustes con atajos."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "controls",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "keyboard",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "grid",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "07-actividad",
+    "title": "Tu historia de juego",
+    "language": "es",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/vertical/07-actividad.mp4",
+    "project": "promo/projects/es/vertical/07-actividad.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Consulta el tiempo jugado en la ficha de cada juego."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Revisa las sesiones y cuándo jugaste por última vez."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Abre el historial desde el editor del juego."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Configura qué hace Estante durante la partida."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "activity",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "activity",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "playing",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "08-mientras-juegas",
+    "title": "Durante y entre partidas",
+    "language": "es",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/vertical/08-mientras-juegas.mp4",
+    "project": "promo/projects/es/vertical/08-mientras-juegas.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Mantén Estante abierto o ciérralo y restáuralo."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "También puedes elegir bandeja o salvapantallas."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "El salvapantallas recorre los fondos de tu biblioteca."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Ajusta el fondo y la presentación a tu gusto."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "playing",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "playing",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "screensaver",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "background",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "09-instala-actualiza",
+    "title": "Listo para Linux",
+    "language": "es",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/vertical/09-instala-actualiza.mp4",
+    "project": "promo/projects/es/vertical/09-instala-actualiza.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Disponible como AppImage para Linux x86_64."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "El AppImage incluye Python, Qt y SDL2."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Busca actualizaciones desde los ajustes globales."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "La biblioteca y tus ajustes se conservan al actualizar."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "updates",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "updates",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "10-imagenes-fichas",
+    "title": "Imágenes y fichas",
+    "language": "es",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/es/vertical/10-imagenes-fichas.mp4",
+    "project": "promo/projects/es/vertical/10-imagenes-fichas.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Busca carátulas y logos con SteamGridDB."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Configura IGDB para obtener fondos."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Obtén fichas de Wikidata o edítalas a mano."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "También puedes usar imágenes locales o una URL."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "artwork",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "imports",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "editor",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "artwork",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "01-estante",
+    "title": "Your next game",
+    "language": "en",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/horizontal/01-estante.mp4",
+    "project": "promo/projects/en/horizontal/01-estante.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Bring your games together in one library for Linux."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Steam, Faugus, Heroic and local games."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Choose how you browse your collection."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Gamepad, keyboard or mouse. Your choice."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "grid",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "carousel",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "sense",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "02-biblioteca",
+    "title": "Bring your games together",
+    "language": "en",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/horizontal/02-biblioteca.mp4",
+    "project": "promo/projects/en/horizontal/02-biblioteca.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Import Steam, Faugus and Heroic from Settings."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Add local .sh scripts and AppImages."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Set launch arguments and the working directory."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Choose which launchers open when Estante starts."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "imports",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "local",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "local",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "startup",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "03-organiza",
+    "title": "Find your next game",
+    "language": "en",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/horizontal/03-organiza.mp4",
+    "project": "promo/projects/en/horizontal/03-organiza.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Search by name as you browse your library."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Create, reorder and edit your categories."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Browse Grid by pages, with a configurable page size."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Move through games or jump by initial."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "search",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "categories",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "grid",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "04-apariencias",
+    "title": "Four ways to browse",
+    "language": "en",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/horizontal/04-apariencias.mp4",
+    "project": "promo/projects/en/horizontal/04-apariencias.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "List: a logo wheel alongside the game details."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Grid: organized covers with details on the side."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Carousel: centered selection and circular navigation."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Sense: a compact row over the game background."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "grid",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "carousel",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "sense",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "05-personaliza",
+    "title": "Make it yours",
+    "language": "en",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/horizontal/05-personaliza.mp4",
+    "project": "promo/projects/en/horizontal/05-personaliza.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Edit game details and the synopsis in the side panel."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Choose covers, logos and backgrounds for each game."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Adjust sizes, presentation and selection."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Configure backgrounds, splits and dimming."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "editor",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "artwork",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "appearance",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "background",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "06-controles",
+    "title": "Your way",
+    "language": "en",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/horizontal/06-controles.mp4",
+    "project": "promo/projects/en/horizontal/06-controles.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Choose Spanish or English and your gamepad type."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Type with the built-in gamepad keyboard."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Browse with a gamepad, keyboard or mouse."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Use shortcuts to switch layouts and open settings."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "controls",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "keyboard",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "grid",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "07-actividad",
+    "title": "Your play history",
+    "language": "en",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/horizontal/07-actividad.mp4",
+    "project": "promo/projects/en/horizontal/07-actividad.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Check playtime in each game’s details."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Review sessions and when you last played."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Open the history from the game editor."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Choose what Estante does while you play."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "activity",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "activity",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "playing",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "08-mientras-juegas",
+    "title": "During and between games",
+    "language": "en",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/horizontal/08-mientras-juegas.mp4",
+    "project": "promo/projects/en/horizontal/08-mientras-juegas.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Keep Estante open, or close and restore it."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "You can also choose the tray or screensaver."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "The screensaver cycles through your library backgrounds."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Adjust the background and presentation to your taste."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "playing",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "playing",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "screensaver",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "background",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "09-instala-actualiza",
+    "title": "Ready for Linux",
+    "language": "en",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/horizontal/09-instala-actualiza.mp4",
+    "project": "promo/projects/en/horizontal/09-instala-actualiza.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Available as an AppImage for Linux x86_64."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "The AppImage includes Python, Qt and SDL2."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Check for updates in global settings."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Your library and settings are preserved when updating."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "updates",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "updates",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "10-imagenes-fichas",
+    "title": "Artwork and game details",
+    "language": "en",
+    "aspect": "horizontal",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/horizontal/10-imagenes-fichas.mp4",
+    "project": "promo/projects/en/horizontal/10-imagenes-fichas.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Find covers and logos with SteamGridDB."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Configure IGDB to retrieve backgrounds."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Get details from Wikidata or edit them by hand."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "You can also use local images or a URL."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "artwork",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "imports",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "editor",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "artwork",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ]
+  },
+  {
+    "clip": "01-estante",
+    "title": "Your next game",
+    "language": "en",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/vertical/01-estante.mp4",
+    "project": "promo/projects/en/vertical/01-estante.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Bring your games together in one library for Linux."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Steam, Faugus, Heroic and local games."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Choose how you browse your collection."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Gamepad, keyboard or mouse. Your choice."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "grid",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "carousel",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "sense",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "02-biblioteca",
+    "title": "Bring your games together",
+    "language": "en",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/vertical/02-biblioteca.mp4",
+    "project": "promo/projects/en/vertical/02-biblioteca.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Import Steam, Faugus and Heroic from Settings."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Add local .sh scripts and AppImages."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Set launch arguments and the working directory."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Choose which launchers open when Estante starts."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "imports",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "local",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "local",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "startup",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "03-organiza",
+    "title": "Find your next game",
+    "language": "en",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/vertical/03-organiza.mp4",
+    "project": "promo/projects/en/vertical/03-organiza.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Search by name as you browse your library."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Create, reorder and edit your categories."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Browse Grid by pages, with a configurable page size."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Move through games or jump by initial."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "search",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "categories",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "grid",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "04-apariencias",
+    "title": "Four ways to browse",
+    "language": "en",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/vertical/04-apariencias.mp4",
+    "project": "promo/projects/en/vertical/04-apariencias.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "List: a logo wheel alongside the game details."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Grid: organized covers with details on the side."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Carousel: centered selection and circular navigation."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Sense: a compact row over the game background."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "grid",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "carousel",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "sense",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "05-personaliza",
+    "title": "Make it yours",
+    "language": "en",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/vertical/05-personaliza.mp4",
+    "project": "promo/projects/en/vertical/05-personaliza.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Edit game details and the synopsis in the side panel."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Choose covers, logos and backgrounds for each game."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Adjust sizes, presentation and selection."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Configure backgrounds, splits and dimming."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "editor",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "artwork",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "appearance",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "background",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "06-controles",
+    "title": "Your way",
+    "language": "en",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/vertical/06-controles.mp4",
+    "project": "promo/projects/en/vertical/06-controles.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Choose Spanish or English and your gamepad type."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Type with the built-in gamepad keyboard."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Browse with a gamepad, keyboard or mouse."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Use shortcuts to switch layouts and open settings."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "controls",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "keyboard",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "grid",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "07-actividad",
+    "title": "Your play history",
+    "language": "en",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/vertical/07-actividad.mp4",
+    "project": "promo/projects/en/vertical/07-actividad.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Check playtime in each game’s details."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Review sessions and when you last played."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Open the history from the game editor."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Choose what Estante does while you play."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "activity",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "activity",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "playing",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "08-mientras-juegas",
+    "title": "During and between games",
+    "language": "en",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/vertical/08-mientras-juegas.mp4",
+    "project": "promo/projects/en/vertical/08-mientras-juegas.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Keep Estante open, or close and restore it."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "You can also choose the tray or screensaver."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "The screensaver cycles through your library backgrounds."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Adjust the background and presentation to your taste."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "playing",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "playing",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "screensaver",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "background",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "09-instala-actualiza",
+    "title": "Ready for Linux",
+    "language": "en",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/vertical/09-instala-actualiza.mp4",
+    "project": "promo/projects/en/vertical/09-instala-actualiza.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Available as an AppImage for Linux x86_64."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "The AppImage includes Python, Qt and SDL2."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Check for updates in global settings."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "Your library and settings are preserved when updating."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "updates",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "updates",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "list",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  },
+  {
+    "clip": "10-imagenes-fichas",
+    "title": "Artwork and game details",
+    "language": "en",
+    "aspect": "vertical",
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 20,
+    "video": "promo/en/vertical/10-imagenes-fichas.mp4",
+    "project": "promo/projects/en/vertical/10-imagenes-fichas.fcproj",
+    "captions": [
+      {
+        "start": 2,
+        "end": 6,
+        "text": "Find covers and logos with SteamGridDB."
+      },
+      {
+        "start": 6,
+        "end": 10,
+        "text": "Configure IGDB to retrieve backgrounds."
+      },
+      {
+        "start": 10,
+        "end": 14,
+        "text": "Get details from Wikidata or edit them by hand."
+      },
+      {
+        "start": 14,
+        "end": 18,
+        "text": "You can also use local images or a URL."
+      }
+    ],
+    "decoded": true,
+    "audio": false,
+    "shots": [
+      {
+        "scene": "artwork",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 2
+      },
+      {
+        "scene": "imports",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 6
+      },
+      {
+        "scene": "editor",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 10
+      },
+      {
+        "scene": "artwork",
+        "sourceStart": 0,
+        "duration": 4,
+        "at": 14
+      }
+    ],
+    "layout": "single full application window, uncropped, no duplicate detail or zoom"
+  }
+]

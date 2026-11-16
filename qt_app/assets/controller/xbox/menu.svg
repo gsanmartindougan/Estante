@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="64" height="64" viewBox="0 0 64 64">
+  <title>Xbox Menu</title>
+  <g id="Layer_1" data-name="Layer 1">
+    <circle cx="32" cy="32" r="29" fill="#ffffff"/>
+    <path d="M22 22 L42 22 C43.105 22 44 22.895 44 24 L44 24 C44 25.105 43.105 26 42 26 L22 26 C20.895 26 20 25.105 20 24 L20 24 C20 22.895 20.895 22 22 22 Z" fill="#292929"/>
+    <path d="M22 29 L42 29 C43.105 29 44 29.895 44 31 L44 31 C44 32.105 43.105 33 42 33 L22 33 C20.895 33 20 32.105 20 31 L20 31 C20 29.895 20.895 29 22 29 Z" fill="#292929"/>
+    <path d="M22 36 L42 36 C43.105 36 44 36.895 44 38 L44 38 C44 39.105 43.105 40 42 40 L22 40 C20.895 40 20 39.105 20 38 L20 38 C20 36.895 20.895 36 22 36 Z" fill="#292929"/>
+  </g>
+</svg>

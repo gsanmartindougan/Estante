@@ -1,4 +1,4 @@
-"""Transfer an already-started game to a temporary, GTK-free user service."""
+"""Transfer an already-started game to a temporary user service."""
 
 import sys
 from pathlib import Path
@@ -60,7 +60,7 @@ def prepare(game, process, root, started, started_at, restore, reopen=None):
         environment = host_environment()
         appimage = os.environ.get('APPIMAGE')
         if reopen is None:
-            reopen = [appimage] if appimage else [sys.executable, str(source / 'gtk_app/estante.py')]
+            reopen = [appimage] if appimage else [sys.executable, str(source / 'qt_app/__main__.py')]
         spec = dict(game=game, launcher_pid=process.pid,
                     token=getattr(process, 'estante_session_token', None), root=str(root),
                     started=started, started_at=started_at, restore=restore,

@@ -7,42 +7,14 @@ import tempfile
 import time
 from types import SimpleNamespace
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import core.game_supervisor as supervisor
-from gtk_app.estante import Shelf
 from core.library import Library
 
 
 class SupervisorTests(TestCase):
-    def test_ui_exits_only_after_supervisor_ready_and_acknowledges_handoff(self):
-        with tempfile.TemporaryDirectory() as folder:
-            process = Mock()
-            host = SimpleNamespace(running_sessions={'one'}, game_launch_details={'one': ({'id': 'one'}, 'date', 1)},
-                                   selected_game='one', active_category='Steam', view_mode='list',
-                                   library=Mock(root=Path(folder)), background=Mock(), session_window_closed=False,
-                                   supervised_sessions=set(), stop_controls=Mock(), get_application=Mock(return_value=Mock()))
-            Shelf.handoff_for_game(host, 'one', process)
-            host.get_application().quit.assert_not_called()
-            _, ready, failed = host.background.call_args.args
-            ready(Path(folder))
-            self.assertTrue((Path(folder) / 'handoff').exists())
-            self.assertIn('one', host.supervised_sessions)
-            host.stop_controls.assert_called_once()
-            host.get_application().quit.assert_called_once()
-
-    def test_ui_stays_open_when_supervisor_fails(self):
-        host = SimpleNamespace(running_sessions={'one'}, game_launch_details={'one': ({'id': 'one'}, 'date', 1)},
-                               selected_game='one', active_category=None, view_mode='grid', library=Mock(),
-                               background=Mock(), error=Mock(), get_application=Mock())
-        Shelf.handoff_for_game(host, 'one', Mock())
-        _, _, failed = host.background.call_args.args
-        failed('Unavailable')
-        host.get_application.assert_not_called()
-        host.error.assert_called_once_with('Unavailable')
-        self.assertFalse(host.supervisor_pending)
-
-    def test_service_waits_for_real_game_records_once_and_reopens_without_gtk(self):
+    def test_service_waits_for_real_game_records_once_and_reopens(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             folder = root / 'runner'
@@ -127,6 +99,6 @@ class SupervisorTests(TestCase):
                     supervisor.prepare({'id':'one'}, process, temporary, 'date', 1, {}, reopen=explicit)
                 spec = json.loads((folder/'session.json').read_text())
                 if explicit is None:
-                    self.assertTrue(spec['reopen'][-1].endswith('gtk_app/estante.py'))
+                    self.assertTrue(spec['reopen'][-1].endswith('qt_app/__main__.py'))
                 else:
                     self.assertEqual(spec['reopen'], explicit)

@@ -1,0 +1,12 @@
+Your collection can come from different places.
+
+Estante can import games from Steam, Faugus and Heroic through Settings. You can also add local .sh scripts and AppImages, with their launch arguments and working directory.
+
+Games managed by other launchers continue to use their launch configuration. Those launchers must be installed to run their games.
+
+Project and documentation:
+https://github.com/gsanmartindougan/Estante
+
+Which sources do you use for your Linux library?
+
+#Linux #LinuxGaming #Gaming

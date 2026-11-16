@@ -1,0 +1,14 @@
+Cuatro apariencias para una misma colección.
+
+En Estante puedes elegir cómo recorrer tu biblioteca:
+
+• Lista: una rueda de logos junto a la ficha del juego.
+• Grid: carátulas organizadas y un panel lateral con información.
+• Carousel: selección central y navegación circular.
+• Sense: una fila compacta sobre el fondo del juego.
+
+El vídeo muestra las cuatro vistas. También puedes ajustar carátulas, fondos y selección para cada apariencia.
+
+¿Cuál encaja mejor con tu forma de jugar?
+
+#Linux #Videojuegos #DiseñoDeInterfaces

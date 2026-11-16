@@ -7,12 +7,14 @@ ColumnLayout {
     id: pane
     required property var manager
     required property var controller
+    property bool browsingIcon: false
     signal saveRequested()
     function save() { if (!manager.busy) saveRequested() }
     spacing: 16
     Label { text: qsTr("Categorías"); font.pixelSize: 24; font.bold: true }
     Label { text: qsTr("Gestiona los juegos, el orden y la categoría principal."); opacity: 0.6 }
     function navigateSettings(action,keyboard,focused) {
+        if (browsingIcon && iconBrowser.item) return iconBrowser.item.navigate(action,keyboard,focused)
         if (focused && focused.sectionId!==undefined && action==="right") { createHeader.focusFirst(); return true }
         let gameList=focused
         while (gameList && gameList.gamepadKind!=="category-games") gameList=gameList.parent
@@ -69,12 +71,23 @@ ColumnLayout {
                         GlassCombo { id: iconCategory; Layout.fillWidth: true; model: [qsTr("Todos"),...pane.manager.categoryNames] }
                         GlassField { id: iconPath; Layout.fillWidth: true; placeholderText: qsTr("Ruta del icono local") }
                         RowLayout {
+                            GlassButton { text: pane.browsingIcon ? qsTr("Cerrar explorador") : qsTr("Buscar en el equipo…"); onClicked: pane.browsingIcon=!pane.browsingIcon }
                             GlassButton { text: qsTr("Usar icono local"); onClicked: pane.manager.importIcon(iconCategory.currentIndex>0 ? iconCategory.currentText : "",iconPath.text) }
                             GlassButton { text: qsTr("Quitar icono"); onClicked: pane.manager.importIcon(iconCategory.currentIndex>0 ? iconCategory.currentText : "","") }
                         }
-                        GlassCombo { id: provider; Layout.fillWidth: true; model: ["Bootstrap Icons","Iconify"] }
+                        Loader {
+                            id: iconBrowser; active: pane.browsingIcon; visible: active
+                            Layout.fillWidth: true; Layout.preferredHeight: active ? 360 : 0
+                            sourceComponent: LocalImageBrowser {
+                                manager: pane.manager
+                                onChosen: path => { iconPath.text=path; pane.browsingIcon=false }
+                                onDismissed: pane.browsingIcon=false
+                            }
+                            onLoaded: item.focusFirst()
+                        }
+                        GlassCombo { id: provider; Layout.fillWidth: true; model: ["Bootstrap Icons","Iconify","Simple Icons"] }
                         GlassField { id: query; Layout.fillWidth: true; placeholderText: qsTr("Buscar icono (en inglés)") }
-                        GlassButton { text: qsTr("Buscar iconos"); enabled: !pane.manager.busy; onClicked: pane.manager.searchIcons(provider.currentIndex===0 ? "bootstrap" : "iconify",query.text) }
+                        GlassButton { text: qsTr("Buscar iconos"); enabled: !pane.manager.busy; onClicked: pane.manager.searchIcons(["bootstrap","iconify","simpleicons"][provider.currentIndex],query.text) }
                         ListView {
                             Layout.fillWidth: true; Layout.preferredHeight: Math.min(240,contentHeight); clip: true; model: pane.manager.results; cacheBuffer: 0
                             delegate: GlassButton {

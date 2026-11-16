@@ -1,0 +1,4 @@
+{"id": "file.newSequence", "params": {"name": "01-estante", "width": 1920, "height": 1080, "fps": 24, "video": 1, "audio": 0}}
+{"id": "timeline.place", "params": {"item": 1, "track": "V1", "seconds": 0, "insert": false, "sourceIn": 0, "duration": 5080320000000, "video": true, "audio": false}}
+{"id": "captions.import", "params": {"path": "/home/gabriel/personal/estante/brand/promo/en/horizontal/01-estante.srt", "name": "en"}}
+{"id": "captions.setStyle", "params": {"track": "C1", "font": "Noto Sans", "size": 42, "color": "#F4F7FB", "background": true, "backgroundColor": "#101923FF", "anchor": "bottom", "margin": 0.03}}

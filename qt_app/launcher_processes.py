@@ -89,7 +89,7 @@ def close_client(client):
         '--method', 'io.github.Faugus.Tray.Quit'],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
     if tray.returncode:
-        # Without a tray, the GTK application exports its normal Quit action.
+        # Without a tray, request the desktop application's standard Quit action.
         subprocess.run(base + ['--dest', 'io.github.Faugus.faugus-launcher',
             '--object-path', '/io/github/Faugus/faugus_launcher',
             '--method', 'org.gtk.Actions.Activate', 'quit', '[]', '{}'],

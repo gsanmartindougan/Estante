@@ -1,0 +1,62 @@
+{
+  "clip": "03-organiza",
+  "title": "Encuentra tu próxima partida",
+  "language": "es",
+  "aspect": "horizontal",
+  "width": 1920,
+  "height": 1080,
+  "fps": 24,
+  "duration": 20,
+  "video": "promo/es/horizontal/03-organiza.mp4",
+  "project": "promo/projects/es/horizontal/03-organiza.fcproj",
+  "captions": [
+    {
+      "start": 2,
+      "end": 6,
+      "text": "Busca por nombre mientras recorres tu biblioteca."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "text": "Crea, ordena y edita tus categorías."
+    },
+    {
+      "start": 10,
+      "end": 14,
+      "text": "Recorre Grid por páginas; el tamaño es configurable."
+    },
+    {
+      "start": 14,
+      "end": 18,
+      "text": "Navega por selección o salta por inicial."
+    }
+  ],
+  "decoded": true,
+  "audio": false,
+  "shots": [
+    {
+      "scene": "search",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 2
+    },
+    {
+      "scene": "categories",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 6
+    },
+    {
+      "scene": "grid",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 10
+    },
+    {
+      "scene": "list",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 14
+    }
+  ]
+}

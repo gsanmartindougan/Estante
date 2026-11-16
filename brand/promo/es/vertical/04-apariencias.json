@@ -1,0 +1,63 @@
+{
+  "clip": "04-apariencias",
+  "title": "Cuatro formas de explorar",
+  "language": "es",
+  "aspect": "vertical",
+  "width": 1080,
+  "height": 1920,
+  "fps": 24,
+  "duration": 20,
+  "video": "promo/es/vertical/04-apariencias.mp4",
+  "project": "promo/projects/es/vertical/04-apariencias.fcproj",
+  "captions": [
+    {
+      "start": 2,
+      "end": 6,
+      "text": "Lista: una rueda de logos y la ficha del juego."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "text": "Grid: carátulas ordenadas y ficha lateral."
+    },
+    {
+      "start": 10,
+      "end": 14,
+      "text": "Carousel: selección central y navegación circular."
+    },
+    {
+      "start": 14,
+      "end": 18,
+      "text": "Sense: una fila compacta sobre el fondo del juego."
+    }
+  ],
+  "decoded": true,
+  "audio": false,
+  "shots": [
+    {
+      "scene": "list",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 2
+    },
+    {
+      "scene": "grid",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 6
+    },
+    {
+      "scene": "carousel",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 10
+    },
+    {
+      "scene": "sense",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 14
+    }
+  ],
+  "layout": "single full application window, uncropped, no duplicate detail or zoom"
+}

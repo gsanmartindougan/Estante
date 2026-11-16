@@ -1,0 +1,62 @@
+{
+  "clip": "04-apariencias",
+  "title": "Four ways to browse",
+  "language": "en",
+  "aspect": "horizontal",
+  "width": 1920,
+  "height": 1080,
+  "fps": 24,
+  "duration": 20,
+  "video": "promo/en/horizontal/04-apariencias.mp4",
+  "project": "promo/projects/en/horizontal/04-apariencias.fcproj",
+  "captions": [
+    {
+      "start": 2,
+      "end": 6,
+      "text": "List: a logo wheel alongside the game details."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "text": "Grid: organized covers with details on the side."
+    },
+    {
+      "start": 10,
+      "end": 14,
+      "text": "Carousel: centered selection and circular navigation."
+    },
+    {
+      "start": 14,
+      "end": 18,
+      "text": "Sense: a compact row over the game background."
+    }
+  ],
+  "decoded": true,
+  "audio": false,
+  "shots": [
+    {
+      "scene": "list",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 2
+    },
+    {
+      "scene": "grid",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 6
+    },
+    {
+      "scene": "carousel",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 10
+    },
+    {
+      "scene": "sense",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 14
+    }
+  ]
+}

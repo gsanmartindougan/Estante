@@ -1,0 +1,63 @@
+{
+  "clip": "02-biblioteca",
+  "title": "Bring your games together",
+  "language": "en",
+  "aspect": "vertical",
+  "width": 1080,
+  "height": 1920,
+  "fps": 24,
+  "duration": 20,
+  "video": "promo/en/vertical/02-biblioteca.mp4",
+  "project": "promo/projects/en/vertical/02-biblioteca.fcproj",
+  "captions": [
+    {
+      "start": 2,
+      "end": 6,
+      "text": "Import Steam, Faugus and Heroic from Settings."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "text": "Add local .sh scripts and AppImages."
+    },
+    {
+      "start": 10,
+      "end": 14,
+      "text": "Set launch arguments and the working directory."
+    },
+    {
+      "start": 14,
+      "end": 18,
+      "text": "Choose which launchers open when Estante starts."
+    }
+  ],
+  "decoded": true,
+  "audio": false,
+  "shots": [
+    {
+      "scene": "imports",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 2
+    },
+    {
+      "scene": "local",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 6
+    },
+    {
+      "scene": "local",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 10
+    },
+    {
+      "scene": "startup",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 14
+    }
+  ],
+  "layout": "single full application window, uncropped, no duplicate detail or zoom"
+}

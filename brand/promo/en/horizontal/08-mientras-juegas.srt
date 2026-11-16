@@ -1,0 +1,15 @@
+1
+00:00:02,000 --> 00:00:06,000
+Keep Estante open, or close and restore it.
+
+2
+00:00:06,000 --> 00:00:10,000
+You can also choose the tray or screensaver.
+
+3
+00:00:10,000 --> 00:00:14,000
+The screensaver cycles through your library backgrounds.
+
+4
+00:00:14,000 --> 00:00:18,000
+Adjust the background and presentation to your taste.

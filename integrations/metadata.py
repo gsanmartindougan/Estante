@@ -9,7 +9,7 @@ import threading
 from email.utils import parsedate_to_datetime
 from urllib.error import HTTPError
 from core.version import __version__
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode, urlparse
 from urllib.request import Request, urlopen
 
 
@@ -272,6 +272,100 @@ class CategoryIcons:
             finally:
                 temporary.unlink(missing_ok=True)
         return str(target)
+
+
+class SimpleIcons(CategoryIcons):
+    """Search and cache brand icons from the Simple Icons catalogue."""
+    CATALOG_URL = 'https://raw.githubusercontent.com/simple-icons/simple-icons/develop/data/simple-icons.json'
+    ICON_ROOT = 'https://cdn.simpleicons.org/'
+
+    def catalog(self):
+        if self.names is not None:
+            return self.names
+        cached = self.cache / 'simple-icons-catalog.json'
+        previous = []
+        try:
+            stored = json.loads(cached.read_text())
+            previous = stored if isinstance(stored, list) else []
+            if previous and time.time() - cached.stat().st_mtime < 86400:
+                self.names = previous
+                return previous
+        except (OSError, ValueError):
+            pass
+        try:
+            with self.request(self.CATALOG_URL) as response:
+                names = json.load(response)
+            if not isinstance(names, list) or not names:
+                raise ValueError(tr('No se pudo cargar el catálogo de Simple Icons.'))
+        except (OSError, ValueError):
+            if not previous:
+                raise
+            names = previous
+        self.names = names
+        try:
+            import os
+            import tempfile
+            self.cache.mkdir(parents=True, exist_ok=True)
+            with tempfile.NamedTemporaryFile(mode='w', dir=self.cache, delete=False) as stream:
+                temporary = Path(stream.name)
+                json.dump(names, stream)
+            try:
+                os.replace(temporary, cached)
+            finally:
+                temporary.unlink(missing_ok=True)
+        except OSError:
+            pass
+        return names
+
+    @staticmethod
+    def slug(title):
+        import unicodedata
+        replacements = str.maketrans({'+': 'plus', '.': 'dot', '&': 'and', 'đ': 'd', 'ħ': 'h',
+                                      'ı': 'i', 'ĸ': 'k', 'ŀ': 'l', 'ł': 'l', 'ß': 'ss',
+                                      'ŧ': 't', 'ø': 'o'})
+        normalized = unicodedata.normalize('NFD', title.lower().translate(replacements))
+        return re.sub(r'[^a-z0-9]', '', normalized)
+
+    @staticmethod
+    def alias_names(icon):
+        aliases = icon.get('aliases') or {}
+        if isinstance(aliases, str):
+            return [aliases]
+        if isinstance(aliases, list):
+            return [value for value in aliases if isinstance(value, str)]
+        if isinstance(aliases, dict):
+            return [value for group in aliases.values() for value in (group if isinstance(group, list) else [group])
+                    if isinstance(value, str)]
+        return []
+
+    def search(self, query, full=False):
+        terms = query.strip().casefold().split()
+        results = []
+        for icon in self.catalog():
+            if not isinstance(icon, dict) or not isinstance(icon.get('title'), str):
+                continue
+            title = icon['title']
+            slug = icon.get('slug') or self.slug(title)
+            if not isinstance(slug, str) or not re.fullmatch(r'[a-z0-9]+(?:_[a-z0-9]+)*', slug):
+                continue
+            searchable = ' '.join([title, slug, *self.alias_names(icon)]).casefold()
+            if not all(term in searchable for term in terms):
+                continue
+            license_info = icon.get('license') or {}
+            results.append({'name': title, 'url': self.ICON_ROOT + slug,
+                            'source': 'https://simpleicons.org/?q=' + quote(title),
+                            'author': 'Simple Icons contributors',
+                            'license': license_info.get('type') or 'CC0-1.0'})
+        results.sort(key=lambda row: (not row['name'].casefold().startswith(query.strip().casefold()),
+                                      row['name'].casefold()))
+        return results if full else results[:64]
+
+    @classmethod
+    def validate_download_url(cls, url):
+        parsed = urlparse(url)
+        if (parsed.scheme != 'https' or parsed.netloc != 'cdn.simpleicons.org' or parsed.query or
+                parsed.fragment or not re.fullmatch(r'/[a-z0-9]+(?:_[a-z0-9]+)*', parsed.path)):
+            raise ValueError(tr('Dirección de icono no válida.'))
 
 
 class IconifyIcons(CategoryIcons):

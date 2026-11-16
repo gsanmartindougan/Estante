@@ -1,0 +1,19 @@
+1
+00:00:02,000 --> 00:00:06,000
+Lista: una rueda de logos y la ficha
+del juego.
+
+2
+00:00:06,000 --> 00:00:10,000
+Grid: carátulas ordenadas y ficha
+lateral.
+
+3
+00:00:10,000 --> 00:00:14,000
+Carousel: selección central y
+navegación circular.
+
+4
+00:00:14,000 --> 00:00:18,000
+Sense: una fila compacta sobre el
+fondo del juego.

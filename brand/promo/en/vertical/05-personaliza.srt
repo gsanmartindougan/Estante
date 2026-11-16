@@ -1,0 +1,19 @@
+1
+00:00:02,000 --> 00:00:06,000
+Edit game details and the synopsis in
+the side panel.
+
+2
+00:00:06,000 --> 00:00:10,000
+Choose covers, logos and backgrounds
+for each game.
+
+3
+00:00:10,000 --> 00:00:14,000
+Adjust sizes, presentation and
+selection.
+
+4
+00:00:14,000 --> 00:00:18,000
+Configure backgrounds, splits and
+dimming.

@@ -1,0 +1,12 @@
+A library for your Linux games.
+
+Estante brings Steam, Faugus, Heroic and local game launchers together in one interface. Browse your collection with a gamepad, keyboard or mouse, and choose from four layouts.
+
+The project is in development and built with Python and Qt Quick/PySide6. It includes categories, search, custom cover artwork and playtime tracking.
+
+Code and documentation:
+https://github.com/gsanmartindougan/Estante
+
+What do you look for first in a game library for Linux?
+
+#Linux #LinuxGaming #SoftwareDevelopment

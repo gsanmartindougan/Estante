@@ -1,0 +1,63 @@
+{
+  "clip": "06-controles",
+  "title": "A tu manera",
+  "language": "es",
+  "aspect": "vertical",
+  "width": 1080,
+  "height": 1920,
+  "fps": 24,
+  "duration": 20,
+  "video": "promo/es/vertical/06-controles.mp4",
+  "project": "promo/projects/es/vertical/06-controles.fcproj",
+  "captions": [
+    {
+      "start": 2,
+      "end": 6,
+      "text": "Elige español o inglés y tu tipo de mando."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "text": "Escribe con el teclado integrado para mando."
+    },
+    {
+      "start": 10,
+      "end": 14,
+      "text": "Recorre la colección con mando, teclado o ratón."
+    },
+    {
+      "start": 14,
+      "end": 18,
+      "text": "Cambia de apariencia y abre los ajustes con atajos."
+    }
+  ],
+  "decoded": true,
+  "audio": false,
+  "shots": [
+    {
+      "scene": "controls",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 2
+    },
+    {
+      "scene": "keyboard",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 6
+    },
+    {
+      "scene": "list",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 10
+    },
+    {
+      "scene": "grid",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 14
+    }
+  ],
+  "layout": "single full application window, uncropped, no duplicate detail or zoom"
+}

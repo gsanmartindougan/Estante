@@ -1,6 +1,6 @@
 # Estante Qt para Linux
 
-`./run.sh` abre ahora Qt Quick/PySide6. GTK se conserva en `./run-gtk.sh`.
+`./run.sh` abre Qt Quick/PySide6.
 La biblioteca y los ajustes mantienen el esquema existente, sin conversión.
 
 ## Preparación
@@ -15,7 +15,7 @@ python3 -m venv .venv-qt
 
 Puede seleccionarse otro intérprete con `ESTANTE_QT_PYTHON`. El perfil `--games`
 crea una biblioteca temporal independiente; `--smoke` impide modificar datos reales
-y lanzar juegos. No ejecutar GTK y Qt simultáneamente sobre la misma biblioteca.
+y lanzar juegos.
 Qt tiene su propio bloqueo de instancia.
 
 ## Funciones
@@ -101,20 +101,20 @@ la transferencia Qt a systemd requieren validación en la sesión del usuario.
 
 ## Instalación y empaquetado
 
-`./install.sh` selecciona Qt; `--frontend gtk` conserva la alternativa anterior.
+`./install.sh` instala la versión Qt.
 El entorno `.venv-qt` debe permanecer disponible si se usa como intérprete instalado.
-`packaging/build-appimage.py` selecciona Qt por defecto y admite `--frontend gtk`.
+`packaging/build-appimage.py` genera el AppImage Qt por defecto; `--frontend rust` genera el AppImage Rust.
 El AppDir incluye Python, Qt, SDL, codecs y certificados; `AppRun --self-test`
 comprueba PNG/JPEG/WebP, SVG, SSL y ausencia de GTK. Compilar en este equipo no
 prueba compatibilidad con todas las distribuciones: falta validar el binario en la
 distribución mínima de una futura publicación.
 
-Los vídeos del README muestran Qt 0.3.0. GTK sigue disponible como alternativa.
+Los vídeos del README muestran Qt 0.3.0.
 Windows queda fuera de esta fase.
 
 ## Imágenes y ajustes
 
-La composición de fondos sigue GTK: Completo cubre la ventana; Arriba/Abajo
+La composición de fondos usa estas reglas: Completo cubre la ventana; Arriba/Abajo
 encajan proporcionalmente con un degradado unilateral. En fondos dobles cada
 imagen cubre su propia región, con una franja de mezcla de hasta 128 píxeles.
 Se respeta el relleno guardado por color dominante o desenfoque. Qt genera
@@ -128,16 +128,16 @@ Cada apariencia separa presentación/tamaños, fondo, selección e información.
 Las opciones se eligen con cajas y radios: A abre, D-pad mueve el foco, A confirma
 y B cancela. Los sliders requieren A antes de ajustar y A/B para terminar.
 
-Los ajustes utilizan la organización de GTK: barra lateral con Globales,
+Los ajustes usan una barra lateral con Globales,
 Escaneo y scraping, Categorías y las cuatro apariencias. Globales y apariencias
 muestran dos columnas de tarjetas plegables independientes. Las opciones de
 selección aparecen como radios dentro de la tarjeta; no abren un popup. Los
 borradores se conservan al plegar o cambiar de página, y se aplican al guardar.
-La prueba `tests/check_qt_gtk_settings.py` valida este recorrido con el despachador
+La prueba `tests/check_qt_migration.py` valida este recorrido con el despachador
 del mando. Las ventanas de prueba se identifican como `io.github.estante.Test`
 para la regla de Mango del tag 2 sin foco.
 
-Categorías sigue también la estructura de GTK: Nueva categoría y Categoría
+Categorías usa también una barra lateral con Nueva categoría y Categoría
 principal a la izquierda; tarjetas individuales con nombre, orden y juegos a la
 derecha. Las listas de juegos están virtualizadas y mantienen la selección tras
 guardar. Los iconos locales y las búsquedas Bootstrap/Iconify se conservan en su

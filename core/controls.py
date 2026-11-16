@@ -10,9 +10,9 @@ from pathlib import Path
 
 def controller_buttons(settings):
     profiles = {
-        'xbox': dict(confirm='A', back='B', save='Y', search='View', bumpers='LB/RB', triggers='LT/RT', chord='LB+RB'),
-        'sony': dict(confirm='×', back='○', save='△', search='Share', bumpers='L1/R1', triggers='L2/R2', chord='L1+R1'),
-        'nintendo': dict(confirm='B', back='A', save='X', search='−', bumpers='L/R', triggers='ZL/ZR', chord='L+R'),
+        'xbox': dict(confirm='A', back='B', play='X', menu='Menu', save='Y', search='View', bumpers='LB/RB', triggers='LT/RT', chord='LB+RB'),
+        'sony': dict(confirm='×', back='○', play='□', menu='Options', save='△', search='Share', bumpers='L1/R1', triggers='L2/R2', chord='L1+R1'),
+        'nintendo': dict(confirm='B', back='A', play='Y', menu='+', save='X', search='−', bumpers='L/R', triggers='ZL/ZR', chord='L+R'),
     }
     return profiles.get(settings.get('controller_type'), profiles['xbox'])
 
@@ -192,7 +192,7 @@ class Gamepad:
                         break
         pressed = set()
         if self.controller:
-            for index, action in {0: 'confirm', 1: 'back', 2: 'search', 3: 'save', 4: 'search',
+            for index, action in {0: 'confirm', 1: 'back', 2: 'play', 3: 'save', 4: 'search',
                                   6: 'menu', 7: 'left_stick', 8: 'right_stick', 9: 'page_previous', 10: 'page_next', 11: 'up', 12: 'down', 13: 'left', 14: 'right'}.items():
                 if self.sdl.SDL_GameControllerGetButton(self.controller, index):
                     pressed.add(action)

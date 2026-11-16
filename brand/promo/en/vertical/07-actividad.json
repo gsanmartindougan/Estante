@@ -1,0 +1,63 @@
+{
+  "clip": "07-actividad",
+  "title": "Your play history",
+  "language": "en",
+  "aspect": "vertical",
+  "width": 1080,
+  "height": 1920,
+  "fps": 24,
+  "duration": 20,
+  "video": "promo/en/vertical/07-actividad.mp4",
+  "project": "promo/projects/en/vertical/07-actividad.fcproj",
+  "captions": [
+    {
+      "start": 2,
+      "end": 6,
+      "text": "Check playtime in each game’s details."
+    },
+    {
+      "start": 6,
+      "end": 10,
+      "text": "Review sessions and when you last played."
+    },
+    {
+      "start": 10,
+      "end": 14,
+      "text": "Open the history from the game editor."
+    },
+    {
+      "start": 14,
+      "end": 18,
+      "text": "Choose what Estante does while you play."
+    }
+  ],
+  "decoded": true,
+  "audio": false,
+  "shots": [
+    {
+      "scene": "list",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 2
+    },
+    {
+      "scene": "activity",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 6
+    },
+    {
+      "scene": "activity",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 10
+    },
+    {
+      "scene": "playing",
+      "sourceStart": 0,
+      "duration": 4,
+      "at": 14
+    }
+  ],
+  "layout": "single full application window, uncropped, no duplicate detail or zoom"
+}

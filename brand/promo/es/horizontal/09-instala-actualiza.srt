@@ -1,0 +1,15 @@
+1
+00:00:02,000 --> 00:00:06,000
+Disponible como AppImage para Linux x86_64.
+
+2
+00:00:06,000 --> 00:00:10,000
+El AppImage incluye Python, Qt y SDL2.
+
+3
+00:00:10,000 --> 00:00:14,000
+Busca actualizaciones desde los ajustes globales.
+
+4
+00:00:14,000 --> 00:00:18,000
+La biblioteca y tus ajustes se conservan al actualizar.

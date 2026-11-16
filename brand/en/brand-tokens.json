@@ -1,0 +1,278 @@
+{
+  "version": "2.0.0",
+  "brand": "Estante",
+  "status": "proposed",
+  "date": "2026-10-28",
+  "direction": "Night library",
+  "tagline": "Your library. Your next game.",
+  "colors": {
+    "ink": {
+      "hex": "#101923",
+      "rgb": [
+        16,
+        25,
+        35
+      ],
+      "role": "Main background",
+      "origin": "Proposal"
+    },
+    "panel": {
+      "hex": "#192638",
+      "rgb": [
+        25,
+        38,
+        56
+      ],
+      "role": "Cards and plates",
+      "origin": "Proposal"
+    },
+    "blue": {
+      "hex": "#0B91FF",
+      "rgb": [
+        11,
+        145,
+        255
+      ],
+      "role": "Identity, selection and accents on dark surfaces",
+      "origin": "Modal sample of opaque blue raster pixels; not a flat original fill"
+    },
+    "blueLight": {
+      "hex": "#0067BD",
+      "rgb": [
+        0,
+        103,
+        189
+      ],
+      "role": "Text and actions on light surfaces",
+      "origin": "Proposed accessibility variant"
+    },
+    "paper": {
+      "hex": "#F4F7FB",
+      "rgb": [
+        244,
+        247,
+        251
+      ],
+      "role": "Text on dark surfaces and light editorial background",
+      "origin": "Proposal"
+    },
+    "muted": {
+      "hex": "#AAB8C9",
+      "rgb": [
+        170,
+        184,
+        201
+      ],
+      "role": "Secondary text on dark surfaces",
+      "origin": "Proposal"
+    },
+    "border": {
+      "hex": "#667D96",
+      "rgb": [
+        102,
+        125,
+        150
+      ],
+      "role": "Control outlines and dividers",
+      "origin": "Proposal"
+    },
+    "white": {
+      "hex": "#FFFFFF",
+      "rgb": [
+        255,
+        255,
+        255
+      ],
+      "role": "Text on blueLight and light surfaces",
+      "origin": "White found in the icon; also a proposed surface"
+    }
+  },
+  "contrast": [
+    {
+      "foreground": "paper",
+      "background": "ink",
+      "ratio": 16.4878,
+      "normalText": true,
+      "largeText": true,
+      "nonText": true
+    },
+    {
+      "foreground": "paper",
+      "background": "panel",
+      "ratio": 14.2067,
+      "normalText": true,
+      "largeText": true,
+      "nonText": true
+    },
+    {
+      "foreground": "muted",
+      "background": "ink",
+      "ratio": 8.7812,
+      "normalText": true,
+      "largeText": true,
+      "nonText": true
+    },
+    {
+      "foreground": "muted",
+      "background": "panel",
+      "ratio": 7.5663,
+      "normalText": true,
+      "largeText": true,
+      "nonText": true
+    },
+    {
+      "foreground": "blue",
+      "background": "ink",
+      "ratio": 5.4907,
+      "normalText": true,
+      "largeText": true,
+      "nonText": true
+    },
+    {
+      "foreground": "ink",
+      "background": "blue",
+      "ratio": 5.4907,
+      "normalText": true,
+      "largeText": true,
+      "nonText": true
+    },
+    {
+      "foreground": "blueLight",
+      "background": "paper",
+      "ratio": 5.3182,
+      "normalText": true,
+      "largeText": true,
+      "nonText": true
+    },
+    {
+      "foreground": "white",
+      "background": "blueLight",
+      "ratio": 5.7144,
+      "normalText": true,
+      "largeText": true,
+      "nonText": true
+    },
+    {
+      "foreground": "white",
+      "background": "blue",
+      "ratio": 3.2266,
+      "normalText": false,
+      "largeText": true,
+      "nonText": true
+    },
+    {
+      "foreground": "blue",
+      "background": "paper",
+      "ratio": 3.0029,
+      "normalText": false,
+      "largeText": true,
+      "nonText": true
+    },
+    {
+      "foreground": "border",
+      "background": "panel",
+      "ratio": 3.5901,
+      "normalText": false,
+      "largeText": true,
+      "nonText": true
+    },
+    {
+      "foreground": "border",
+      "background": "ink",
+      "ratio": 4.1665,
+      "normalText": false,
+      "largeText": true,
+      "nonText": true
+    }
+  ],
+  "typography": {
+    "family": "Noto Sans",
+    "weights": {
+      "regular": 400,
+      "bold": 700
+    },
+    "license": "SIL OFL 1.1; checked in the installed TTF 2.015 metadata and the official provider",
+    "roles": {
+      "display": {
+        "size": 100,
+        "lineHeight": 124,
+        "weight": 700
+      },
+      "squareDisplay": {
+        "size": 92,
+        "lineHeight": 114,
+        "weight": 700
+      },
+      "boardDisplay": {
+        "size": 72,
+        "lineHeight": 89,
+        "weight": 700
+      },
+      "heading": {
+        "size": 58,
+        "lineHeight": 72,
+        "weight": 700
+      },
+      "body": {
+        "size": 28,
+        "lineHeight": 35,
+        "weight": 400
+      },
+      "label": {
+        "size": 18,
+        "lineHeight": 22,
+        "weight": 700
+      },
+      "caption": {
+        "size": 20,
+        "lineHeight": 25,
+        "weight": 400
+      }
+    }
+  },
+  "spacing": {
+    "base": 8,
+    "scale": [
+      8,
+      16,
+      24,
+      32,
+      48,
+      64,
+      72,
+      96
+    ],
+    "pageMargin": 64,
+    "gridColumns": 12,
+    "gridGutter": 24
+  },
+  "radii": {
+    "card": 16,
+    "chip": 14,
+    "motif": 12
+  },
+  "logo": {
+    "original": "../originals/estante-icon-original.svg",
+    "raster": "../originals/estante-icon-original.png",
+    "lockup": "exports/05-firma.svg",
+    "clearSpace": "0.25 × icon width measured from visible pixels",
+    "minimumIconWidth": 96,
+    "minimumLockupWidth": 500,
+    "lightBackground": "Ink plate; preserve the original white and blue",
+    "status": "Existing icon preserved; proposed typographic signature and tagline"
+  },
+  "assets": {
+    "native": "sources/estante-identity.figcraft",
+    "board": "exports/01-identidad.png",
+    "landscape": "exports/02-portada.png",
+    "square": "exports/03-anuncio.png",
+    "product": "exports/04-producto.png",
+    "wordmark": "exports/05-firma.png",
+    "productScreenshot": "../originals/estante-list-default-en.png"
+  },
+  "languages": [
+    "es",
+    "en"
+  ],
+  "language": "en"
+}
