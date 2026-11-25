@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the primary offline Slint AppImage or the legacy Qt variant.
+"""Build the primary offline Rust/Slint AppImage.
 
 Uses the runtime and tools from appimage-builder's AppImage. Cross-distribution
 validation is still required before publishing; no files are uploaded here.
@@ -17,7 +17,7 @@ import runpy
 
 ROOT = Path(__file__).resolve().parents[1]
 APP_ID = 'io.github.estante.Launcher'
-VERSION = runpy.run_path(str(ROOT / 'core/version.py'))['__version__']
+VERSION = runpy.run_path(str(ROOT / 'packaging/install.py'))['VERSION']
 
 
 def copy(source, target):
@@ -42,7 +42,7 @@ def prepare_rust(appdir):
     else:
         subprocess.run(['cargo', 'build', '--release', '--manifest-path',
                         str(ROOT / 'rust/Cargo.toml')], check=True)
-    subprocess.run([sys.executable, str(ROOT / 'packaging/install.py'), '--frontend', 'slint',
+    subprocess.run([sys.executable, str(ROOT / 'packaging/install.py'),
                     '--prefix', '/usr', '--destdir', str(appdir)], check=True)
 
     libraries = appdir / 'usr/lib'
@@ -90,29 +90,20 @@ exec "$LOADER" --library-path "$LIBRARIES" "$PROGRAM" "$@"
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--frontend', choices=('slint', 'qt'), default='slint',
-                        help='Interfaz principal Slint (predeterminada) o frontend Qt legacy')
     parser.add_argument('--builder', type=Path, default=Path.home() / 'Applications/appimagebuilder.appimage')
     parser.add_argument('--output', type=Path)
     parser.add_argument('--appdir-only', action='store_true')
     args = parser.parse_args()
-    frontend = args.frontend
     default_name = f'Estante-{VERSION}-x86_64.AppImage'
-    if frontend == 'qt':
-        default_name = f'Estante-{VERSION}-qt-x86_64.AppImage'
     output = (args.output or ROOT / 'dist' / default_name).absolute()
     output.parent.mkdir(parents=True, exist_ok=True)
     appdir = output.parent / (
-        'Estante.AppDir' if frontend == 'slint' and args.output is None
+        'Estante.AppDir' if args.output is None
         else output.stem + '.AppDir'
     )
     if appdir.exists():
         raise RuntimeError(str(appdir) + ' ya existe. Muévelo o elimínalo antes de reconstruir.')
-    if frontend == 'qt':
-        from qt_bundle import prepare
-        prepare(appdir)
-    else:
-        prepare_rust(appdir)
+    prepare_rust(appdir)
     with tempfile.TemporaryDirectory(prefix='estante-cache-check-') as cache:
         subprocess.run([str(appdir / 'AppRun'), '--self-test'], check=True,
                        env={**os.environ, 'XDG_CACHE_HOME': cache})

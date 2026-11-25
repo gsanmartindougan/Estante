@@ -282,6 +282,7 @@ fn ui_settings_snapshot(window: &ListWindow) -> Value {
         "controller_type": window.get_controller_type().to_string(),
         "onscreen_keyboard": window.get_onscreen_keyboard().to_string(),
         "language": window.get_language().to_string(),
+        "date_format": window.get_date_format().to_string(),
         "keyboard_fallback": window.get_keyboard_fallback(),
         "check_updates_on_start": window.get_check_updates_on_start(),
         "steamgriddb_key": window.get_steamgriddb_key().to_string(),
@@ -357,6 +358,9 @@ fn restore_ui_settings_snapshot(window: &ListWindow, snapshot: &Value) {
     window.set_controller_type(string_setting(snapshot, "controller_type", "xbox").into());
     window.set_onscreen_keyboard(string_setting(snapshot, "onscreen_keyboard", "builtin").into());
     window.set_language(string_setting(snapshot, "language", "system").into());
+    window.set_date_format(
+        setting_choice(snapshot, "date_format", "dmy", &["dmy", "mdy", "ymd"]).into(),
+    );
     window.set_keyboard_fallback(bool_setting(snapshot, "keyboard_fallback", true));
     window.set_check_updates_on_start(bool_setting(snapshot, "check_updates_on_start", false));
     window.set_steamgriddb_key(string_setting(snapshot, "steamgriddb_key", "").into());
@@ -719,6 +723,84 @@ fn build_window(
     };
     let saver_paths = Rc::new(RefCell::new(screensaver_paths(&settings, &games)));
     let window = ListWindow::new()?;
+    let (connectivity_requests, connectivity_states) = crate::connectivity::start_worker();
+    let connectivity_for_refresh = connectivity_requests.clone();
+    let weak_for_connectivity_refresh = window.as_weak();
+    window.on_refresh_connectivity(move || {
+        if let Some(window) = weak_for_connectivity_refresh.upgrade() {
+            window.set_connectivity_busy(true);
+            window.set_connectivity_error("".into());
+        }
+        let _ = connectivity_for_refresh.send(crate::connectivity::Request::Refresh);
+    });
+    let connectivity_for_wifi = connectivity_requests.clone();
+    let weak_for_wifi = window.as_weak();
+    window.on_set_wifi_enabled(move |enabled| {
+        if let Some(window) = weak_for_wifi.upgrade() {
+            window.set_connectivity_busy(true);
+            window.set_connectivity_error("".into());
+        }
+        let _ = connectivity_for_wifi.send(crate::connectivity::Request::SetWifi(enabled));
+    });
+    let connectivity_for_bluetooth = connectivity_requests.clone();
+    let weak_for_bluetooth = window.as_weak();
+    window.on_set_bluetooth_enabled(move |enabled| {
+        if let Some(window) = weak_for_bluetooth.upgrade() {
+            window.set_connectivity_busy(true);
+            window.set_connectivity_error("".into());
+        }
+        let _ = connectivity_for_bluetooth.send(crate::connectivity::Request::SetBluetooth(enabled));
+    });
+    let connectivity_for_scan = connectivity_requests.clone();
+    let weak_for_scan = window.as_weak();
+    window.on_scan_bluetooth(move || {
+        if let Some(window) = weak_for_scan.upgrade() {
+            window.set_connectivity_busy(true);
+            window.set_bluetooth_scanning(true);
+            window.set_connectivity_error("".into());
+        }
+        let _ = connectivity_for_scan.send(crate::connectivity::Request::ScanBluetooth);
+    });
+    let connectivity_for_discoverable = connectivity_requests.clone();
+    let weak_for_discoverable = window.as_weak();
+    window.on_set_bluetooth_discoverable(move |enabled| {
+        if let Some(window) = weak_for_discoverable.upgrade() {
+            window.set_connectivity_busy(true);
+            window.set_connectivity_error("".into());
+        }
+        let _ = connectivity_for_discoverable
+            .send(crate::connectivity::Request::SetBluetoothDiscoverable(enabled));
+    });
+    let connectivity_for_pairable = connectivity_requests.clone();
+    let weak_for_pairable = window.as_weak();
+    window.on_set_bluetooth_pairable(move |enabled| {
+        if let Some(window) = weak_for_pairable.upgrade() {
+            window.set_connectivity_busy(true);
+            window.set_connectivity_error("".into());
+        }
+        let _ = connectivity_for_pairable
+            .send(crate::connectivity::Request::SetBluetoothPairable(enabled));
+    });
+    let connectivity_for_device = connectivity_requests.clone();
+    let weak_for_device = window.as_weak();
+    window.on_bluetooth_device_action(move |address, action| {
+        if let Some(window) = weak_for_device.upgrade() {
+            window.set_connectivity_busy(true);
+            window.set_connectivity_error("".into());
+        }
+        let _ = connectivity_for_device.send(crate::connectivity::Request::BluetoothDeviceAction {
+            address: address.to_string(),
+            action: action.to_string(),
+        });
+    });
+    let weak_for_status_date = window.as_weak();
+    window.on_refresh_status_date(move || {
+        if let Some(window) = weak_for_status_date.upgrade() {
+            update_system_clock(&window);
+        }
+    });
+    update_system_clock(&window);
+    update_battery_status(&window);
     let weak_for_cursor = window.as_weak();
     window.window().on_winit_window_event(move |slint_window, event| {
         match event {
@@ -764,6 +846,9 @@ fn build_window(
     window.set_system_language(language_code("system").into());
     window.set_language(
         setting_choice(&settings, "language", "system", &["system", "es", "en"]).into(),
+    );
+    window.set_date_format(
+        setting_choice(&settings, "date_format", "dmy", &["dmy", "mdy", "ymd"]).into(),
     );
     window.set_update_install_supported(crate::updates::appimage_path().is_some());
     window.set_check_updates_on_start(
@@ -3699,6 +3784,7 @@ fn build_window(
     let screensaver_generation_for_timer = screensaver_image_generation.clone();
     let screensaver_requests_for_timer = screensaver_image_requests.clone();
     let activity_for_timer = last_activity.clone();
+    let connectivity_for_timer = connectivity_requests.clone();
     let mut saver_index = 0usize;
     let mut saver_next = None;
     let mut gamepad_retry_at = Instant::now();
@@ -3710,6 +3796,10 @@ fn build_window(
     let status_events = session_events_tx.clone();
     let mut checking_launchers = false;
     let mut launcher_scan_at = Instant::now();
+    let mut status_clock_refresh_at = Instant::now();
+    let mut battery_refresh_at = Instant::now();
+    let mut connectivity_refresh_at = Instant::now();
+    let mut bluetooth_devices_for_timer = Vec::<crate::connectivity::BluetoothDevice>::new();
     let timer = slint::Timer::default();
     timer.start(
         slint::TimerMode::Repeated,
@@ -3718,6 +3808,52 @@ fn build_window(
             let Some(window) = timer_window.upgrade() else {
                 return;
             };
+            let now = Instant::now();
+            if now.duration_since(status_clock_refresh_at) >= Duration::from_secs(1) {
+                update_system_clock(&window);
+                status_clock_refresh_at = now;
+            }
+            if now.duration_since(battery_refresh_at) >= Duration::from_secs(30) {
+                update_battery_status(&window);
+                battery_refresh_at = now;
+            }
+            if window.get_showing_settings()
+                && window.get_settings_section() == 5
+                && !window.get_connectivity_busy()
+                && now.duration_since(connectivity_refresh_at) >= Duration::from_secs(10)
+            {
+                window.set_connectivity_busy(true);
+                let _ = connectivity_for_timer.send(crate::connectivity::Request::Refresh);
+                connectivity_refresh_at = now;
+            }
+            while let Ok(state) = connectivity_states.try_recv() {
+                window.set_wifi_available(state.wifi_available);
+                window.set_wifi_hardware_enabled(state.wifi_hardware_enabled);
+                window.set_wifi_enabled(state.wifi_enabled);
+                window.set_wifi_connected(state.wifi_connected);
+                window.set_bluetooth_available(state.bluetooth_available);
+                window.set_bluetooth_enabled(state.bluetooth_enabled);
+                window.set_bluetooth_discoverable(state.bluetooth_discoverable);
+                window.set_bluetooth_pairable(state.bluetooth_pairable);
+                window.set_bluetooth_scanning(false);
+                if bluetooth_devices_for_timer != state.bluetooth_devices {
+                    let devices = state
+                        .bluetooth_devices
+                        .iter()
+                        .map(|device| BluetoothDevice {
+                            name: device.name.clone().into(),
+                            address: device.address.clone().into(),
+                            paired: device.paired,
+                            connected: device.connected,
+                        })
+                        .collect::<Vec<_>>();
+                    window.set_bluetooth_devices(ModelRc::from(Rc::new(VecModel::from(devices))));
+                    bluetooth_devices_for_timer = state.bluetooth_devices.clone();
+                }
+                window.set_connectivity_error(state.error.into());
+                window.set_connectivity_loaded(true);
+                window.set_connectivity_busy(false);
+            }
             while let Ok(event) = session_events_rx.try_recv() {
                 match event {
                     SessionEvent::Started(behavior) => {
@@ -4390,6 +4526,7 @@ fn settings_target_in_left_column(section: i32, target: i32) -> bool {
         2 => matches!(target, 0 | 2 | 3),
         3 => target == 0,
         4 => (0..=3).contains(&target),
+        5 => target == 0,
         _ => true,
     }
 }
@@ -4401,6 +4538,7 @@ fn settings_target_column(section: i32, target: i32) -> Option<i32> {
         3 => Some(if target == 0 { 0 } else { 1 }),
         4 if (0..=3).contains(&target) => Some(0),
         4 if (5..=8).contains(&target) => Some(1),
+        5 if (0..=1).contains(&target) => Some(target),
         _ => None,
     }
 }
@@ -8870,6 +9008,28 @@ fn parse_color(value: &str) -> slint::Color {
         }
     }
     slint::Color::from_rgb_u8(255, 255, 255)
+}
+
+fn update_system_clock(window: &ListWindow) {
+    let now = chrono::Local::now();
+    let format = match window.get_date_format().as_str() {
+        "mdy" => "%m/%d/%Y",
+        "ymd" => "%Y-%m-%d",
+        _ => "%d/%m/%Y",
+    };
+    window.set_status_time(now.format("%H:%M").to_string().into());
+    window.set_status_date(now.format(format).to_string().into());
+}
+
+fn update_battery_status(window: &ListWindow) {
+    if let Some(status) = crate::power::read_battery_status() {
+        window.set_battery_percentage(i32::from(status.percentage));
+        window.set_battery_charging(status.charging);
+        window.set_battery_full(status.full);
+        window.set_battery_present(true);
+    } else {
+        window.set_battery_present(false);
+    }
 }
 
 fn chrono_utc_now() -> String {

@@ -1,0 +1,10 @@
+{
+  "name": "estante-preview",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node dev.mjs",
+    "test": "node --test library.test.js"
+  }
+}

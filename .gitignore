@@ -4,7 +4,6 @@ dist/
 
 .reset-image-cache
 
-.venv-qt/
 rust/target/
 heaptrack.*.zst
 

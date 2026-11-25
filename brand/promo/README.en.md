@@ -19,7 +19,7 @@ Bilingual delivery · 28 October 2026.
 | 09 | Installation and updates | x86_64 AppImage, bundled dependencies and update controls |
 | 10 | Artwork and details | SteamGridDB, IGDB, Wikidata, local files and URLs |
 
-Claims are based on the project’s `README.md`, `README.en.md`, `RELEASE_NOTES.md` and `qt_app/settings_schema.py`. These clips introduce the main functions. They do not stage or execute installation, game launches, downloads or actual imports; they show genuine forms/settings with captions explaining the function. External services may require credentials, and launchers must be installed. No universal compatibility or performance claim is made.
+Claims are based on the project’s `README.md`, `README.en.md`, `RELEASE_NOTES.md` and the Qt legacy settings schema in the separate `estante-qt-legacy` project. These clips introduce the main functions. They do not stage or execute installation, game launches, downloads or actual imports; they show genuine forms/settings with captions explaining the function. External services may require credentials, and launchers must be installed. No universal compatibility or performance claim is made.
 
 ## Layout and captions
 
@@ -35,7 +35,7 @@ Promotional copy, titles and captions have Spanish and English versions. The app
 - `es/horizontal`, `es/vertical`, `en/horizontal`, `en/vertical`: final MP4, SRT, ASS, JPG preview and per-clip JSON manifest.
 - `projects/<language>/<format>/`: native FilmCraft `.fcproj` projects with a clean master and editable caption track. Keep the adjacent `-base.mp4` with the project.
 - `../sources/promo_plan.py`: bilingual copy and shot selection.
-- `../sources/record_promos.py`: reproducible isolated Qt recording.
+- `estante-qt-legacy/tools/record_promos.py`: reproducible isolated Qt recording.
 - `../sources/render_promos.py`: reproducible composition and encoding.
 
 FilmCraft CLI 0.13.0 imported the masters and created native sequences/caption tracks. Saved-project loading and a sample render were verified. FFmpeg composed and encoded the final MP4 files. Cards and headings are baked into the clean master; native captions retain editable text and timing. To change the montage or cards, edit the plan/script and regenerate the master. The master is not presented as a native sequence containing every original cut or text layer. Caption appearance may vary slightly when re-exporting through another renderer; delivered MP4 files are the visual reference.

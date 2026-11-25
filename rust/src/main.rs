@@ -1,10 +1,12 @@
 mod artwork;
 mod category_icons;
+mod connectivity;
 mod controls;
 mod importers;
 mod launchers;
 mod metadata;
 mod model;
+mod power;
 mod scraping;
 mod slint_ui;
 mod supervisor;
@@ -17,6 +19,7 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
+
 use unicode_normalization::{UnicodeNormalization, char::canonical_combining_class};
 
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
@@ -47,7 +50,6 @@ fn main() {
         println!("Estante {} (Rust/Slint)", env!("CARGO_PKG_VERSION"));
         return;
     }
-
     configure_native_allocator();
     if let Err(error) = slint_ui::run() {
         eprintln!("Estante Slint: {error}");

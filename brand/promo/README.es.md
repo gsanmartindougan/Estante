@@ -19,7 +19,7 @@ Entrega bilingüe · 28 de octubre de 2026.
 | 09 | Instalación y actualización | AppImage x86_64, dependencias incluidas y actualizaciones |
 | 10 | Imágenes y fichas | SteamGridDB, IGDB, Wikidata, archivos locales y URL |
 
-Las afirmaciones se basan en `README.md`, `README.en.md`, `RELEASE_NOTES.md` y `qt_app/settings_schema.py` del proyecto. Los clips son una presentación de las funciones principales: los pasos de instalación, la ejecución de juegos, las descargas y los imports reales no se escenifican ni se ejecutan. Se muestran sus formularios y ajustes reales, con subtítulos que explican la función. Los servicios externos pueden necesitar credenciales propias; los launchers necesitan estar instalados. No se promete compatibilidad universal ni resultados de rendimiento.
+Las afirmaciones se basan en `README.md`, `README.en.md`, `RELEASE_NOTES.md` y el esquema de ajustes del proyecto Qt legacy `estante-qt-legacy`. Los clips son una presentación de las funciones principales de esa versión: los pasos de instalación, la ejecución de juegos, las descargas y los imports reales no se escenifican ni se ejecutan. Se muestran sus formularios y ajustes reales, con subtítulos que explican la función. Los servicios externos pueden necesitar credenciales propias; los launchers necesitan estar instalados. No se promete compatibilidad universal ni resultados de rendimiento.
 
 ## Encuadre y subtítulos
 
@@ -35,7 +35,7 @@ El texto promocional, los títulos y los subtítulos tienen versiones española 
 - `es/horizontal`, `es/vertical`, `en/horizontal`, `en/vertical`: MP4 finales, SRT, ASS, miniatura JPG y manifiesto JSON de cada clip.
 - `projects/<idioma>/<formato>/`: proyectos `.fcproj` de FilmCraft con máster limpio y pista de subtítulos editable; junto a cada proyecto queda su vídeo `-base.mp4` necesario para abrirlo.
 - `../sources/promo_plan.py`: textos y selección de planos de ambos idiomas.
-- `../sources/record_promos.py`: captura aislada reproducible con Qt.
+- `estante-qt-legacy/tools/record_promos.py`: captura aislada reproducible con Qt.
 - `../sources/render_promos.py`: composición y codificación reproducibles.
 
 FilmCraft CLI 0.13.0 importó los másteres y creó las secuencias y pistas de subtítulos nativas. Se verificó la apertura y el render de proyectos guardados. FFmpeg compuso y codificó los MP4 finales. Las tarjetas y rótulos están incorporados al máster; los subtítulos nativos sí conservan su texto y sus tiempos. Para cambiar el montaje o las tarjetas, modificar el plan/script y regenerar el máster. No se presenta el máster como una secuencia con todos los cortes y textos en capas nativas. La apariencia del subtítulo al volver a exportar desde otro motor puede variar ligeramente; los MP4 entregados son la referencia visual.

@@ -40,6 +40,13 @@ export struct EditCategory {
     checked: bool,
 }
 
+export struct BluetoothDevice {
+    name: string,
+    address: string,
+    paired: bool,
+    connected: bool,
+}
+
 export struct CategoryMember {
     id: string,
     title: string,
@@ -881,11 +888,22 @@ export component ListWindow inherits Window {
             root.settings-focus-target = -1;
             root.settings-focused-slider = -1;
             root.settings-slider-adjusting = false;
+        } else if root.settings-section == 5 {
+            root.connectivity-loaded = false;
+            root.connectivity-busy = true;
+            root.connectivity-error = "";
+            root.refresh-connectivity();
         }
     }
     changed settings-section => {
         root.settings-focus-target = -1;
         root.settings-focused-slider = -1;
+        if root.showing-settings && root.settings-section == 5 {
+            root.connectivity-loaded = false;
+            root.connectivity-busy = true;
+            root.connectivity-error = "";
+            root.refresh-connectivity();
+        }
     }
     in-out property <int> category-edit-index: 1;
     in-out property <string> primary-category;
@@ -968,6 +986,7 @@ export component ListWindow inherits Window {
     in-out property <string> controller-type: "xbox";
     in-out property <string> onscreen-keyboard: "auto";
     in-out property <string> language: "system";
+    in-out property <string> date-format: "dmy";
     in property <string> system-language: "en";
     in-out property <bool> keyboard-fallback: true;
     in-out property <bool> update-checking: false;
@@ -1078,6 +1097,7 @@ export component ListWindow inherits Window {
     changed controller-type => { root.request-settings-autosave(); }
     changed onscreen-keyboard => { root.request-settings-autosave(); }
     changed language => { root.request-settings-autosave(); }
+    changed date-format => { root.request-settings-autosave(); root.refresh-status-date(); }
     changed keyboard-fallback => { root.request-settings-autosave(); }
     changed check-updates-on-start => { root.request-settings-autosave(); }
     changed steamgriddb-key => { root.request-settings-autosave(); }
@@ -1180,6 +1200,33 @@ export component ListWindow inherits Window {
     in-out property <bool> gamepad-toolbar-focus: false;
     in-out property <int> gamepad-toolbar-index: 0;
     in-out property <bool> controller-input-active: false;
+    in property <string> status-time: "";
+    in property <string> status-date: "";
+    in property <bool> battery-present: false;
+    in property <int> battery-percentage: 0;
+    in property <bool> battery-charging: false;
+    in property <bool> battery-full: false;
+    in-out property <bool> connectivity-loaded: false;
+    in-out property <bool> connectivity-busy: false;
+    in-out property <string> connectivity-error: "";
+    in property <bool> wifi-available: false;
+    in property <bool> wifi-hardware-enabled: false;
+    in property <bool> wifi-enabled: false;
+    in property <bool> wifi-connected: false;
+    in property <bool> bluetooth-available: false;
+    in property <bool> bluetooth-enabled: false;
+    in property <bool> bluetooth-discoverable: false;
+    in property <bool> bluetooth-pairable: false;
+    in property <[BluetoothDevice]> bluetooth-devices: [];
+    in-out property <bool> bluetooth-scanning: false;
+    callback refresh-status-date();
+    callback refresh-connectivity();
+    callback set-wifi-enabled(bool);
+    callback set-bluetooth-enabled(bool);
+    callback scan-bluetooth();
+    callback set-bluetooth-discoverable(bool);
+    callback set-bluetooth-pairable(bool);
+    callback bluetooth-device-action(string, string);
     out property <string> settings-input-hint: root.settings-navigation-hint();
     in-out property <int> keyboard-row: 1;
     in-out property <int> keyboard-column: 0;
@@ -1220,21 +1267,21 @@ export component ListWindow inherits Window {
 
     pure function button-icon(action: string) -> image {
         if root.controller-type == "sony" {
-            return action == "play" ? @image-url("../../qt_app/assets/controller/sony/square.svg")
-                : action == "edit" ? @image-url("../../qt_app/assets/controller/sony/triangle.svg")
-                : action == "back" ? @image-url("../../qt_app/assets/controller/sony/circle.svg")
-                : @image-url("../../qt_app/assets/controller/sony/options.svg");
+            return action == "play" ? @image-url("../../assets/controller/sony/square.svg")
+                : action == "edit" ? @image-url("../../assets/controller/sony/triangle.svg")
+                : action == "back" ? @image-url("../../assets/controller/sony/circle.svg")
+                : @image-url("../../assets/controller/sony/options.svg");
         }
         if root.controller-type == "nintendo" {
-            return action == "play" ? @image-url("../../qt_app/assets/controller/nintendo/Y.svg")
-                : action == "edit" ? @image-url("../../qt_app/assets/controller/nintendo/X.svg")
-                : action == "back" ? @image-url("../../qt_app/assets/controller/nintendo/A.svg")
-                : @image-url("../../qt_app/assets/controller/nintendo/plus.svg");
+            return action == "play" ? @image-url("../../assets/controller/nintendo/Y.svg")
+                : action == "edit" ? @image-url("../../assets/controller/nintendo/X.svg")
+                : action == "back" ? @image-url("../../assets/controller/nintendo/A.svg")
+                : @image-url("../../assets/controller/nintendo/plus.svg");
         }
-        return action == "play" ? @image-url("../../qt_app/assets/controller/xbox/X.svg")
-            : action == "edit" ? @image-url("../../qt_app/assets/controller/xbox/Y.svg")
-            : action == "back" ? @image-url("../../qt_app/assets/controller/xbox/B.svg")
-            : @image-url("../../qt_app/assets/controller/xbox/menu.svg");
+        return action == "play" ? @image-url("../../assets/controller/xbox/X.svg")
+            : action == "edit" ? @image-url("../../assets/controller/xbox/Y.svg")
+            : action == "back" ? @image-url("../../assets/controller/xbox/B.svg")
+            : @image-url("../../assets/controller/xbox/menu.svg");
     }
     pure function settings-navigation-hint() -> string {
         if !root.controller-input-active {
@@ -1264,7 +1311,7 @@ export component ListWindow inherits Window {
     }
     public function focus-settings-content() {
         if root.settings-section == 3 { root.settings-content-focus-request += 1; }
-        else if root.settings-section == 1 || root.settings-section == 4 { root.settings-focus-target = 0; root.settings-content-focus-request += 1; }
+        else if root.settings-section == 1 || root.settings-section == 4 || root.settings-section == 5 { root.settings-focus-target = 0; root.settings-content-focus-request += 1; }
         else { root.settings-focus-target = 0; }
     }
     public function clear-settings-focus-target() {
@@ -1331,6 +1378,10 @@ export component ListWindow inherits Window {
         } else if root.settings-section == 3 && column == 0 && direction == "right" {
             root.settings-focus-target = 1;
         } else if root.settings-section == 3 && column == 1 && direction == "left" {
+            root.settings-focus-target = 0;
+        } else if root.settings-section == 5 && column == 0 && direction == "right" {
+            root.settings-focus-target = 1;
+        } else if root.settings-section == 5 && column == 1 && direction == "left" {
             root.settings-focus-target = 0;
         }
     }
@@ -1859,6 +1910,50 @@ export component ListWindow inherits Window {
                         }
                     }
                 }
+            }
+        }
+    }
+    Rectangle {
+        x: root.width - self.width - 24px;
+        y: 20px;
+        width: root.battery-present ? 248px : 152px;
+        height: 42px;
+        background: Theme.surface.with-alpha(0.88);
+        border-radius: 13px;
+        border-width: 1px;
+        border-color: Theme.text.with-alpha(0.18);
+        HorizontalLayout {
+            x: 12px;
+            width: parent.width - 24px;
+            height: parent.height;
+            spacing: 8px;
+            Text { width: 48px; text: root.status-time; color: Theme.text; font-size: 15px; font-weight: 700; vertical-alignment: center; }
+            Text { width: 72px; text: root.status-date; color: Theme.muted; font-size: 13px; vertical-alignment: center; }
+            if root.battery-present: HorizontalLayout {
+                spacing: 4px;
+                Rectangle {
+                    width: 24px;
+                    height: 14px;
+                    border-radius: 3px;
+                    border-width: 1px;
+                    border-color: Theme.text.with-alpha(0.76);
+                    Rectangle {
+                        x: 2px; y: 2px;
+                        width: (parent.width - 4px) * root.battery-percentage / 100;
+                        height: parent.height - 4px;
+                        background: Theme.accent;
+                        border-radius: 1px;
+                    }
+                    Rectangle {
+                        x: parent.width - 1px; y: 4px;
+                        width: 3px; height: 6px;
+                        background: Theme.text.with-alpha(0.76);
+                        border-radius: 1px;
+                    }
+                }
+                if root.battery-charging: Text { text: "⚡"; color: Theme.accent; font-size: 13px; vertical-alignment: center; }
+                if root.battery-full: Text { text: "✓"; color: Theme.accent; font-size: 13px; font-weight: 700; vertical-alignment: center; }
+                Text { width: 32px; text: root.battery-percentage + "%"; color: Theme.text; font-size: 13px; vertical-alignment: center; }
             }
         }
     }
@@ -2615,7 +2710,7 @@ export component ListWindow inherits Window {
                     spacing: 0px; padding-left: 8px; padding-top: 19px;
                     VerticalLayout {
                         width: min(180px, root.width * 0.19); vertical-stretch: 1; spacing: 8px; alignment: start;
-                        for page[i] in [0, 3, 2, 1, 4]: DockButton {
+                        for page[i] in [0, 3, 2, 1, 4, 5]: DockButton {
                             private property <bool> active-page: root.settings-section == page;
                             private property <int> focus-request: root.settings-sidebar-focus-request;
                             init => { if self.active-page { self.focus(); } }
@@ -2626,7 +2721,7 @@ export component ListWindow inherits Window {
                                 else if self.active-page { root.settings-sidebar-focused = false; }
                             }
                             height: 40px; border-radius: 20px; button-radius: 20px; plain: true;
-                            text: [root.localize("Globales", "General"), root.localize("Escaneo y scraping", "Scanning and scraping"), root.localize("Categorías", "Categories"), root.localize("Lista", "List"), root.localize("Cuadrícula", "Grid")][i];
+                            text: [root.localize("Globales", "General"), root.localize("Escaneo y scraping", "Scanning and scraping"), root.localize("Categorías", "Categories"), root.localize("Lista", "List"), root.localize("Cuadrícula", "Grid"), root.localize("Conectividad", "Connectivity")][i];
                             background: root.settings-section == page ? Theme.accent : Theme.button;
                             foreground: root.settings-section == page ? Theme.accent-foreground : Theme.text;
                             clicked => { root.settings-section = page; settings-scroll.content-y = 0px; }
@@ -2701,6 +2796,142 @@ export component ListWindow inherits Window {
                             igdb_client_secret_input := LibraryField { accessible-label: "IGDB Client Secret"; placeholder-text: "Client Secret"; model-text <=> root.igdb-client-secret; input-type: password; changed has-focus => { if root.showing-settings { root.text-input-focused = self.has-focus; } } }
                         }
                     }
+                }
+                if root.settings-section == 5: VerticalLayout {
+                    alignment: start; spacing: 10px;
+                    Text { text: root.localize("Conectividad", "Connectivity"); color: Theme.text; font-size: 24px; font-weight: 700; }
+                    Text { text: root.localize("Controla las radios del sistema para Wi‑Fi y Bluetooth.", "Control the system Wi-Fi and Bluetooth radios."); color: Theme.muted; wrap: word-wrap; }
+                    HorizontalLayout {
+                        spacing: 12px;
+                        connectivity-wifi-group := SettingGroup {
+                            expanded: false; horizontal-stretch: 1;
+                            navigation-column: 0; navigation-index: 0; navigation-enabled: root.showing-settings && root.settings-section == 5;
+                            navigation-target: root.settings-focus-target; navigation-focus-y: root.settings-focus-y; navigation-focus-children: true;
+                            spatial-position-changed(index, y) => { root.update-settings-position(index, y); }
+                            spatial-navigation(column, y, direction) => { root.move-settings-focus(column, y, direction); }
+                            spatial-focus-requested(index, y) => { if index == 0 { wifi-control.focus(); } }
+                            header-focus-changed(index, focused, y) => { if focused { root.settings-focus-target = index; root.settings-focus-y = y; } }
+                            title: "Wi‑Fi";
+                            Text {
+                                color: Theme.muted; wrap: word-wrap;
+                                text: !root.connectivity-loaded ? root.localize("Consultando el estado…", "Checking status…")
+                                    : !root.wifi-available ? root.localize("NetworkManager no está disponible.", "NetworkManager is unavailable.")
+                                    : !root.wifi-hardware-enabled ? root.localize("La radio Wi‑Fi está bloqueada por hardware.", "The Wi-Fi radio is blocked by hardware.")
+                                    : root.wifi-connected ? root.localize("Conectado a una red Wi‑Fi.", "Connected to a Wi-Fi network.")
+                                    : root.wifi-enabled ? root.localize("Wi‑Fi está activado, sin conexión.", "Wi-Fi is on, not connected.")
+                                    : root.localize("Wi‑Fi está desactivado.", "Wi-Fi is off.");
+                            }
+                            wifi-control := DockButton {
+                                height: 48px; horizontal-stretch: 1; primary: root.wifi-available && root.wifi-hardware-enabled && root.wifi-enabled;
+                                enabled: !root.connectivity-busy && root.connectivity-loaded;
+                                text: root.connectivity-busy || !root.connectivity-loaded ? root.localize("Consultando…", "Checking…")
+                                    : !root.wifi-available ? root.localize("Volver a consultar", "Check again")
+                                    : !root.wifi-hardware-enabled ? root.localize("Actualizar estado", "Refresh status")
+                                    : root.wifi-enabled ? root.localize("Desactivar Wi‑Fi", "Turn Wi-Fi off")
+                                    : root.localize("Activar Wi‑Fi", "Turn Wi-Fi on");
+                                clicked => {
+                                    if root.wifi-available && root.wifi-hardware-enabled { root.set-wifi-enabled(!root.wifi-enabled); }
+                                    else { root.connectivity-loaded = false; root.connectivity-busy = true; root.connectivity-error = ""; root.refresh-connectivity(); }
+                                }
+                            }
+                        }
+                        connectivity-bluetooth-group := SettingGroup {
+                            expanded: false; horizontal-stretch: 1;
+                            navigation-column: 1; navigation-index: 1; navigation-enabled: root.showing-settings && root.settings-section == 5;
+                            navigation-target: root.settings-focus-target; navigation-focus-y: root.settings-focus-y; navigation-focus-children: true;
+                            spatial-position-changed(index, y) => { root.update-settings-position(index, y); }
+                            spatial-navigation(column, y, direction) => { root.move-settings-focus(column, y, direction); }
+                            spatial-focus-requested(index, y) => { if index == 1 { bluetooth-control.focus(); } }
+                            header-focus-changed(index, focused, y) => { if focused { root.settings-focus-target = index; root.settings-focus-y = y; } }
+                            title: "Bluetooth";
+                            Text {
+                                color: Theme.muted; wrap: word-wrap;
+                                text: !root.connectivity-loaded ? root.localize("Consultando el estado…", "Checking status…")
+                                    : !root.bluetooth-available ? root.localize("BlueZ no detecta un controlador Bluetooth.", "BlueZ cannot find a Bluetooth controller.")
+                                    : root.bluetooth-enabled ? root.localize("Bluetooth está activado.", "Bluetooth is on.")
+                                    : root.localize("Bluetooth está desactivado.", "Bluetooth is off.");
+                            }
+                            bluetooth-control := DockButton {
+                                height: 48px; horizontal-stretch: 1; primary: root.bluetooth-available && root.bluetooth-enabled;
+                                enabled: !root.connectivity-busy && root.connectivity-loaded;
+                                text: root.connectivity-busy || !root.connectivity-loaded ? root.localize("Consultando…", "Checking…")
+                                    : !root.bluetooth-available ? root.localize("Volver a consultar", "Check again")
+                                    : root.bluetooth-enabled ? root.localize("Desactivar Bluetooth", "Turn Bluetooth off")
+                                    : root.localize("Activar Bluetooth", "Turn Bluetooth on");
+                                clicked => {
+                                    if root.bluetooth-available { root.set-bluetooth-enabled(!root.bluetooth-enabled); }
+                                    else { root.connectivity-loaded = false; root.connectivity-busy = true; root.connectivity-error = ""; root.refresh-connectivity(); }
+                                }
+                            }
+                            HorizontalLayout {
+                                spacing: 8px;
+                                DockButton {
+                                    horizontal-stretch: 1; height: 44px;
+                                    enabled: root.bluetooth-available && root.bluetooth-enabled && !root.connectivity-busy;
+                                    text: root.bluetooth-discoverable ? root.localize("Ocultar dispositivo", "Hide device") : root.localize("Hacer visible", "Make discoverable");
+                                    clicked => { root.set-bluetooth-discoverable(!root.bluetooth-discoverable); }
+                                }
+                                DockButton {
+                                    horizontal-stretch: 1; height: 44px;
+                                    enabled: root.bluetooth-available && root.bluetooth-enabled && !root.connectivity-busy;
+                                    text: root.bluetooth-pairable ? root.localize("Dejar de aceptar pares", "Stop accepting pairs") : root.localize("Aceptar emparejamientos", "Accept pairings");
+                                    clicked => { root.set-bluetooth-pairable(!root.bluetooth-pairable); }
+                                }
+                            }
+                            Text {
+                                text: root.localize("La visibilidad y los nuevos emparejamientos se desactivan al cabo de 2 minutos.", "Visibility and new pairings turn off after 2 minutes.");
+                                color: Theme.muted; wrap: word-wrap;
+                            }
+                            DockButton {
+                                height: 48px; horizontal-stretch: 1;
+                                enabled: root.bluetooth-available && root.bluetooth-enabled && !root.connectivity-busy;
+                                text: root.bluetooth-scanning ? root.localize("Buscando dispositivos…", "Searching for devices…") : root.localize("Buscar dispositivos cercanos", "Find nearby devices");
+                                clicked => { root.bluetooth-scanning = true; root.connectivity-error = ""; root.scan-bluetooth(); }
+                            }
+                            Text { text: root.localize("Dispositivos emparejados o cercanos", "Paired or nearby devices"); color: Theme.text; font-weight: 600; }
+                            if root.bluetooth-devices.length == 0: Text {
+                                text: root.bluetooth-scanning ? root.localize("Buscando dispositivos…", "Searching for devices…") : root.localize("No hay dispositivos. Inicia una búsqueda.", "No devices found. Start a scan.");
+                                color: Theme.muted; wrap: word-wrap;
+                            }
+                            for device[i] in root.bluetooth-devices: Rectangle {
+                                horizontal-stretch: 1; height: 72px;
+                                background: Theme.surface; border-radius: 12px;
+                                border-width: 1px; border-color: Theme.text.with-alpha(0.1);
+                                HorizontalLayout {
+                                    padding: 8px; spacing: 8px; alignment: center;
+                                    VerticalLayout {
+                                        horizontal-stretch: 1; alignment: center; spacing: 2px;
+                                        Text { text: device.name; color: Theme.text; font-weight: 600; overflow: elide; }
+                                        Text {
+                                            text: device.address + " · " + (device.connected ? root.localize("Conectado", "Connected") : device.paired ? root.localize("Emparejado", "Paired") : root.localize("Cercano", "Nearby"));
+                                            color: Theme.muted; font-size: 12px; overflow: elide;
+                                        }
+                                    }
+                                    DockButton {
+                                        width: 112px; height: 44px;
+                                        enabled: root.bluetooth-available && root.bluetooth-enabled && !root.connectivity-busy;
+                                        text: device.connected ? root.localize("Desconectar", "Disconnect") : device.paired ? root.localize("Conectar", "Connect") : root.localize("Emparejar", "Pair");
+                                        clicked => { root.bluetooth-device-action(device.address, device.connected ? "disconnect" : device.paired ? "connect" : "pair"); }
+                                    }
+                                    if device.paired: DockButton {
+                                        width: 96px; height: 44px;
+                                        enabled: root.bluetooth-available && !root.connectivity-busy;
+                                        text: root.localize("Olvidar", "Forget");
+                                        clicked => { root.bluetooth-device-action(device.address, "remove"); }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Text {
+                        text: root.localize("El estado se consulta en el sistema; estos controles requieren NetworkManager (nmcli) y BlueZ (bluetoothctl).", "Status is read from the system; these controls require NetworkManager (nmcli) and BlueZ (bluetoothctl).");
+                        color: Theme.muted; wrap: word-wrap;
+                    }
+                    DockButton {
+                        width: 150px; text: root.connectivity-busy ? root.localize("Consultando…", "Checking…") : root.localize("Actualizar estado", "Refresh status");
+                        enabled: !root.connectivity-busy; clicked => { root.connectivity-loaded = false; root.connectivity-busy = true; root.connectivity-error = ""; root.refresh-connectivity(); }
+                    }
+                    if root.connectivity-error != "": Text { text: root.connectivity-error; color: #ff7b82; wrap: word-wrap; }
                 }
                 if root.settings-section == 0: VerticalLayout {
                     alignment: start; spacing: 10px;
@@ -2857,6 +3088,19 @@ export component ListWindow inherits Window {
                                         Text { text: root.localize("Ruta personalizada", "Custom path"); color: Theme.text; vertical-alignment: center; }
                                         screensaver_background_input := LibraryField { accessible-label: root.localize("Ruta del fondo del salvapantallas", "Screensaver background path"); horizontal-stretch: 1; model-text <=> root.screensaver-background; changed has-focus => { if root.showing-settings { root.text-input-focused = self.has-focus; } } }
                                     }
+                                }
+                            }
+                            global-date-group := SettingGroup {
+                                navigation-column: 0; navigation-index: 6; navigation-enabled: root.showing-settings && root.settings-section == 0; navigation-focus-children: false;
+                                navigation-target: root.settings-focus-target; navigation-focus-y: root.settings-focus-y;
+                                spatial-position-changed(index, y) => { root.update-settings-position(index, y); }
+                                spatial-navigation(column, y, direction) => { root.move-settings-focus(column, y, direction); }
+                                header-focus-changed(index, focused, y) => { if focused { root.settings-focus-target = index; root.settings-focus-y = y; } }
+                                title: root.localize("Formato de fecha", "Date format");
+                                RadioOptions {
+                                    options: ["DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"];
+                                    selected-index: root.date-format == "mdy" ? 1 : root.date-format == "ymd" ? 2 : 0;
+                                    selected(value, index) => { root.date-format = index == 1 ? "mdy" : index == 2 ? "ymd" : "dmy"; }
                                 }
                             }
                         }
