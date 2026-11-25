@@ -1,6 +1,7 @@
-# Estante Qt para Linux
+# Estante Qt legacy para Linux
 
-`./run.sh` abre Qt Quick/PySide6.
+Qt Quick/PySide6 se conserva como frontend legacy. `./run-qt.sh` lo abre de forma
+explícita; `./run.sh` abre la versión principal Slint.
 La biblioteca y los ajustes mantienen el esquema existente, sin conversión.
 
 ## Preparación
@@ -8,9 +9,9 @@ La biblioteca y los ajustes mantienen el esquema existente, sin conversión.
 ```sh
 python3 -m venv .venv-qt
 .venv-qt/bin/pip install -r requirements/qt.txt
-./run.sh
-./run.sh --games 100
-./run.sh --windowed
+./run-qt.sh
+./run-qt.sh --games 100
+./run-qt.sh --windowed
 ```
 
 Puede seleccionarse otro intérprete con `ESTANTE_QT_PYTHON`. El perfil `--games`
@@ -90,7 +91,7 @@ python3 -m unittest discover -s tests
 .venv-qt/bin/python tests/check_qt_launch_ui.py
 .venv-qt/bin/python tests/check_qt_management.py
 .venv-qt/bin/python tests/check_qt_migration.py
-./run.sh --smoke --games 100
+./run-qt.sh --smoke --games 100
 .venv-qt/bin/python tools/qt_stress.py --help
 ```
 
@@ -101,9 +102,9 @@ la transferencia Qt a systemd requieren validación en la sesión del usuario.
 
 ## Instalación y empaquetado
 
-`./install.sh` instala la versión Qt.
+`./install.sh --frontend qt` instala la versión Qt legacy.
 El entorno `.venv-qt` debe permanecer disponible si se usa como intérprete instalado.
-`packaging/build-appimage.py` genera el AppImage Qt por defecto; `--frontend rust` genera el AppImage Rust.
+`packaging/build-appimage.py --frontend qt` genera el AppImage Qt legacy; sin selector, genera el AppImage principal Slint.
 El AppDir incluye Python, Qt, SDL, codecs y certificados; `AppRun --self-test`
 comprueba PNG/JPEG/WebP, SVG, SSL y ausencia de GTK. Compilar en este equipo no
 prueba compatibilidad con todas las distribuciones: falta validar el binario en la

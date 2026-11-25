@@ -1,42 +1,48 @@
 # Estructura del proyecto
 
-- `core/`: biblioteca, ajustes compartidos, controles, sesiones, supervisor,
-  gestión de memoria, traducciones y versión.
-- `integrations/`: importación Steam/Heroic, metadatos, imágenes y actualizaciones.
-- `qt_app/`: interfaz Qt, componentes QML, adaptadores y entrada `__main__.py`.
-- `rust/`: interfaz Iced, modelo, integraciones y pruebas del port paralelo.
-- `packaging/`: instalador, constructores, entradas AppImage e iconos de distribución.
-- `requirements/`: dependencias Python; `qt.txt` es el entorno de la interfaz Qt.
-- `assets/`: fondos y conceptos de iconos; `concepts/` conserva los dos PNG originales.
-- `tests/`: pruebas unitarias y recorridos de interfaz.
-- `tools/`: grabación de vídeos, diagnóstico y pruebas de rendimiento.
-- `docs/`: documentación técnica, resultados de validación y vídeos de muestra.
+Slint es el frontend principal. Qt permanece como frontend legacy ejecutable de
+forma explícita; esta separación no mueve ni duplica los datos de usuario.
+
+- `rust/`: aplicación principal en Rust, interfaz Slint (`rust/ui/`), modelo,
+  integraciones y pruebas de Rust.
+- `qt_app/`: frontend Qt Quick/PySide6 legacy, sus componentes QML y entrada
+  `__main__.py`.
+- `core/`, `integrations/` y `requirements/qt.txt`: soporte Python del frontend
+  Qt legacy y sus integraciones.
+- `packaging/`: instalador, constructores de AppImage, recursos y metadatos de
+  distribución. Por defecto empaqueta Slint; `--frontend qt` selecciona el legacy.
+- `assets/`: fondos y recursos de la aplicación.
+- `tests/`: pruebas del frontend legacy; las pruebas de Slint viven en
+  `rust/src/slint_ui_tests.rs`.
+- `tools/`: grabación, diagnóstico y utilidades del proyecto.
+- `docs/`: documentación técnica, evidencia histórica y muestras.
 - `brand/`: materiales de identidad y difusión; no se incluyen en la instalación.
 
-La raíz mantiene los README, las notas de versión y los scripts públicos de entrada:
+## Entradas principales
+
+`./run.sh` abre Slint. `./install.sh` instala Slint y compila release si hace
+falta. Sin selector, `python3 packaging/build-appimage.py` construye el AppImage
+principal.
+
+La ruta Qt legacy requiere una selección explícita:
 
 ```sh
-./run.sh
 ./run-qt.sh
-./run-gtk.sh
-./run-rust.sh
-./install.sh
+./install.sh --frontend qt
+python3 packaging/build-appimage.py --frontend qt
 ```
 
-La instalación directa está en `packaging/install.py` y las dependencias Qt en
-`requirements/qt.txt`. El paquete instalable conserva estos mismos directorios.
-Los datos personales siguen en la ubicación existente; la reorganización solo
-cambia los archivos de código, recursos y herramientas del proyecto.
+`run-gtk.sh` se conserva como entrada antigua independiente. La distribución de
+fuentes incluye ambos frontends; no ejecutes dos frontends simultáneamente con el
+mismo directorio de datos.
+
+## Compilación
 
 ```sh
-.venv-qt/bin/pip install -r requirements/qt.txt
-python3 -m unittest discover -s tests
-QT_QPA_PLATFORM=offscreen .venv-qt/bin/python tests/check_qt_migration.py
-.venv-qt/bin/python packaging/build-appimage.py --frontend qt
+cargo build --offline --release --manifest-path rust/Cargo.toml
 python3 packaging/build-release.py
-cargo test --manifest-path rust/Cargo.toml --offline
 ```
 
-El supervisor copia una instantánea mínima de `core/` e `integrations/` a su carpeta
-temporal. Así puede seguir funcionando cuando se cierra el AppImage y desaparece
-su punto de montaje. Los archivos del repositorio no se usan como datos de usuario.
+El supervisor Qt copia una instantánea mínima de `core/` e `integrations/` a su
+carpeta temporal. Así sigue funcionando cuando se cierra el AppImage y desaparece
+su punto de montaje. Esos archivos del repositorio no se usan como datos de usuario.

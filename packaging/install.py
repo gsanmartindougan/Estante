@@ -27,7 +27,8 @@ ASSETS = (
 def main():
     from core.version import __version__
     parser = argparse.ArgumentParser(description='Instala Estante para tu usuario o para todo el sistema.')
-    parser.add_argument('--frontend', choices=('qt','rust'), default='qt')
+    parser.add_argument('--frontend', choices=('slint', 'qt'), default='slint',
+                        help='Interfaz principal Slint (predeterminada) o frontend Qt legacy')
     parser.add_argument('--python', default=None, help='Intérprete Python del lanzador instalado')
     parser.add_argument('--version', action='version', version='Estante ' + __version__)
     location = parser.add_mutually_exclusive_group()
@@ -37,13 +38,14 @@ def main():
     parser.add_argument('--destdir', type=Path, help='Raíz temporal para construir paquetes')
     parser.add_argument('--uninstall', action='store_true', help='Desinstalar conservando los datos personales')
     args = parser.parse_args()
+    frontend = args.frontend
     prefix = (args.prefix or (Path('/usr/local') if args.system else Path.home() / '.local')).expanduser().absolute()
     root = args.destdir.absolute() / prefix.relative_to('/') if args.destdir else prefix
     app = root / 'share/estante'
     desktop = root / 'share/applications' / (APP_ID + '.desktop')
     icon = root / 'share/icons/hicolor/scalable/apps' / (APP_ID + '.svg')
     launcher = root / 'bin/estante'
-    payload = (*DOCUMENTS, *ASSETS) if args.frontend == 'rust' else (*MODULES, *DOCUMENTS, *ASSETS)
+    payload = (*DOCUMENTS, *ASSETS) if frontend == 'slint' else (*MODULES, *DOCUMENTS, *ASSETS)
     files = [app / name for name in payload] + [desktop, icon, launcher]
     if args.uninstall:
         for target in files:
@@ -76,11 +78,11 @@ def main():
                         if path.is_file() and 'target' not in path.parts]
         rust_stale = not rust_binary.is_file() or any(
             path.stat().st_mtime_ns > rust_binary.stat().st_mtime_ns for path in rust_sources)
-        if args.frontend == 'rust' and rust_stale:
+        if frontend == 'slint' and rust_stale:
             if not shutil.which('cargo'):
                 parser.exit(1, 'Falta cargo. Instala Rust y vuelve a ejecutar el instalador.\n')
             subprocess.run(['cargo', 'build', '--release', '--manifest-path', str(SOURCE / 'rust/Cargo.toml')], check=True)
-        if not args.destdir and args.frontend == 'qt':
+        if not args.destdir and frontend == 'qt':
             probe = "from PySide6 import QtCore, QtQuick, QtQml, QtWidgets, QtSvg"
             check = subprocess.run([args.python or sys.executable, '-c', probe], capture_output=True, text=True)
             if check.returncode:
@@ -94,7 +96,7 @@ def main():
             (app / name).parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(SOURCE / name, app / name)
             (app / name).chmod(0o644)
-        if args.frontend == 'rust':
+        if frontend == 'slint':
             shutil.copyfile(rust_binary, launcher)
         else:
             command = shlex.quote(str(prefix / 'share/estante/qt_app/__main__.py'))

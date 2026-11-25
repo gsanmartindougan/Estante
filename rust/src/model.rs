@@ -1,4 +1,5 @@
 use serde_json::{Map, Value};
+use std::env;
 use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
@@ -242,7 +243,8 @@ impl Library {
                 }
             }
         }
-        games.sort_by_key(|game| game.title().to_lowercase());
+        let case_mapper = icu_casemap::CaseMapper::new();
+        games.sort_by_cached_key(|game| case_mapper.fold_string(game.title()).into_owned());
         games
     }
 
@@ -277,6 +279,62 @@ impl Library {
             }
         }
         ordered
+    }
+
+    pub fn activity_summary(&self, game: &Game) -> String {
+        let activity = self
+            .state
+            .get("activity")
+            .and_then(|items| items.get(game.id()));
+        let seconds = if game.kind() == "faugus" {
+            game.data()
+                .get("playtime")
+                .and_then(Value::as_u64)
+                .unwrap_or(0)
+        } else {
+            activity
+                .and_then(|item| item.get("seconds"))
+                .and_then(Value::as_u64)
+                .unwrap_or(0)
+        };
+        let sessions = activity
+            .and_then(|item| item.get("sessions"))
+            .and_then(Value::as_u64)
+            .unwrap_or(0);
+        let last_played = activity
+            .and_then(|item| item.get("last_played"))
+            .and_then(Value::as_str)
+            .filter(|value| !value.is_empty())
+            .or_else(|| game.field("last_played").filter(|value| !value.is_empty()))
+            .unwrap_or("Sin datos");
+        format!(
+            "Tiempo jugado: {} min · Sesiones: {sessions} · Última vez: {last_played}",
+            seconds / 60
+        )
+    }
+
+    pub fn activity_history_summary(&self, game: &Game) -> String {
+        self.session_history(game.id())
+            .iter()
+            .map(|entry| {
+                let started = entry
+                    .get("started")
+                    .and_then(Value::as_str)
+                    .unwrap_or("Sin fecha");
+                let minutes = entry
+                    .get("seconds")
+                    .and_then(Value::as_u64)
+                    .unwrap_or(0)
+                    .saturating_add(30)
+                    / 60;
+                let exit_code = entry
+                    .get("exit_code")
+                    .and_then(Value::as_i64)
+                    .map_or_else(|| "sin código".to_owned(), |code| code.to_string());
+                format!("{started} · {minutes} min · salida {exit_code}")
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
     }
 
     pub fn category_icon_path(&self, name: &str) -> Option<PathBuf> {
@@ -699,13 +757,23 @@ impl Library {
             else {
                 continue;
             };
-            if pid == launcher_pid
-                && (game.kind() == "faugus"
-                    || game.field("path").is_some_and(|path| path.ends_with(".sh")))
-            {
-                continue;
-            }
             let process = entry.path();
+            if pid == launcher_pid {
+                if game.kind() == "faugus" {
+                    continue;
+                }
+                if let Some(script) = game.field("path").filter(|path| {
+                    Path::new(path)
+                        .extension()
+                        .and_then(|extension| extension.to_str())
+                        .is_some_and(|extension| extension.eq_ignore_ascii_case("sh"))
+                }) && fs::read(process.join("cmdline")).is_ok_and(|command| {
+                    let mut args = command.split(|byte| *byte == 0);
+                    args.next() == Some(b"bash") && args.next() == Some(script.as_bytes())
+                }) {
+                    continue;
+                }
+            }
             let Ok(status) = fs::read_to_string(process.join("status")) else {
                 continue;
             };
@@ -917,6 +985,7 @@ impl Library {
                 command.args(args);
                 let cwd = game
                     .field("cwd")
+                    .filter(|cwd| !cwd.is_empty())
                     .map(PathBuf::from)
                     .or_else(|| path.parent().map(Path::to_path_buf));
                 if let Some(cwd) = cwd {
@@ -1070,16 +1139,18 @@ impl Library {
     }
 
     pub fn remove_game(&mut self, id: &str) -> io::Result<()> {
-        let imported = ["steam", "faugus", "heroic", "recomp"].iter().any(|source| {
-            self.state
-                .get(*source)
-                .and_then(Value::as_array)
-                .is_some_and(|games| {
-                    games
-                        .iter()
-                        .any(|game| game.get("id").and_then(Value::as_str) == Some(id))
-                })
-        });
+        let imported = ["steam", "faugus", "heroic", "recomp"]
+            .iter()
+            .any(|source| {
+                self.state
+                    .get(*source)
+                    .and_then(Value::as_array)
+                    .is_some_and(|games| {
+                        games
+                            .iter()
+                            .any(|game| game.get("id").and_then(Value::as_str) == Some(id))
+                    })
+            });
         if imported {
             let excluded = self
                 .state
@@ -1172,6 +1243,7 @@ impl Library {
                 )
             })?;
             for field in [
+                "title",
                 "cover",
                 "square_cover",
                 "logo",
@@ -1332,7 +1404,9 @@ impl Library {
     }
 
     pub fn scan_recomp(&mut self) -> io::Result<(usize, usize)> {
-        let home = std::env::var_os("HOME").map(PathBuf::from).unwrap_or_default();
+        let home = std::env::var_os("HOME")
+            .map(PathBuf::from)
+            .unwrap_or_default();
         let data = std::env::var_os("XDG_DATA_HOME")
             .map(PathBuf::from)
             .unwrap_or_else(|| home.join(".local/share"));
@@ -1359,7 +1433,8 @@ impl Library {
                 !ids.contains(game.get("id").and_then(Value::as_str).unwrap_or_default())
             })
             .count();
-        self.state.insert("recomp".into(), Value::Array(discovered.clone()));
+        self.state
+            .insert("recomp".into(), Value::Array(discovered.clone()));
         self.assign_source_category(&discovered, "RecompLauncher");
         self.save()?;
         Ok((added, discovered.len()))
@@ -1629,7 +1704,9 @@ fn recomplauncher_command(install: Option<&str>, id: &str, token: &str) -> io::R
             continue;
         };
         words.retain(|word| !word.starts_with('%'));
-        let Some(program) = words.first() else { continue };
+        let Some(program) = words.first() else {
+            continue;
+        };
         let executable = if program.contains('/') {
             PathBuf::from(program)
         } else if let Some(path) = env::split_paths(&path)
@@ -1663,6 +1740,39 @@ fn url_encode(value: &str) -> String {
         }
     }
     encoded
+}
+
+#[cfg(test)]
+mod activity_tests {
+    use super::Library;
+    use serde_json::json;
+
+    #[test]
+    fn session_history_minutes_match_qt_rounding() {
+        let root = std::env::temp_dir().join(format!(
+            "estante-activity-test-{}-{}",
+            std::process::id(),
+            super::unique_suffix()
+        ));
+        let mut library = Library::open(&root);
+        library.state = json!({
+            "games": [{"id":"local:1", "kind":"local", "title":"Game"}],
+            "activity": {"local:1":{"history":[
+                {"started":"2025-01-01", "seconds":29, "exit_code":0},
+                {"started":"2025-01-02", "seconds":30, "exit_code":1},
+                {"started":"2025-01-03", "seconds":90, "exit_code":2}
+            ]}}
+        })
+        .as_object()
+        .unwrap()
+        .clone();
+        let game = library.games().remove(0);
+
+        assert_eq!(
+            library.activity_history_summary(&game),
+            "2025-01-01 · 0 min · salida 0\n2025-01-02 · 1 min · salida 1\n2025-01-03 · 2 min · salida 2"
+        );
+    }
 }
 
 #[cfg(test)]

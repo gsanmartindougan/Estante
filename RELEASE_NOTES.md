@@ -1,12 +1,25 @@
-# Estante 0.4.0 — Interfaz renovada y frontend Rust experimental
+# Estante 0.5.0 — Slint como interfaz principal
+
+- Slint pasa a ser la interfaz predeterminada y ofrece los modos Lista y Grid.
+- Qt queda disponible como interfaz legacy; Carousel y Sense no forman parte de
+  la nueva interfaz Slint.
+- Grid incorpora sus ajustes de carátulas, paginación, fondo, detalles y foco,
+  con navegación por mando y guardado automático.
+- El instalador y el AppImage seleccionan Slint por defecto. Se conservan los
+  datos de biblioteca y los ajustes existentes.
+
+La compilación release se realizó en Linux x86_64. No se ejecutaron pruebas
+automatizadas ni se validó el AppImage en una matriz de distribuciones y GPU.
+
+---
+
+# Estante 0.4.0 — Interfaz renovada
 
 - La barra principal integra búsqueda, categorías, acciones y estados en una sola
   franja compacta; las acciones se muestran según el mando configurado.
 - Los iconos de los botones de mando son vectoriales y las categorías muestran su
   icono en lugar del texto cuando tienen uno configurado.
 - Qt es ahora el único frontend Python mantenido; se elimina la interfaz GTK.
-- Se añade el frontend paralelo en Rust/iced, todavía en desarrollo y sin paridad
-  funcional con Qt.
 - Se amplía la personalización y la obtención de iconos de categorías, incluyendo
   Simple Icons.
 

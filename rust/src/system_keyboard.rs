@@ -54,7 +54,7 @@ pub fn open(mode: &str) -> Result<String, String> {
         }
         "builtin" => Ok("builtin".into()),
         "disabled" => Err("El teclado en pantalla está desactivado.".into()),
-        _ => Err("Iced no expone el método de entrada nativo genérico del compositor; usa COSMIC OSK, KDE/Maliit o el teclado de Estante.".into()),
+        _ => Err("El compositor no expone un método de entrada nativo genérico; usa COSMIC OSK, KDE/Maliit o el teclado de Estante.".into()),
     }
 }
 

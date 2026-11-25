@@ -1,15 +1,37 @@
 [package]
 name = "estante"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2024"
+build = "build.rs"
 
 [dependencies]
-iced = { version = "0.14", default-features = false, features = ["wgpu", "tokio", "image-without-codecs", "x11", "wayland"] }
-image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
+image = { version = "0.25", default-features = false, features = ["bmp", "gif", "ico", "jpeg", "png", "pnm", "tga", "tiff", "webp"] }
+jpeg-decoder = "0.3.2"
+png = "0.18.1"
+tiff = "0.11.3"
+resvg = "0.49"
+ksni = { version = "0.3.7", features = ["blocking"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 shlex = "2"
-tokio = { version = "1", features = ["rt-multi-thread", "time"] }
+rustix = { version = "1", features = ["process"] }
+icu_casemap = "2.4"
+unicode-normalization = "0.1"
+slint = {
+    version = "1.19",
+    default-features = false,
+    features = ["std", "backend-winit", "renderer-software", "accessibility", "compat-1-18", "unstable-winit-030"],
+}
+
+[build-dependencies]
+slint-build = "1.19"
+
+[dev-dependencies]
+i-slint-backend-testing = "1.19"
+
+[patch.crates-io]
+# tiff 0.11.3 calculates tiled edge padding with the global planar chunk index.
+tiff = { path = "vendor/tiff" }
 
 [profile.release]
 lto = "thin"

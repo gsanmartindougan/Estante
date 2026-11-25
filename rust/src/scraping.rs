@@ -14,6 +14,8 @@ pub fn run(
     language: String,
     replace: bool,
     cancelled: Arc<AtomicBool>,
+    fields: &[&str],
+    include_info: bool,
 ) -> Result<(usize, usize, Vec<String>), String> {
     let source = Library::open(&root);
     if let Some(error) = source.load_error() {
@@ -37,6 +39,8 @@ pub fn run(
             &metadata_cache,
             replace,
             &language,
+            fields,
+            include_info,
         );
         error_count += issues.len();
         for issue in issues.into_iter().take(5usize.saturating_sub(errors.len())) {

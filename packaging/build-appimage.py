@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Build an offline AppImage using the runtime/tools of appimage-builder's AppImage.
+"""Build the primary offline Slint AppImage or the legacy Qt variant.
 
-Bundles the build machine's Python/Qt stack. Cross-distribution validation is still
-required before publishing; no files are uploaded by this script.
+Uses the runtime and tools from appimage-builder's AppImage. Cross-distribution
+validation is still required before publishing; no files are uploaded here.
 """
 import argparse
 import os
@@ -42,7 +42,7 @@ def prepare_rust(appdir):
     else:
         subprocess.run(['cargo', 'build', '--release', '--manifest-path',
                         str(ROOT / 'rust/Cargo.toml')], check=True)
-    subprocess.run([sys.executable, str(ROOT / 'packaging/install.py'), '--frontend', 'rust',
+    subprocess.run([sys.executable, str(ROOT / 'packaging/install.py'), '--frontend', 'slint',
                     '--prefix', '/usr', '--destdir', str(appdir)], check=True)
 
     libraries = appdir / 'usr/lib'
@@ -90,23 +90,25 @@ exec "$LOADER" --library-path "$LIBRARIES" "$PROGRAM" "$@"
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--frontend', choices=('qt', 'rust'), default='qt')
+    parser.add_argument('--frontend', choices=('slint', 'qt'), default='slint',
+                        help='Interfaz principal Slint (predeterminada) o frontend Qt legacy')
     parser.add_argument('--builder', type=Path, default=Path.home() / 'Applications/appimagebuilder.appimage')
     parser.add_argument('--output', type=Path)
     parser.add_argument('--appdir-only', action='store_true')
     args = parser.parse_args()
+    frontend = args.frontend
     default_name = f'Estante-{VERSION}-x86_64.AppImage'
-    if args.frontend != 'qt':
-        default_name = f'Estante-{VERSION}-{args.frontend}-x86_64.AppImage'
+    if frontend == 'qt':
+        default_name = f'Estante-{VERSION}-qt-x86_64.AppImage'
     output = (args.output or ROOT / 'dist' / default_name).absolute()
     output.parent.mkdir(parents=True, exist_ok=True)
     appdir = output.parent / (
-        'Estante.AppDir' if args.frontend == 'qt' and args.output is None
+        'Estante.AppDir' if frontend == 'slint' and args.output is None
         else output.stem + '.AppDir'
     )
     if appdir.exists():
         raise RuntimeError(str(appdir) + ' ya existe. Muévelo o elimínalo antes de reconstruir.')
-    if args.frontend == 'qt':
+    if frontend == 'qt':
         from qt_bundle import prepare
         prepare(appdir)
     else:

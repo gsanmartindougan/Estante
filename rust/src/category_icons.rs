@@ -11,7 +11,8 @@ const BOOTSTRAP_CATALOG: &str =
     "https://raw.githubusercontent.com/twbs/icons/main/font/bootstrap-icons.json";
 const BOOTSTRAP_ROOT: &str = "https://raw.githubusercontent.com/twbs/icons/main/icons/";
 const ICONIFY_ROOT: &str = "https://api.iconify.design/";
-const SIMPLE_ICONS_SLUGS: &str = "https://raw.githubusercontent.com/simple-icons/simple-icons/develop/slugs.md";
+const SIMPLE_ICONS_SLUGS: &str =
+    "https://raw.githubusercontent.com/simple-icons/simple-icons/develop/slugs.md";
 const SIMPLE_ICONS_ROOT: &str = "https://cdn.simpleicons.org/";
 
 #[derive(Debug, Clone)]
@@ -49,30 +50,40 @@ fn search_simple_icons(query: &str, cache: &Path) -> Result<Vec<IconOption>, Str
     let data = match data {
         Some(data) => data,
         None => {
-            let data = curl(SIMPLE_ICONS_SLUGS)
-                .or_else(|error| fs::read(&cached).map_err(|_| error))?;
+            let data =
+                curl(SIMPLE_ICONS_SLUGS).or_else(|error| fs::read(&cached).map_err(|_| error))?;
             let _ = fs::create_dir_all(cache);
             let _ = fs::write(&cached, &data);
             data
         }
     };
     let text = String::from_utf8_lossy(&data);
-    let terms = query.to_lowercase().split_whitespace().map(str::to_owned).collect::<Vec<_>>();
-    Ok(text.lines().filter_map(|line| {
-        let row = line.trim().strip_prefix("| `")?.strip_suffix("` |")?;
-        let (name, slug) = row.split_once("` | `")?;
-        if !simple_slug_valid(slug) || !terms.iter().all(|term| name.to_lowercase().contains(term)) {
-            return None;
-        }
-        Some(IconOption {
-            name: name.to_owned(),
-            url: format!("{SIMPLE_ICONS_ROOT}{slug}"),
-            source: format!("https://simpleicons.org/?q={}", encode_query(name)),
-            author: "Simple Icons contributors".into(),
-            license: "CC0-1.0".into(),
-            provider: "simpleicons".into(),
+    let terms = query
+        .to_lowercase()
+        .split_whitespace()
+        .map(str::to_owned)
+        .collect::<Vec<_>>();
+    Ok(text
+        .lines()
+        .filter_map(|line| {
+            let row = line.trim().strip_prefix("| `")?.strip_suffix("` |")?;
+            let (name, slug) = row.split_once("` | `")?;
+            if !simple_slug_valid(slug)
+                || !terms.iter().all(|term| name.to_lowercase().contains(term))
+            {
+                return None;
+            }
+            Some(IconOption {
+                name: name.to_owned(),
+                url: format!("{SIMPLE_ICONS_ROOT}{slug}"),
+                source: format!("https://simpleicons.org/?q={}", encode_query(name)),
+                author: "Simple Icons contributors".into(),
+                license: "CC0-1.0".into(),
+                provider: "simpleicons".into(),
+            })
         })
-    }).take(40).collect())
+        .take(40)
+        .collect())
 }
 
 fn search_bootstrap(query: &str, cache: &Path) -> Result<Vec<IconOption>, String> {
@@ -209,7 +220,10 @@ pub fn download(option: &IconOption, cache: &Path) -> Result<PathBuf, String> {
                 .and_then(|name| name.split_once('/'))
                 .is_some_and(|(prefix, name)| valid_name(prefix) && valid_name(name))
         }),
-        "simpleicons" => option.url.strip_prefix(SIMPLE_ICONS_ROOT).is_some_and(simple_slug_valid),
+        "simpleicons" => option
+            .url
+            .strip_prefix(SIMPLE_ICONS_ROOT)
+            .is_some_and(simple_slug_valid),
         _ => false,
     };
     if !url_is_valid {

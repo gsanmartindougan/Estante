@@ -24,7 +24,7 @@ Item {
     property bool sideLibrary: controller.viewMode === "list" && (controller.appearance.side === "left" || controller.appearance.side === "right")
     property bool topLibrary: (controller.viewMode === "list" && controller.appearance.side === "top") || controller.viewMode === "ps5" || (controller.viewMode === "carousel" && !controller.appearance.bottom)
     readonly property real listShare: 0.35
-    property real contentTop: 24
+    property real contentTop: 64
     property real contentBottom: footer.y-24
     property real listBodyTop: contentTop+24
     property real listBodyHeight: Math.max(200,contentBottom-listBodyTop)
@@ -61,6 +61,20 @@ Item {
             GradientStop { position: 0; color: Qt.alpha(backdropShade.shadeColor, 0.38) }
             GradientStop { position: 0.45; color: Qt.alpha(backdropShade.shadeColor, 0.18) }
             GradientStop { position: 1; color: Qt.alpha(backdropShade.shadeColor, 0.9) }
+        }
+    }
+    Item {
+        objectName: "appHeader"
+        anchors { left: parent.left; right: parent.right; top: parent.top; leftMargin: 24; rightMargin: 24; topMargin: 16 }
+        height: 32
+        z: 2
+        RowLayout {
+            anchors.fill: parent
+            spacing: 14
+            Label { text: qsTr("ESTANTE"); color: theme.text; font.pixelSize: 14; font.weight: Font.DemiBold; font.letterSpacing: 2 }
+            Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 18; color: Qt.alpha(theme.text, 0.18) }
+            Label { text: qsTr("Tu biblioteca, a tu manera."); color: theme.muted; font.pixelSize: 12 }
+            Item { Layout.fillWidth: true }
         }
     }
     Label {
@@ -146,8 +160,8 @@ Item {
             Layout.maximumHeight: window.sideLibrary ? heroRow.compactInfoHeight : 500
             Layout.alignment: window.sideLibrary ? Qt.AlignTop : Qt.AlignVCenter
             objectName: "heroSurface"
-            color: Qt.alpha(theme.surface, 0.72)
-            elevation: 0
+            color: Qt.alpha(theme.surface, 0.9)
+            elevation: 1
             ScrollView {
                 anchors.fill: parent; anchors.margins: 24
                 contentWidth: availableWidth
@@ -202,8 +216,8 @@ Item {
         width: Math.min(window.width-32,Math.max(720,barContent.preferredWidth+40,2*leftActions.implicitWidth+searchFilters.implicitWidth+48))
         height: 64
         radius: 14
-        elevation: 0
-        color: theme.surface
+        elevation: 1
+        color: Qt.alpha(theme.surface, 0.92)
         Flickable {
             id: barScroller
             objectName: "gameActions"

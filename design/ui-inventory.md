@@ -1,6 +1,6 @@
-# Inventario UI · Estante Rust/iced
+# Inventario UI · referencia visual
 
-Estado: implementado en Rust/iced; FigCraft revisión 6 como referencia. `cargo test` (19 pruebas) y `cargo build --release` pasan. La revisión gráfica quedó bloqueada: esta sesión no tiene compositor Wayland ni servidor X accesible; mando físico sin probar.
+Documento de referencia FigCraft, no inventario del estado actual de implementación. La interfaz principal del proyecto usa Slint; los ajustes de Lista actuales se distribuyen en tarjetas independientes. FigCraft: «Ajustes List · propuesta completa» (`1a2089d34bd`); preview `previews/rust-ui/list-settings.png`.
 
 | Pieza | Uso | Estilo y tokens | Variantes y estados | Tamaño revisado | Interacción / movimiento |
 | --- | --- | --- | --- | --- | --- |
@@ -12,6 +12,7 @@ Estado: implementado en Rust/iced; FigCraft revisión 6 como referencia. `cargo 
 | Menú Y | Opciones secundarias en una capa | Panel `panel`, fondo oscurecido | Buscar, Categorías, Apariencia/vista, Ajustes, Añadir/editar | Overlay adaptativo | Acciones conectadas; reproducción visual no verificada por permiso de escritorio |
 | Estados comunes | Muestra de interacción | Selección azul con texto y borde; estados con etiquetas | Normal, foco, carga, vacío y error | Página «Estados», desktop | El color no es el único indicador; acciones muestran foco/deshabilitado |
 | Lanzar juego | Barra inferior | Usa el flujo existente de lanzamiento y seguimiento de sesión | Disponible cuando hay juego seleccionado | Barra fija | X/Espacio conectados; no se lanzó ningún juego durante la captura |
+| Ajustes de apariencia · Lista | Frame «Ajustes · Lista · apariencia · propuesta» | Tarjetas independientes con borde, fondo y radio propios | Grupos funcionales con radios, controles numéricos, checks y entrada de color | 1436×1368, tamaño de la captura | Navegación de teclado y mando descrita en la referencia |
 
 ## Identidad consultada
 

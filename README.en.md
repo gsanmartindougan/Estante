@@ -1,24 +1,34 @@
 # Estante
 
-Version: **0.4.0** · [Documentación en español](README.md)
+Version: **0.5.0** · [Documentación en español](README.md)
 
 A simple native Linux game library inspired by Cartridges. Launch games from **Steam**, **Faugus Launcher**, **Heroic Games Launcher**, **RecompLauncher**, **shell scripts** and **AppImages**, using a gamepad, keyboard or mouse.
 
 Faugus games are imported directly: you do not need to create `.desktop` entries. Faugus keeps control of the runner, prefix and launch arguments.
 
-## Qt frontend (Linux)
+## Slint frontend (Linux)
 
-Estante uses Qt Quick/PySide6 on Linux.
+Estante's primary Linux frontend is written in **Rust and Slint** and currently offers the **Grid** and **List** views. Run it from the checkout with `./run.sh` (requires Cargo), or install it with `./install.sh` and then launch `estante` from your application menu.
+See the [Slint frontend status and requirements](rust/README.md) for details.
+
+```sh
+./run.sh
+```
+
+Qt Quick/PySide6 remains available as a legacy frontend. Run it explicitly with `./run-qt.sh`.
+
+## Legacy Qt frontend (0.3)
 
 ```sh
 python3 -m venv .venv-qt
 .venv-qt/bin/pip install -r requirements/qt.txt
-./run.sh
+./run-qt.sh
 ```
 
-`./run.sh --games 100` uses a temporary test library. See the [Qt guide](qt_app/README.md)
-and [migration evidence](docs/migracion-qt-2026-10-24.md) (Spanish).
-The videos on this page show the Qt frontend in 0.3.0.
+`./run-qt.sh --games 100` uses a temporary test library. The [Qt guide](qt_app/README.md)
+and [migration evidence](docs/migracion-qt-2026-10-24.md) (Spanish) describe this legacy frontend.
+The videos on this page show **Estante 0.3.0 (Qt)**. Carousel and Sense are Qt legacy layouts,
+not part of the current Slint interface.
 
 See the [project layout](docs/estructura-del-proyecto.md) for code, assets and tooling.
 
@@ -28,13 +38,13 @@ Estante was developed with the assistance of artificial intelligence to generate
 
 AI is a development tool; responsibility for changes and published releases rests with the project maintainer. This review does not guarantee that the software is free of bugs. Please report any issues through the repository's issue tracker.
 
-The configurable **screensaver** smoothly cycles through game backgrounds, unloads the library from memory and restores the selected game, category and search when you return. Enable it in Settings → Global → Screensaver. Idle activation stays disabled while playing. Timers accept 1–60 seconds or minutes, with game backgrounds or a selected bundled background. Adjustable dimming and proportional fitting support standard, ultrawide and portrait displays without excessively enlarging small images. The screensaver stays in the same window, also works from Settings, preserves unsaved edits and restores the selection on return.
+The Qt legacy frontend's configurable **screensaver** smoothly cycles through game backgrounds, unloads the library from memory and restores the selected game, category and search when you return. Enable it in Settings → Global → Screensaver. Idle activation stays disabled while playing. Timers accept 1–60 seconds or minutes, with game backgrounds or a selected bundled background. Adjustable dimming and proportional fitting support standard, ultrawide and portrait displays without excessively enlarging small images. The screensaver stays in the same window, also works from Settings, preserves unsaved edits and restores the selection on return.
 
-**While playing**, in Global settings: keep open, hide and restore, show the screensaver until the game ends, or minimize to the system tray. Clicking the tray icon restores the window; if no tray is available, Estante stays visible.
+In the Qt legacy frontend, **While playing** settings let you keep the window open, hide and restore it, show the screensaver until the game ends, or minimize to the system tray. Clicking the tray icon restores the window; if no tray is available, Estante stays visible.
 
-## Layouts and videos
+## Legacy Qt layouts and videos (0.3)
 
-Choose a layout without changing your library. Each has independent cover, selection and background settings. These videos show **Estante 0.3.0 (Qt)**; click a preview to open its MP4.
+These screenshots and descriptions show Qt 0.3; they do not describe the current Slint views. Click a preview to open its MP4.
 
 ### Grid
 
@@ -98,21 +108,21 @@ https://github.com/user-attachments/assets/abd091ee-4039-403d-bb5d-9cdd9117199f
 
 ## Install the AppImage
 
-The **x86_64 AppImage** includes Python, Qt Quick/PySide6 and SDL2. Faugus must be installed separately to launch its games.
+The **x86_64 AppImage** distributes the primary Rust/Slint frontend. Faugus must be installed separately to launch its games.
 
-We recommend [Gear Lever](https://flathub.org/apps/it.mijorus.gearlever) to manage the AppImage and add Estante to your application menu. Open `Estante-0.4.0-x86_64.AppImage` with Gear Lever and use its integration option.
+We recommend [Gear Lever](https://flathub.org/apps/it.mijorus.gearlever) to manage the AppImage and add Estante to your application menu. Open `Estante-0.5.0-x86_64.AppImage` with Gear Lever and use its integration option.
 
 You can also run the file directly:
 
 ```sh
-chmod +x Estante-0.4.0-x86_64.AppImage
-./Estante-0.4.0-x86_64.AppImage
+chmod +x Estante-0.5.0-x86_64.AppImage
+./Estante-0.5.0-x86_64.AppImage
 ```
 
 If FUSE is unavailable:
 
 ```sh
-./Estante-0.4.0-x86_64.AppImage --appimage-extract
+./Estante-0.5.0-x86_64.AppImage --appimage-extract
 ./squashfs-root/AppRun
 ```
 
@@ -120,19 +130,16 @@ To uninstall, remove Estante through Gear Lever, or delete the AppImage if you m
 
 ## Native installation
 
-Requires Python 3.10+, PySide6 and SDL2. Install SDL2 with your distribution's
-package manager (`SDL2` on Fedora, `sdl2` on Arch, `libsdl2-2.0-0` on Debian/Ubuntu).
+The primary Rust/Slint installer builds its binary with Cargo. The legacy Qt frontend requires Python 3.10+, PySide6 and SDL2.
 
-Extract `Estante-0.4.0-linux.tar.gz`, enter `Estante`, and use a persistent Qt environment:
+Extract `Estante-0.5.0-linux.tar.gz`, enter `Estante`, and run:
 
 ```sh
-python3 -m venv "$HOME/.local/share/estante-venv"
-"$HOME/.local/share/estante-venv/bin/pip" install -r requirements/qt.txt
-"$HOME/.local/share/estante-venv/bin/python" packaging/install.py --python "$HOME/.local/share/estante-venv/bin/python"
+./install.sh
 ```
 
 This installs into `~/.local` without administrator privileges. Launch Estante from
-the menu or `~/.local/bin/estante`. Keep `estante-venv` after installation.
+the menu or `~/.local/bin/estante`.
 
 Run the new installer again to update. To uninstall, use the matching command from a copy of the installer:
 
@@ -143,6 +150,10 @@ sudo sh install.sh --system --uninstall
 ```
 
 If you used `--prefix`, supply the same prefix when updating or uninstalling. Personal data is preserved.
+
+## Legacy Qt 0.3 guide
+
+The detailed feature descriptions and controls below document the legacy Qt frontend. They are not a feature list for the current Slint interface.
 
 ## Language
 

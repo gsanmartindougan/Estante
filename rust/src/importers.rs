@@ -503,7 +503,9 @@ pub fn recomp(home: &Path, data: &Path) -> io::Result<Vec<Value>> {
         let catalog = read_json(&root.join("cache/pc-catalog.json")).unwrap_or(Value::Null);
         let catalog_apps = catalog.get("apps").and_then(Value::as_array);
         for (game_id, entry) in installed {
-            let Some(entry) = entry.as_object() else { continue };
+            let Some(entry) = entry.as_object() else {
+                continue;
+            };
             if game_id.is_empty() || game_id.contains('\0') {
                 continue;
             }
@@ -553,7 +555,13 @@ pub fn recomp(home: &Path, data: &Path) -> io::Result<Vec<Value>> {
                 .and_then(Value::as_str)
                 .filter(|cover| !cover.is_empty())
                 .map(PathBuf::from)
-                .map(|cover| if cover.is_absolute() { cover } else { root.join(cover) })
+                .map(|cover| {
+                    if cover.is_absolute() {
+                        cover
+                    } else {
+                        root.join(cover)
+                    }
+                })
                 .filter(|cover| cover.is_file());
             insert(
                 &mut game,

@@ -311,14 +311,29 @@ pub fn specs() -> Vec<Spec> {
             number(&mut rows, key, title, default, 0, max);
             rows.last_mut().unwrap().path = vec![key, mode];
         }
-        choice_nested(
-            &mut rows,
-            "cover_formats",
-            mode,
-            "Formato de carátula",
-            if *mode == "ps5" { "square" } else { "portrait" },
-            &[("Vertical", "portrait"), ("Cuadrado", "square")],
-        );
+        if *mode == "list" {
+            choice_nested(
+                &mut rows,
+                "cover_formats",
+                mode,
+                "Formato de carátula",
+                "portrait",
+                &[
+                    ("Vertical", "portrait"),
+                    ("Cuadrado", "square"),
+                    ("Logo", "logo"),
+                ],
+            );
+        } else {
+            choice_nested(
+                &mut rows,
+                "cover_formats",
+                mode,
+                "Formato de carátula",
+                if *mode == "ps5" { "square" } else { "portrait" },
+                &[("Vertical", "portrait"), ("Cuadrado", "square")],
+            );
+        }
         choice_nested(
             &mut rows,
             "hero_positions",
@@ -334,6 +349,20 @@ pub fn specs() -> Vec<Spec> {
             true,
         );
         rows.last_mut().unwrap().path = vec!["show_launcher_details", mode];
+        boolean(
+            &mut rows,
+            "show_game_information",
+            "Mostrar información del juego",
+            true,
+        );
+        rows.last_mut().unwrap().path = vec!["show_game_information", mode];
+        boolean(
+            &mut rows,
+            "show_detail_cover",
+            "Mostrar carátula de la ficha",
+            true,
+        );
+        rows.last_mut().unwrap().path = vec!["show_detail_cover", mode];
     }
     for (key, label, default, min, max) in [
         ("list_zoom", "Tamaño de logos en lista", 100, 50, 200),
@@ -535,7 +564,12 @@ pub fn group(path: &[&str]) -> &'static str {
     }
     match path.first().copied().unwrap_or("") {
         "steamgriddb_key" | "igdb_client_id" | "igdb_client_secret" => "scan",
-        "list_side" | "list_zoom" | "list_focus_zoom" | "list_cover_zoom" => "list",
+        "list_side"
+        | "list_zoom"
+        | "list_focus_zoom"
+        | "list_cover_zoom"
+        | "list_artwork"
+        | "list_artwork_radius" => "list",
         "grid_page_size" | "grid_zoom" => "grid",
         "carousel_position" | "carousel_zoom" => "carousel",
         "ps5_motion" | "ps5_focus_size" => "ps5",

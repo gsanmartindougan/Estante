@@ -2,6 +2,7 @@
 from copy import deepcopy
 from pathlib import Path
 import math
+from core.appearance import background_effects_for
 from core.i18n import tr
 
 
@@ -47,7 +48,8 @@ def specs(settings):
         [f'Fondo {i+1}' for i,_ in enumerate(backgrounds)],['bundled:'+p.name for p in backgrounds])
     for mode,label in [('list','Lista'),('grid','Cuadrícula'),('carousel','Carrusel'),('ps5','Sense')]:
         add(['minimal_views',mode],label+' · presentación mínima',False,'bool')
-        add(['background_dim',mode],label+' · oscurecimiento (%)',50,'number',minimum=0,maximum=100)
+        dim_default = background_effects_for(settings, mode)['dim'] if mode == 'list' else 50
+        add(['background_dim',mode],label+' · oscurecimiento (%)',dim_default,'number',minimum=0,maximum=100)
         add(['background_blur',mode],label+' · desenfoque (px)',0,'number',minimum=0,maximum=40)
         add(['cover_formats',mode],label+' · formato','square' if mode=='ps5' else 'portrait','choice',['Vertical','Cuadrado'],['portrait','square'])
         add(['hero_positions',mode],label+' · posición del fondo','full','choice',['Completo','Arriba','Abajo'],['full','top','lower'])

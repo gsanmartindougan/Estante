@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1260" viewBox="0 0 1600 1260">
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#12151b"/><stop offset="1" stop-color="#0b0d12"/></linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1b2028"/><stop offset="1" stop-color="#151920"/></linearGradient>
+    <filter id="mark-shadow" x="-35%" y="-65%" width="170%" height="230%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="blur"/><feOffset in="blur" dx="0" dy="7" result="offset"/>
+      <feFlood flood-color="#000000" flood-opacity="0.85" result="color"/><feComposite in="color" in2="offset" operator="in" result="shadow"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="accent-shadow" x="-40%" y="-70%" width="180%" height="240%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="blur"/><feOffset in="blur" dx="0" dy="4" result="offset"/>
+      <feFlood flood-color="#b16dff" flood-opacity="0.9" result="color"/><feComposite in="color" in2="offset" operator="in" result="shadow"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <style>
+      text { font-family: Inter, "Noto Sans", sans-serif; }
+      .muted { fill: #a8b0bd; }
+      .neighbor { fill: #c6ced8; opacity: .68; }
+      .serif { font-family: Georgia, "Times New Roman", serif; }
+    </style>
+  </defs>
+  <rect width="1600" height="1260" fill="url(#page)"/>
+  <text x="72" y="53" fill="#6fdcff" font-size="13" font-weight="700" letter-spacing="2.4">ESTANTE  /  MODO LISTA</text>
+  <text x="72" y="101" fill="#f3f6fb" font-size="36" font-weight="700">La misma lista, con logos</text>
+  <text x="72" y="134" class="muted" font-size="16">El foco sigue el contorno del logotipo; los laterales ganan tamaño y se leen mejor.</text>
+  <rect x="1238" y="52" width="290" height="36" rx="18" fill="#19232c" stroke="#304251"/>
+  <circle cx="1260" cy="70" r="4" fill="#65d5ff"/>
+  <text x="1275" y="75" fill="#dce8f1" font-size="11" font-weight="600" letter-spacing=".7">LOGOTIPOS TIPOGRÁFICOS DE MUESTRA</text>
+
+  <!-- Proposal A: outline traces the letters, never a rectangular tile. -->
+  <g>
+    <rect x="64" y="170" width="1472" height="320" rx="20" fill="url(#panel)" stroke="#303741"/>
+    <rect x="64" y="170" width="4" height="320" rx="2" fill="#65d5ff"/>
+    <text x="96" y="208" fill="#65d5ff" font-size="13" font-weight="700" letter-spacing="1.4">01  /  SILUETA</text>
+    <text x="96" y="246" fill="#f2f5f9" font-size="23" font-weight="700">Contorno del logo</text>
+    <text x="96" y="276" class="muted" font-size="14">Un borde de luz sigue las</text>
+    <text x="96" y="298" class="muted" font-size="14">letras, sin caja alrededor.</text>
+    <g text-anchor="middle" dominant-baseline="middle">
+      <text x="600" y="334" class="neighbor" font-size="21" font-weight="800" letter-spacing="1">GEARS<tspan x="600" dy="22" font-size="14" fill="#d85b55">OF WAR</tspan></text>
+      <text x="755" y="334" class="neighbor serif" font-size="24" letter-spacing="1">GOD<tspan x="755" dy="25" font-size="25">OF WAR</tspan></text>
+      <text x="1350" y="334" class="neighbor serif" font-size="34" font-weight="700" letter-spacing="2">ZELDA</text>
+      <text x="1485" y="326" class="neighbor serif" font-size="19" letter-spacing="1">SHADOW<tspan x="1485" dy="22" font-size="11">OF THE COLOSSUS</tspan></text>
+      <text x="1040" y="326" class="serif" fill="none" stroke="#6bd9ff" stroke-width="4" paint-order="stroke" font-size="53" font-weight="700" letter-spacing="2">GOD OF WAR</text>
+      <text x="1040" y="326" class="serif" fill="#f4e8ca" font-size="53" font-weight="700" letter-spacing="2">GOD OF WAR</text>
+      <text x="1040" y="370" fill="#df7057" font-size="12" font-weight="700" letter-spacing="4">REMASTERED</text>
+    </g>
+  </g>
+
+  <!-- Proposal B: natural shadow follows only the glyph shapes. -->
+  <g>
+    <rect x="64" y="500" width="1472" height="320" rx="20" fill="url(#panel)" stroke="#303741"/>
+    <rect x="64" y="500" width="4" height="320" rx="2" fill="#65d5ff"/>
+    <text x="96" y="538" fill="#65d5ff" font-size="13" font-weight="700" letter-spacing="1.4">02  /  SOMBRA</text>
+    <text x="96" y="576" fill="#f2f5f9" font-size="23" font-weight="700">Sombra flotante</text>
+    <text x="96" y="606" class="muted" font-size="14">Levanta el logo sobre el fondo</text>
+    <text x="96" y="628" class="muted" font-size="14">sin añadir bordes ni panel.</text>
+    <rect x="96" y="652" width="170" height="27" rx="13.5" fill="#18252c" stroke="#304957"/>
+    <text x="181" y="670" text-anchor="middle" fill="#a9eaff" font-size="11" font-weight="700" letter-spacing=".7">RECOMENDADA</text>
+    <g text-anchor="middle" dominant-baseline="middle">
+      <text x="600" y="664" class="neighbor" font-size="22" font-weight="800" letter-spacing="1">GEARS<tspan x="600" dy="23" font-size="14" fill="#d85b55">OF WAR</tspan></text>
+      <text x="755" y="664" class="neighbor serif" font-size="25" letter-spacing="1">GOD<tspan x="755" dy="26" font-size="26">OF WAR</tspan></text>
+      <text x="1350" y="664" class="neighbor serif" font-size="36" font-weight="700" letter-spacing="2">ZELDA</text>
+      <text x="1485" y="656" class="neighbor serif" font-size="19" letter-spacing="1">SHADOW<tspan x="1485" dy="22" font-size="11">OF THE COLOSSUS</tspan></text>
+      <g filter="url(#mark-shadow)">
+        <text x="1040" y="656" class="serif" fill="#f4e8ca" font-size="56" font-weight="700" letter-spacing="2">GOD OF WAR</text>
+        <text x="1040" y="704" fill="#df7057" font-size="13" font-weight="700" letter-spacing="4">REMASTERED</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Proposal C: scale and underline, with no surrounding shape. -->
+  <g>
+    <rect x="64" y="830" width="1472" height="320" rx="20" fill="url(#panel)" stroke="#303741"/>
+    <rect x="64" y="830" width="4" height="320" rx="2" fill="#b885ff"/>
+    <text x="96" y="868" fill="#caa4ff" font-size="13" font-weight="700" letter-spacing="1.4">03  /  ESCALA</text>
+    <text x="96" y="906" fill="#f2f5f9" font-size="23" font-weight="700">Logo más grande</text>
+    <text x="96" y="936" class="muted" font-size="14">El tamaño y una línea corta</text>
+    <text x="96" y="958" class="muted" font-size="14">indican la selección.</text>
+    <g text-anchor="middle" dominant-baseline="middle">
+      <text x="600" y="994" class="neighbor" font-size="24" font-weight="800" letter-spacing="1">GEARS<tspan x="600" dy="24" font-size="14" fill="#d85b55">OF WAR</tspan></text>
+      <text x="755" y="994" class="neighbor serif" font-size="27" letter-spacing="1">GOD<tspan x="755" dy="27" font-size="28">OF WAR</tspan></text>
+      <text x="1350" y="994" class="neighbor serif" font-size="38" font-weight="700" letter-spacing="2">ZELDA</text>
+      <text x="1485" y="986" class="neighbor serif" font-size="20" letter-spacing="1">SHADOW<tspan x="1485" dy="23" font-size="11">OF THE COLOSSUS</tspan></text>
+      <g filter="url(#accent-shadow)">
+        <text x="1040" y="984" class="serif" fill="#f4e8ca" font-size="62" font-weight="700" letter-spacing="2">GOD OF WAR</text>
+        <text x="1040" y="1034" fill="#df7057" font-size="14" font-weight="700" letter-spacing="4">REMASTERED</text>
+      </g>
+      <rect x="1016" y="1072" width="48" height="4" rx="2" fill="#d3a6ff"/>
+    </g>
+  </g>
+
+  <text x="72" y="1212" fill="#b0b8c3" font-size="13">Los logos del carrusel conservan su proporción; solo el seleccionado gana escala y foco.</text>
+  <text x="1528" y="1212" text-anchor="end" fill="#778290" font-size="12">ESTANTE  ·  PROPUESTAS DE INTERFAZ</text>
+</svg>

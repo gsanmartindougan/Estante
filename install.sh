@@ -2,13 +2,17 @@
 set -eu
 INSTALL_SOURCE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 INSTALL_PYTHON=python3
-INSTALL_FRONTEND=qt
-if [ "${1-}" = rust ]; then
+INSTALL_FRONTEND=slint
+if [ "${1-}" = qt ] || [ "${1-}" = slint ]; then
+    INSTALL_FRONTEND=$1
     shift
-    set -- --frontend rust "$@"
+    set -- --frontend "$INSTALL_FRONTEND" "$@"
 fi
 for option in "$@"; do
-    case "$option" in rust|--frontend=rust) INSTALL_FRONTEND=rust ;; esac
+    case "$option" in
+        qt|--frontend=qt) INSTALL_FRONTEND=qt ;;
+        slint|--frontend=slint) INSTALL_FRONTEND=slint ;;
+    esac
 done
 if [ "$INSTALL_FRONTEND" = qt ] && [ -x "$INSTALL_SOURCE/.venv-qt/bin/python" ]; then
     INSTALL_PYTHON="$INSTALL_SOURCE/.venv-qt/bin/python"

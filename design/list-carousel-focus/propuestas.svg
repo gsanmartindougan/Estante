@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1260" viewBox="0 0 1600 1260">
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#12151b"/>
+      <stop offset="1" stop-color="#0b0d12"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b2028"/>
+      <stop offset="1" stop-color="#151920"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5bd5ff"/>
+      <stop offset="1" stop-color="#b18aff"/>
+    </linearGradient>
+    <filter id="soft-shadow" x="-50%" y="-50%" width="200%" height="220%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="10" result="blur"/>
+      <feOffset in="blur" dx="0" dy="12" result="offset"/>
+      <feFlood flood-color="#000000" flood-opacity="0.78" result="shadow-color"/>
+      <feComposite in="shadow-color" in2="offset" operator="in" result="shadow"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="tight-shadow" x="-40%" y="-40%" width="180%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="blur"/>
+      <feOffset in="blur" dx="0" dy="7" result="offset"/>
+      <feFlood flood-color="#000000" flood-opacity="0.72" result="shadow-color"/>
+      <feComposite in="shadow-color" in2="offset" operator="in" result="shadow"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="cyan-glow" x="-80%" y="-65%" width="260%" height="250%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="15" result="blur"/>
+      <feFlood flood-color="#51cfff" flood-opacity="0.72" result="glow-color"/>
+      <feComposite in="glow-color" in2="blur" operator="in" result="glow"/>
+      <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="violet-glow" x="-45%" y="-35%" width="190%" height="190%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8" result="blur"/>
+      <feOffset in="blur" dx="0" dy="5" result="offset"/>
+      <feFlood flood-color="#b16dff" flood-opacity="0.8" result="shadow-color"/>
+      <feComposite in="shadow-color" in2="offset" operator="in" result="shadow"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="cover-clip" clipPathUnits="objectBoundingBox">
+      <rect x="0" y="0" width="1" height="1" rx="0.07" ry="0.045"/>
+    </clipPath>
+    <style>
+      text { font-family: Inter, "Noto Sans", sans-serif; }
+      .muted { fill: #a8b0bd; }
+      .cover { clip-path: url(#cover-clip); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1260" fill="url(#page)"/>
+  <text x="72" y="53" fill="#6fdcff" font-size="13" font-weight="700" letter-spacing="2.4">ESTANTE  /  MODO LISTA</text>
+  <text x="72" y="101" fill="#f3f6fb" font-size="36" font-weight="700">Covers más grandes. Foco sin caja.</text>
+  <text x="72" y="134" class="muted" font-size="16">Tres tratamientos de foco; los covers laterales crecen y el seleccionado mantiene o supera su tamaño actual.</text>
+  <rect x="1304" y="52" width="224" height="36" rx="18" fill="#19232c" stroke="#304251"/>
+  <circle cx="1325" cy="70" r="4" fill="#65d5ff"/>
+  <text x="1340" y="75" fill="#dce8f1" font-size="12" font-weight="600" letter-spacing="0.8">3 PROPUESTAS</text>
+
+  <!-- Proposal 1: a very fine silhouette line that hugs the selected cover. -->
+  <g>
+    <rect x="64" y="170" width="1472" height="320" rx="20" fill="url(#card)" stroke="#303741"/>
+    <rect x="64" y="170" width="4" height="320" rx="2" fill="#65d5ff"/>
+    <text x="96" y="208" fill="#65d5ff" font-size="13" font-weight="700" letter-spacing="1.4">01  /  SILUETA</text>
+    <text x="96" y="246" fill="#f2f5f9" font-size="23" font-weight="700">Contorno fino</text>
+    <text x="96" y="276" class="muted" font-size="14">Crece el cover y el foco sigue</text>
+    <text x="96" y="298" class="muted" font-size="14">su silueta. Sin panel detrás.</text>
+    <rect x="96" y="322" width="142" height="27" rx="13.5" fill="#16252e" stroke="#304957"/>
+    <text x="167" y="340" text-anchor="middle" fill="#a9eaff" font-size="11" font-weight="700" letter-spacing="0.7">FILO DE 2 PX</text>
+    <g opacity="0.9">
+      <image href="gears.png" x="644" y="255" width="100" height="150" class="cover"/>
+      <image href="god-of-war-blue.png" x="789" y="255" width="100" height="150" class="cover"/>
+      <image href="zelda.png" x="1167" y="255" width="100" height="150" class="cover"/>
+      <image href="concord.png" x="1312" y="255" width="100" height="150" class="cover"/>
+    </g>
+    <image href="god-of-war-red.png" x="934" y="189" width="188" height="282" class="cover"/>
+    <rect x="934.5" y="189.5" width="187" height="281" rx="13" fill="none" stroke="#9beaff" stroke-width="1.5"/>
+  </g>
+
+  <!-- Proposal 2: larger images, lifted by a soft natural shadow. -->
+  <g>
+    <rect x="64" y="500" width="1472" height="320" rx="20" fill="url(#card)" stroke="#303741"/>
+    <rect x="64" y="500" width="4" height="320" rx="2" fill="#65d5ff"/>
+    <text x="96" y="538" fill="#65d5ff" font-size="13" font-weight="700" letter-spacing="1.4">02  /  SOMBRA</text>
+    <text x="96" y="576" fill="#f2f5f9" font-size="23" font-weight="700">Sombra flotante</text>
+    <text x="96" y="606" class="muted" font-size="14">Sin borde ni caja. La sombra</text>
+    <text x="96" y="628" class="muted" font-size="14">separa el cover del fondo.</text>
+    <rect x="96" y="652" width="170" height="27" rx="13.5" fill="#18252c" stroke="#304957"/>
+    <text x="181" y="670" text-anchor="middle" fill="#a9eaff" font-size="11" font-weight="700" letter-spacing="0.7">RECOMENDADA</text>
+    <g opacity="0.92">
+      <image href="gears.png" x="624" y="576" width="112" height="168" class="cover"/>
+      <image href="god-of-war-blue.png" x="776" y="576" width="112" height="168" class="cover"/>
+      <image href="zelda.png" x="1168" y="576" width="112" height="168" class="cover"/>
+      <image href="concord.png" x="1320" y="576" width="112" height="168" class="cover"/>
+    </g>
+    <rect x="924" y="506" width="208" height="308" rx="18" fill="#050608" opacity="0.85" filter="url(#soft-shadow)"/>
+    <image href="god-of-war-red.png" x="928" y="510" width="200" height="300" class="cover"/>
+    <rect x="1012" y="817" width="32" height="3" rx="1.5" fill="#6bd9ff"/>
+  </g>
+
+  <!-- Proposal 3: stronger colour halo; still no rectangular focus plate. -->
+  <g>
+    <rect x="64" y="830" width="1472" height="320" rx="20" fill="url(#card)" stroke="#303741"/>
+    <rect x="64" y="830" width="4" height="320" rx="2" fill="#b885ff"/>
+    <text x="96" y="868" fill="#caa4ff" font-size="13" font-weight="700" letter-spacing="1.4">03  /  HALO</text>
+    <text x="96" y="906" fill="#f2f5f9" font-size="23" font-weight="700">Sombra de acento</text>
+    <text x="96" y="936" class="muted" font-size="14">Un halo suave marca el foco,</text>
+    <text x="96" y="958" class="muted" font-size="14">sin cubrir ni enmarcar el arte.</text>
+    <rect x="96" y="982" width="146" height="27" rx="13.5" fill="#241c30" stroke="#4d3a62"/>
+    <text x="169" y="1000" text-anchor="middle" fill="#dfc7ff" font-size="11" font-weight="700" letter-spacing="0.7">MÁS EXPRESIVA</text>
+    <g opacity="0.94">
+      <image href="gears.png" x="610" y="898" width="122" height="183" class="cover"/>
+      <image href="god-of-war-blue.png" x="766" y="898" width="122" height="183" class="cover"/>
+      <image href="zelda.png" x="1168" y="898" width="122" height="183" class="cover"/>
+      <image href="concord.png" x="1324" y="898" width="122" height="183" class="cover"/>
+    </g>
+    <rect x="925" y="837" width="206" height="305" rx="17" fill="#a65dff" opacity="0.78" filter="url(#violet-glow)"/>
+    <image href="god-of-war-red.png" x="929" y="841" width="198" height="297" class="cover"/>
+    <rect x="1012" y="1153" width="32" height="3" rx="1.5" fill="#d3a6ff"/>
+  </g>
+
+  <text x="72" y="1212" fill="#b0b8c3" font-size="13">En todas: covers vecinos más grandes, cover seleccionado ampliado y ninguna placa rectangular de foco.</text>
+  <text x="1528" y="1212" text-anchor="end" fill="#778290" font-size="12">ESTANTE  ·  PROPUESTAS DE INTERFAZ</text>
+</svg>

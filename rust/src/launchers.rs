@@ -98,22 +98,93 @@ pub fn running_clients() -> std::io::Result<HashSet<&'static str>> {
         {
             running.insert("faugus");
         }
-        let heroic_main = names
-            .iter()
-            .any(|name| matches!(name.as_str(), "heroic" | "heroic.bin" | "heroic-launcher"))
-            || args.iter().take(2).any(|arg| {
-                Path::new(arg)
-                    .file_name()
-                    .is_some_and(|name| name == "app.asar")
-                    && Path::new(arg).parent().is_some_and(|parent| {
-                        parent.to_string_lossy().to_lowercase().contains("heroic")
-                    })
-            });
-        if !args.iter().any(|arg| arg.starts_with("--type=")) && heroic_main {
+        if is_heroic_main(&args) {
             running.insert("heroic");
         }
     }
     Ok(running)
+}
+
+fn is_heroic_main(args: &[String]) -> bool {
+    !args.iter().any(|arg| arg.starts_with("--type="))
+        && args.iter().take(2).any(|arg| {
+            let path = Path::new(arg);
+            let name = path
+                .file_name()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .to_lowercase();
+            matches!(name.as_str(), "heroic" | "heroic.bin" | "heroic-launcher")
+                || (name == "app.asar"
+                    && path
+                        .parent()
+                        .is_some_and(|dir| dir.to_string_lossy().to_lowercase().contains("heroic")))
+        })
+}
+
+fn close_heroic() -> std::io::Result<()> {
+    use rustix::process::{Pid, PidfdFlags, Signal, getuid, pidfd_open, pidfd_send_signal};
+    use std::os::unix::fs::MetadataExt;
+    let owner = getuid().as_raw();
+    let mine = |path: &Path| {
+        path.metadata()
+            .is_ok_and(|metadata| metadata.uid() == owner)
+    };
+    let mut candidates = Vec::new();
+    for entry in fs::read_dir("/proc")? {
+        let path = entry?.path();
+        let Some(pid) = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .and_then(|s| s.parse::<i32>().ok())
+            .and_then(Pid::from_raw)
+        else {
+            continue;
+        };
+        if !mine(&path) {
+            continue;
+        }
+        if fs::read(path.join("environ"))
+            .unwrap_or_default()
+            .split(|b| *b == 0)
+            .any(|v| {
+                v.strip_prefix(b"HEROIC_APP_NAME=")
+                    .is_some_and(|name| !name.is_empty())
+            })
+        {
+            return Err(std::io::Error::other(
+                "Heroic tiene una partida activa; se mantiene abierto.",
+            ));
+        }
+        candidates.push((pid, path));
+    }
+    let heroic = |path: &Path| {
+        fs::read(path.join("cmdline")).is_ok_and(|data| {
+            let args = data
+                .split(|b| *b == 0)
+                .map(|s| String::from_utf8_lossy(s).into_owned())
+                .collect::<Vec<_>>();
+            is_heroic_main(&args)
+        })
+    };
+    for (pid, path) in candidates {
+        if !heroic(&path) {
+            continue;
+        }
+        let fd = match pidfd_open(pid, PidfdFlags::empty()) {
+            Ok(fd) => fd,
+            Err(rustix::io::Errno::SRCH) => continue,
+            Err(error) => return Err(error.into()),
+        };
+        // Recheck identity after opening the pidfd so PID reuse cannot redirect the signal.
+        if mine(&path) && heroic(&path) {
+            match pidfd_send_signal(&fd, Signal::TERM) {
+                Ok(()) | Err(rustix::io::Errno::SRCH) => (),
+                Err(error) => return Err(error.into()),
+            }
+        }
+    }
+    Ok(())
 }
 
 fn uid(metadata: &fs::Metadata) -> Option<u32> {
@@ -138,7 +209,7 @@ pub fn operate(client: &str, opening: bool) -> Result<(), String> {
     match *key {
         "steam" => launch(executable, app_id, "-shutdown"),
         "faugus" => close_faugus(),
-        "heroic" => Err("Heroic no ofrece una acción de cierre segura desde Estante.".into()),
+        "heroic" => close_heroic().map_err(|error| error.to_string()),
         _ => Err("Lanzador no válido.".into()),
     }
 }
@@ -218,4 +289,25 @@ fn launch(executable: &str, app_id: &str, flag: &str) -> Result<(), String> {
         .spawn()
         .map(|_| ())
         .map_err(|error| error.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_heroic_main;
+
+    #[test]
+    fn heroic_close_targets_only_main_processes() {
+        for (args, expected) in [
+            (vec!["/opt/Heroic/heroic"], true),
+            (vec!["electron", "/opt/Heroic/app.asar"], true),
+            (vec!["heroic", "--type=renderer"], false),
+            (vec!["electron", "/opt/other/app.asar"], false),
+            (vec!["wine", "/games/HeroicAdventure.exe"], false),
+        ] {
+            assert_eq!(
+                is_heroic_main(&args.into_iter().map(String::from).collect::<Vec<_>>()),
+                expected
+            );
+        }
+    }
 }

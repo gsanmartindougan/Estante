@@ -11,7 +11,7 @@ installer = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(installer)
 files = [*installer.MODULES, *installer.DOCUMENTS, *installer.ASSETS, 'run.sh', 'run-qt.sh', 'install.sh', 'packaging/install.py',
          'packaging/build-appimage.py', 'packaging/qt_bundle.py', 'packaging/bwrap-appimage',
-         'packaging/io.github.estante.Launcher.desktop', 'packaging/io.github.estante.Launcher.svg', 'run-rust.sh']
+         'packaging/io.github.estante.Launcher.desktop', 'packaging/io.github.estante.Launcher.svg']
 files.extend(str(path.relative_to(root)) for path in sorted((root / 'rust').rglob('*'))
              if path.is_file() and 'target' not in path.parts)
 version = runpy.run_path(str(root / 'core/version.py'))['__version__']

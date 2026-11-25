@@ -125,9 +125,10 @@ Item {
             property real focusZoom: Math.max(1, (library.controller.settingsMap.list_focus_zoom || 150)/100)
             property real availableExtent: library.vertical ? height : width
             property real gap: 32
-            property real requestedExtent: (library.vertical ? 160 : 300)*(library.controller.settingsMap.list_zoom || 100)/100
+            property real requestedExtent: (library.vertical ? 180 : 340)*(library.controller.settingsMap.list_zoom || 100)/100
+            property real capacityRequestedExtent: (library.vertical ? 160 : 300)*(library.controller.settingsMap.list_zoom || 100)/100
             // Only the current game needs an enlarged slot. Neighbours retain their base size.
-            property int slots: Math.max(Math.min(library.count,5), 2*Math.floor(((availableExtent-(focusZoom-1)*requestedExtent)/(requestedExtent+gap)-1)/2)+1)
+            property int slots: Math.max(Math.min(library.count,5), 2*Math.floor(((availableExtent-(focusZoom-1)*capacityRequestedExtent)/(capacityRequestedExtent+gap)-1)/2)+1)
             pathItemCount: Math.min(library.count, slots)
             property int spanSlots: Math.max(1,pathItemCount+(pathItemCount%2 === 0 ? 1 : 0))
             property real normalExtent: Math.max(1,Math.min(requestedExtent,(availableExtent-gap*spanSlots)/(spanSlots-1+focusZoom)))
@@ -207,6 +208,7 @@ Item {
                 objectName: "listLogoTile"
                 width: loop.selectedWidth/(selected ? 1 : loop.focusZoom)
                 height: loop.selectedHeight/(selected ? 1 : loop.focusZoom)
+                listMode: true
                 logoMode: Boolean(modelData.logo)
                 z: index%library.count === library.controller.selected ? 2 : 1
                 imageSource: modelData.logo || modelData.squareCover || modelData.cover || ""
@@ -250,6 +252,7 @@ Item {
                 imageSource: library.appearance.format === "square" ? modelData.squareCover || modelData.cover : modelData.cover
                 selected: index === library.controller.selected
                 appearance: library.appearance
+                slightCorners: true
                 onChosen: { library.controller.select(index); library.forceActiveFocus() }
             }
         }

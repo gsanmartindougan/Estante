@@ -15,6 +15,56 @@ pub struct MetadataOption {
     pub description: String,
 }
 
+pub fn steam_search(title: &str) -> Result<Vec<MetadataOption>, String> {
+    if title.trim().is_empty() {
+        return Err("Escribe un título para buscar en Steam.".into());
+    }
+    let query = title.trim().bytes().fold(String::new(), |mut value, byte| {
+        if byte.is_ascii_alphanumeric() || b"-_.~".contains(&byte) {
+            value.push(byte as char);
+        } else {
+            use std::fmt::Write;
+            let _ = write!(value, "%{byte:02X}");
+        }
+        value
+    });
+    let output = Command::new("curl")
+        .args([
+            "--fail",
+            "--silent",
+            "--show-error",
+            "--location",
+            "--max-time",
+            "20",
+            "--proto",
+            "=https",
+        ])
+        .arg(format!(
+            "https://store.steampowered.com/api/storesearch/?term={query}&l=spanish&cc=ES"
+        ))
+        .output()
+        .map_err(|error| format!("No se pudo iniciar curl: {error}"))?;
+    if !output.status.success() {
+        return Err(String::from_utf8_lossy(&output.stderr).trim().to_owned());
+    }
+    let response: Value =
+        serde_json::from_slice(&output.stdout).map_err(|error| error.to_string())?;
+    let items = response["items"]
+        .as_array()
+        .ok_or("Steam no devolvió resultados.")?;
+    Ok(items
+        .iter()
+        .filter_map(|item| {
+            Some(MetadataOption {
+                id: item["id"].as_u64()?.to_string(),
+                name: item["name"].as_str()?.to_owned(),
+                description: item["type"].as_str().unwrap_or("Juego").to_owned(),
+            })
+        })
+        .take(30)
+        .collect())
+}
+
 pub fn steam(app_id: &str) -> Result<Map<String, Value>, String> {
     if app_id.is_empty() || !app_id.bytes().all(|byte| byte.is_ascii_digit()) {
         return Err("Identificador de Steam no válido.".into());
@@ -114,6 +164,14 @@ pub fn steam(app_id: &str) -> Result<Map<String, Value>, String> {
     Ok(metadata)
 }
 
+pub const ARTWORK_FIELDS: &[&str] = &[
+    "cover",
+    "square_cover",
+    "logo",
+    "banner",
+    "banner_secondary",
+];
+
 pub fn scrape_game(
     title: &str,
     current: &Map<String, Value>,
@@ -122,14 +180,9 @@ pub fn scrape_game(
     metadata_cache: &Path,
     replace: bool,
     language: &str,
+    fields: &[&str],
+    include_info: bool,
 ) -> (Map<String, Value>, Vec<String>) {
-    const ART: &[&str] = &[
-        "cover",
-        "square_cover",
-        "logo",
-        "banner",
-        "banner_secondary",
-    ];
     const INFO: &[&str] = &[
         "description",
         "developers",
@@ -140,7 +193,7 @@ pub fn scrape_game(
     ];
     let mut patch = Map::new();
     let mut errors = Vec::new();
-    let wanted = ART
+    let wanted = fields
         .iter()
         .copied()
         .filter(|field| {
@@ -169,10 +222,10 @@ pub fn scrape_game(
                 } else {
                     field
                 };
-                match crate::artwork::search_for_game(steamgriddb_key, identity, collection) {
+                match crate::artwork::search_for_game(steamgriddb_key, identity, collection, None) {
                     Ok(mut images) => {
                         if let Some(option) = images.drain(..).next() {
-                            match crate::artwork::download(&option, artwork_cache) {
+                            match crate::artwork::download(&option, artwork_cache, None) {
                                 Ok(path) => {
                                     patch.insert(field.into(), Value::String(path));
                                 }
@@ -183,7 +236,10 @@ pub fn scrape_game(
                     Err(error) => errors.push(error),
                 }
             }
-            if patch.keys().any(|key| ART.contains(&key.as_str())) {
+            if patch
+                .keys()
+                .any(|key| ARTWORK_FIELDS.contains(&key.as_str()))
+            {
                 patch.insert("steamgriddb_id".into(), Value::String(identity.into()));
             }
         }
@@ -197,7 +253,7 @@ pub fn scrape_game(
         .cloned()
         .unwrap_or_default();
     let needs_info = replace || INFO.iter().any(|field| empty(existing.get(*field)));
-    if needs_info {
+    if include_info && needs_info {
         let mut identity = existing
             .get("entity_id")
             .and_then(Value::as_str)

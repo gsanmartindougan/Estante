@@ -1,6 +1,6 @@
 # Estante
 
-Versión: **0.4.0**.
+Versión: **0.5.0**.
 
 [English documentation](README.en.md)
 
@@ -8,23 +8,21 @@ Una biblioteca de juegos para Linux, sencilla y nativa, inspirada en Cartridges.
 
 Estante lee la biblioteca de Faugus directamente: **no necesitas crear archivos `.desktop`**. Al jugar, Faugus se encarga del runner, el prefijo y los parámetros que ya tengas configurados.
 
-Interfaz principal para Linux con Python y Qt Quick/PySide6. La versión paralela en Rust/iced sigue en desarrollo: ejecútala con `./run-rust.sh` (release).
-Para instalarla desde el checkout usa `./install.sh rust` (requiere Cargo); después puedes abrirla con `estante`.
-Para depurar: `ESTANTE_DEBUG=1 ./run-rust.sh`.
-Su estado y las funciones que faltan están en [rust/README.md](rust/README.md).
+La interfaz principal para Linux está hecha con **Rust y Slint** y ofrece las vistas **Grid** y **Lista**. Ejecútala desde el checkout con `./run.sh` (requiere Cargo); para instalarla usa `./install.sh` y después puedes abrirla con `estante`.
+El frontend **Qt Quick/PySide6** queda disponible como versión legacy: ejecútalo explícitamente con `./run-qt.sh`.
+Consulta el [estado y las dependencias de Slint](rust/README.md) para más detalles.
 
-## Ejecutar la versión Qt
+## Ejecutar el frontend Qt legacy
 
 ```sh
 python3 -m venv .venv-qt
 .venv-qt/bin/pip install -r requirements/qt.txt
-./run.sh
+./run-qt.sh
 ```
 
-`./run.sh --games 100` usa una biblioteca temporal para pruebas.
+`./run-qt.sh --games 100` usa una biblioteca temporal para pruebas.
 
-Consulta [la guía Qt](qt_app/README.md) y [la validación de la migración](docs/migracion-qt-2026-10-24.md).
-Los vídeos de esta página muestran la interfaz Qt de 0.3.0.
+La [guía Qt](qt_app/README.md) y la [validación de la migración](docs/migracion-qt-2026-10-24.md) corresponden a ese frontend legacy. Los vídeos de esta página muestran **Estante 0.3.0 (Qt)**; sus modos Carousel y Sense no forman parte de la interfaz Slint.
 
 Consulta la [estructura del proyecto](docs/estructura-del-proyecto.md) para localizar código, recursos y herramientas.
 
@@ -34,7 +32,7 @@ Estante se ha desarrollado con ayuda de inteligencia artificial para generar y m
 
 La IA es una herramienta de desarrollo; la responsabilidad sobre los cambios y las versiones publicadas corresponde al responsable del proyecto. Esta revisión no garantiza la ausencia de errores: los problemas detectados pueden comunicarse mediante las incidencias del repositorio.
 
-## Funciones
+## Funciones del frontend Qt legacy (0.3)
 
 - Importación manual de Steam, Faugus, Heroic y RecompLauncher desde Ajustes, con categorías por origen.
 - Juegos locales con parámetros y directorio de trabajo personalizados.
@@ -47,9 +45,9 @@ La IA es una herramienta de desarrollo; la responsabilidad sobre los cambios y l
 - **Mientras juegas**, en Ajustes globales: mantener abierto, ocultar y restaurar, salvapantallas hasta terminar o minimizar a la bandeja. La bandeja permite recuperar la ventana con un clic; si no está disponible, Estante permanece visible.
 - Edición en paneles laterales superpuestos, sin desplazar la biblioteca.
 
-## Apariencias y vídeos
+## Apariencias y vídeos del frontend Qt legacy (0.3)
 
-Elige la distribución que prefieras sin cambiar tu biblioteca. Cada apariencia tiene sus propios ajustes de carátulas, selección y fondos. Los vídeos muestran **Estante 0.3.0 (Qt)**; haz clic en una vista previa para abrir su MP4.
+Estas capturas y descripciones corresponden a Qt 0.3; no describen las vistas actuales de Slint. Haz clic en una vista previa para abrir su MP4.
 
 ### Grid
 
@@ -113,8 +111,7 @@ https://github.com/user-attachments/assets/10eda9ba-affb-4b02-9602-236a06ff9ed0
 
 ## AppImage
 
-La versión AppImage para **Linux x86_64** incluye Python, Qt Quick/PySide6
-y SDL2. No necesita instalar esas bibliotecas ni ejecutar el instalador nativo.
+La versión AppImage para **Linux x86_64** distribuye el frontend principal Slint. No necesitas ejecutar el instalador nativo.
 
 ### Instalar con Gear Lever (recomendado)
 
@@ -122,7 +119,7 @@ Recomendamos [Gear Lever](https://github.com/mijorus/gearlever) para organizar e
 AppImage e integrar Estante en el menú de aplicaciones con su icono.
 
 1. Instala Gear Lever desde [Flathub](https://flathub.org/apps/it.mijorus.gearlever).
-2. Descarga `Estante-0.4.0-x86_64.AppImage`.
+2. Descarga `Estante-0.5.0-x86_64.AppImage`.
 3. Abre el archivo con Gear Lever y utiliza su opción de integración en el menú.
 4. Abre **Estante** desde el lanzador de tu escritorio.
 
@@ -137,12 +134,12 @@ flatpak install flathub it.mijorus.gearlever
 Si prefieres gestionar el archivo a mano:
 
 ```sh
-chmod +x Estante-0.4.0-x86_64.AppImage
-./Estante-0.4.0-x86_64.AppImage
+chmod +x Estante-0.5.0-x86_64.AppImage
+./Estante-0.5.0-x86_64.AppImage
 ```
 
 La versión aparece en el pie de la biblioteca y en **Ajustes → Globales**.
-También puedes consultarla con `./Estante-0.4.0-x86_64.AppImage --version`.
+También puedes consultarla con `./Estante-0.5.0-x86_64.AppImage --version`.
 
 Puedes mover el archivo a la carpeta que prefieras. Los datos siguen guardándose en
 la ubicación habitual de Estante. Faugus debe estar instalado aparte para ejecutar
@@ -154,7 +151,7 @@ El runtime necesita FUSE para montar el archivo. Si FUSE no está disponible, pu
 extraerlo y ejecutarlo sin montar:
 
 ```sh
-./Estante-0.4.0-x86_64.AppImage --appimage-extract
+./Estante-0.5.0-x86_64.AppImage --appimage-extract
 ./squashfs-root/AppRun
 ```
 
@@ -201,26 +198,19 @@ Puedes instalar Estante como aplicación, con icono en el menú, sin mantener ab
 la carpeta del proyecto. El instalador funciona en las distribuciones Linux que
 dispongan de las dependencias siguientes; no es un AppImage autocontenido.
 
-Requiere Linux, Python 3.10 o posterior, PySide6 y SDL2. Instala SDL2 con el
-gestor de paquetes de tu distribución (`SDL2` en Fedora, `sdl2` en Arch o
-`libsdl2-2.0-0` en Debian/Ubuntu). `sdl2-compat` también sirve cuando esté disponible.
+El instalador principal usa el binario Rust/Slint y necesita Cargo para compilarlo desde el checkout. Para ejecutar Qt legacy hacen falta Python 3.10 o posterior, PySide6 y SDL2.
 
 ### Instalar desde el paquete descargable
 
-Descomprime `Estante-0.4.0-linux.tar.gz` y crea el entorno Qt fuera de la carpeta
-extraída para poder borrar el instalador después:
+Descomprime `Estante-0.5.0-linux.tar.gz`, entra en la carpeta extraída y ejecuta:
 
 ```sh
-tar -xzf Estante-0.4.0-linux.tar.gz
+tar -xzf Estante-0.5.0-linux.tar.gz
 cd Estante
-python3 -m venv "$HOME/.local/share/estante-venv"
-"$HOME/.local/share/estante-venv/bin/pip" install -r requirements/qt.txt
-"$HOME/.local/share/estante-venv/bin/python" packaging/install.py --python "$HOME/.local/share/estante-venv/bin/python"
+./install.sh
 ```
 
-La instalación predeterminada es para tu usuario, en `~/.local`, sin `sudo`.
-Abre **Estante** desde el menú o ejecuta `~/.local/bin/estante`. Conserva el entorno
-`estante-venv`: contiene el intérprete y las dependencias de la aplicación.
+La instalación predeterminada es para tu usuario, en `~/.local`, sin `sudo`. Abre **Estante** desde el menú o ejecuta `~/.local/bin/estante`.
 ### Actualizar la instalación nativa
 
 Descarga y descomprime el nuevo paquete. Ejecuta `sh install.sh` para actualizar
@@ -258,6 +248,10 @@ cd Estante
 sh install.sh
 ```
 
+
+## Guía funcional del frontend Qt legacy (0.3)
+
+Las descripciones detalladas de funciones y controles que siguen documentan la versión Qt legacy; no son una lista de funciones de la interfaz Slint actual.
 
 ## Añadir juegos
 
@@ -454,7 +448,7 @@ Para generar el instalador nativo, sin incluir datos personales ni credenciales:
 python3 packaging/build-release.py
 ```
 
-El resultado es `dist/Estante-0.4.0-linux.tar.gz`. Generarlo no lo publica en GitHub.
+El resultado es `dist/Estante-0.5.0-linux.tar.gz`. Generarlo no lo publica en GitHub.
 El instalador también admite `--prefix` y `--destdir` para preparar paquetes de distribución.
 
 ### Construir el AppImage
@@ -462,17 +456,17 @@ El instalador también admite `--prefix` y `--destdir` para preparar paquetes de
 La versión se define en `core/version.py`; ambos constructores la incorporan al nombre
 del archivo generado.
 
-Con el entorno Qt/PySide6, SDL2, `ldd` y el AppImage de
-**appimage-builder** disponibles en la máquina de construcción:
+Con Cargo, `ldd` y el AppImage de **appimage-builder** disponibles en la máquina de construcción:
 
 ```sh
-.venv-qt/bin/python packaging/build-appimage.py --builder ~/Applications/appimagebuilder.appimage
+python3 packaging/build-appimage.py --builder ~/Applications/appimagebuilder.appimage
 ```
 
 El constructor usa el runtime Type 2 y `mksquashfs` incluidos en ese archivo para
-generar `dist/Estante-0.4.0-x86_64.AppImage` sin descargar herramientas adicionales.
-Incluye las dependencias locales y ejecuta `--self-test` antes de comprimir y después
-de extraer el resultado. No necesita Docker ni FUSE para construir.
+generar el AppImage Slint predeterminado, incluyendo sus dependencias locales. Usa
+`--frontend qt` para construir el AppImage Qt legacy. El constructor ejecuta
+`--self-test` antes de comprimir y después de extraer el resultado; no necesita
+Docker ni FUSE para construir.
 
 La carpeta temporal de trabajo se conserva en `dist/Estante.AppDir`. Antes de volver
 a construir, muévela o elimínala. Puedes indicar otra salida con `--output` o preparar
